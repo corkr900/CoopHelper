@@ -8,16 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Data {
-	public class DataSessionJoinResponse : DataType<DataSessionJoinRequest> {
+	public class DataSessionJoinFinalize : DataType<DataSessionJoinRequest> {
 		public DataPlayerInfo player;
-
-		public PlayerID senderID;
 		public CoopSessionID sessionID;
-		public bool response;
+		public PlayerID[] sessionPlayers = new PlayerID[0];
 
-		public DataSessionJoinResponse() {
-			senderID = PlayerID.MyID;
-			DataID = "corkr900CoopHelper_JoinResponse_" + CoopHelperModule.ProtocolVersion;
+		public DataSessionJoinFinalize() {
+			DataID = "corkr900CoopHelper_JoinConfirmation_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
@@ -31,15 +28,21 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
-			senderID = reader.ReadPlayerID();
 			sessionID = reader.ReadSessionID();
-			response = reader.ReadBoolean();
+			int numPlayers = reader.ReadInt32();
+			sessionPlayers = new PlayerID[numPlayers];
+			for (int i = 0; i < numPlayers; i++) {
+				sessionPlayers[i] = reader.ReadPlayerID();
+			}
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
-			writer.Write(senderID);
 			writer.Write(sessionID);
-			writer.Write(response);
+			int numPlayers = sessionPlayers?.Length ?? 0;
+			writer.Write(numPlayers);
+			for (int i = 0; i < numPlayers; i++) {
+				writer.Write(sessionPlayers[i]);
+			}
 		}
 	}
 }

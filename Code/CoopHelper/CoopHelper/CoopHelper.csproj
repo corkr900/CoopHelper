@@ -82,8 +82,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\DataSessionJoinAvailable.cs" />
     <Compile Include="Module\CoopHelperModule.cs" />
-    <Compile Include="Data\DataSessionJoinConfirmation.cs" />
+    <Compile Include="Data\DataSessionJoinFinalize.cs" />
     <Compile Include="Data\DataSessionJoinRequest.cs" />
     <Compile Include="Data\DataSessionJoinResponse.cs" />
     <Compile Include="Entities\ISynchronizable.cs" />

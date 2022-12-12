@@ -23,14 +23,17 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public delegate void OnDisonnectedHandler(CelesteNetConnection con);
 		public static event OnDisonnectedHandler OnDisconnected;
 
+		public delegate void OnReceiveSessionJoinAvailableHandler(DataSessionJoinAvailable data);
+		public static event OnReceiveSessionJoinAvailableHandler OnReceiveSessionJoinAvailable;
+
 		public delegate void OnReceiveSessionJoinRequestHandler(DataSessionJoinRequest data);
 		public static event OnReceiveSessionJoinRequestHandler OnReceiveSessionJoinRequest;
 
 		public delegate void OnReceiveSessionJoinResponseHandler(DataSessionJoinResponse data);
 		public static event OnReceiveSessionJoinResponseHandler OnReceiveSessionJoinResponse;
 
-		public delegate void OnReceiveSessionJoinConfirmationHandler(DataSessionJoinConfirmation data);
-		public static event OnReceiveSessionJoinConfirmationHandler OnReceiveSessionJoinConfirmation;
+		public delegate void OnReceiveSessionJoinFinalizeHandler(DataSessionJoinFinalize data);
+		public static event OnReceiveSessionJoinFinalizeHandler OnReceiveSessionJoinFinalize;
 
 		#endregion
 
@@ -119,6 +122,11 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		#region Message Handlers
 
+		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
+			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
+			updateQueue.Enqueue(() => OnReceiveSessionJoinAvailable?.Invoke(data));
+		}
+
 		public void Handle(CelesteNetConnection con, DataSessionJoinRequest data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinRequest?.Invoke(data));
@@ -129,9 +137,9 @@ namespace Celeste.Mod.CoopHelper.IO {
 			updateQueue.Enqueue(() => OnReceiveSessionJoinResponse?.Invoke(data));
 		}
 
-		public void Handle(CelesteNetConnection con, DataSessionJoinConfirmation data) {
+		public void Handle(CelesteNetConnection con, DataSessionJoinFinalize data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
-			updateQueue.Enqueue(() => OnReceiveSessionJoinConfirmation?.Invoke(data));
+			updateQueue.Enqueue(() => OnReceiveSessionJoinFinalize?.Invoke(data));
 		}
 
 		#endregion

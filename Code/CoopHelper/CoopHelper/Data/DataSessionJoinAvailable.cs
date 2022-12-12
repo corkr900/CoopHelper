@@ -8,13 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Data {
-	public class DataSessionJoinConfirmation : DataType<DataSessionJoinRequest> {
+	public class DataSessionJoinAvailable : DataType<DataSessionJoinAvailable> {
 		public DataPlayerInfo player;
-		public PlayerID senderID;
 
-		public DataSessionJoinConfirmation() {
+		public PlayerID senderID;
+		public bool newAvailability;
+
+		public DataSessionJoinAvailable() {
 			senderID = PlayerID.MyID;
-			DataID = "corkr900CoopHelper_JoinConfirmation_" + CoopHelperModule.ProtocolVersion;
+			DataID = "corkr900CoopHelper_JoinAvailable_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
@@ -29,10 +31,12 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		protected override void Read(CelesteNetBinaryReader reader) {
 			senderID = reader.ReadPlayerID();
+			newAvailability = reader.ReadBoolean();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
+			writer.Write(newAvailability);
 		}
 	}
 }
