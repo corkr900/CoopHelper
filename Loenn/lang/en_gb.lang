@@ -1,0 +1,5 @@
+# Overall
+mods.CoopHelper.name=Co-op Helper
+
+# Session Picker
+entities.corkr900/CoopHelper/SessionPicker.placements.name.default=Session Picker [Co-op Helper]

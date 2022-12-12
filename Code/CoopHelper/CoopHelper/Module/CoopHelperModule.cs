@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.CoopHelper.IO;
+using Celeste.Mod.CoopHelper.Module;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +33,9 @@ namespace Celeste.Mod.CoopHelper {
 		public static CoopHelperModuleSaveData SaveData => (CoopHelperModuleSaveData)Instance._SaveData;
 		public override Type SessionType => typeof(CoopHelperModuleSession);
 		public static CoopHelperModuleSession Session => (CoopHelperModuleSession)Instance._Session;
+
+		private CNetComm Comm;
+
 		public CoopHelperModule() {
 			Instance = this;
 		}
@@ -39,7 +45,7 @@ namespace Celeste.Mod.CoopHelper {
 		#region Startup
 
 		public override void Load() {
-
+			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
 		}
 
 		public override void Unload() {
@@ -47,17 +53,5 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		#endregion
-	}
-
-	public class CoopHelperModuleSettings : EverestModuleSettings {
-
-	}
-
-	public class CoopHelperModuleSaveData : EverestModuleSaveData {
-
-	}
-
-	public class CoopHelperModuleSession : EverestModuleSession {
-
 	}
 }

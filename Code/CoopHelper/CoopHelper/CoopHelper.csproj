@@ -7,7 +7,7 @@
     <ProjectGuid>{7CCE11EC-96D6-49EE-9F4A-7081CAB0E3BD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CoopHelper</RootNamespace>
+    <RootNamespace>Celeste.Mod.CoopHelper</RootNamespace>
     <AssemblyName>CoopHelper</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -82,11 +82,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoopHelperModule.cs" />
+    <Compile Include="Module\CoopHelperModule.cs" />
+    <Compile Include="Data\DataSessionJoinConfirmation.cs" />
+    <Compile Include="Data\DataSessionJoinRequest.cs" />
+    <Compile Include="Data\DataSessionJoinResponse.cs" />
+    <Compile Include="Entities\ISynchronizable.cs" />
+    <Compile Include="Entities\SessionPickerEntity.cs" />
+    <Compile Include="Entities\SessionPickerHUD.cs" />
+    <Compile Include="Infrastructure\CoopGameComponent.cs" />
+    <Compile Include="Infrastructure\CoopSessionID.cs" />
+    <Compile Include="Infrastructure\GlobalAreaKey.cs" />
+    <Compile Include="Infrastructure\PlayerID.cs" />
+    <Compile Include="Infrastructure\SyncTime.cs" />
+    <Compile Include="Infrastructure\Util.cs" />
+    <Compile Include="IO\CNetComm.cs" />
+    <Compile Include="Module\CoopHelperModuleSaveData.cs" />
+    <Compile Include="Module\CoopHelperModuleSession.cs" />
+    <Compile Include="Module\CoopHelperModuleSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Entities\" />
+    <Content Include="..\..\..\Dialog\English.txt">
+      <Link>English.txt</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
+      <Link>Entity Plugins\SessionPicker.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\lang\en_gb.lang">
+      <Link>Entity Plugins\en_gb.lang</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

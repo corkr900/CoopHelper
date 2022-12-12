@@ -1,0 +1,10 @@
+
+corkr900_CoopHelper_Setting_TimeServer= Time Server
+#corkr900_CoopHelper_Setting_TimeServer_Subtext= 
+
+corkr900_CoopHelper_Setting_DisplayName= Display Name
+#corkr900_CoopHelper_Setting_DisplayName_Subtext=
+
+corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
+corkr900_CoopHelper_SessionPickerCurrentTitle= Players in Session
+corkr900_CoopHelper_SessionPickerAvailableTitle= Players Available
