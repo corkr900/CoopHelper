@@ -22,12 +22,12 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
 
-		public override MetaType[] GenerateMeta(DataContext ctx) {
-			return (MetaType[])(base.GenerateMeta(ctx).Concat(new MetaType[] { new MetaPlayerPrivateState() }));
-		}
-
 		public override void FixupMeta(DataContext ctx) {
 			player = Get<MetaPlayerPrivateState>(ctx);
+		}
+
+		public override MetaType[] GenerateMeta(DataContext ctx) {
+			return new MetaType[] { new MetaPlayerPrivateState(player) };
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
