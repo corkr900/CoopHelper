@@ -13,6 +13,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public PlayerID senderID;
 		public CoopSessionID sessionID;
+		public PlayerID targetID;
 
 		public DataSessionJoinRequest() {
 			senderID = PlayerID.MyID;
@@ -32,11 +33,13 @@ namespace Celeste.Mod.CoopHelper.Data {
 		protected override void Read(CelesteNetBinaryReader reader) {
 			senderID = reader.ReadPlayerID();
 			sessionID = reader.ReadSessionID();
+			targetID = reader.ReadPlayerID();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
 			writer.Write(sessionID);
+			writer.Write(targetID);
 		}
 	}
 }

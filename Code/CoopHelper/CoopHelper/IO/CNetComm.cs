@@ -116,6 +116,20 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		#endregion
 
+		internal void Send<T>(T data, bool sendToSelf) where T : DataType<T> {
+			if (!CanSendMessages) {
+				return;
+			}
+			try {
+				if (sendToSelf) CnetClient.SendAndHandle(data);
+				else CnetClient.Send(data);
+			}
+			catch(Exception e) {
+				// a well-timed connection blorp might theoretically get us here
+				// but we can ignore it because the connection already blorped
+			}
+		}
+
 		internal void Tick() {
 			// TODO link up ticking
 		}

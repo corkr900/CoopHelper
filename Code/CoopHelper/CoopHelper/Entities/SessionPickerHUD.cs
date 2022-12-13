@@ -62,6 +62,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CNetComm.OnReceiveSessionJoinFinalize += OnFinalize;
 
 			sessionID = CoopSessionID.GetNewID();
+
+			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
+				newAvailability = true,
+			}, false);
 		}
 
 		public override void Removed(Scene scene) {
@@ -75,13 +79,26 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void OnAvailable(DataSessionJoinAvailable data) {
 			SetState(data.senderID, data.newAvailability ? RequestState.Available : RequestState.Left);
+			if (data.senderID.Equals(sessionID.creator)) {
+				sessionID = CoopSessionID.GetNewID();
+			}
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
+			if (!data.targetID.Equals(PlayerID.MyID)) return;
 			if (JoinedPlayers == 0 && PendingInvites == 0 && !data.sessionID.creator.Equals(PlayerID.MyID)) {
 				sessionID = data.sessionID;
+				CNetComm.Instance.Send(new DataSessionJoinResponse() {
+					sessionID = sessionID,
+					response = true,
+				}, false);
 			}
-			// TODO send response
+			else {
+				CNetComm.Instance.Send(new DataSessionJoinResponse() {
+					sessionID = sessionID,
+					response = false,
+				}, false);
+			}
 		}
 
 		private void OnResponse(DataSessionJoinResponse data) {
@@ -101,8 +118,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void CheckFinalize() {
-			if (JoinedPlayers == membersNeeded) {
-				// TODO
+			int joined = JoinedPlayers + 1;
+			if (joined == membersNeeded) {
+				PlayerID[] ids = new PlayerID[joined];
+				ids[0] = PlayerID.MyID;
+				int i = 0;
+				foreach (Tuple<PlayerID, RequestState> tup in availablePlayers) {
+					if (tup.Item2 == RequestState.Joined) {
+						ids[++i] = tup.Item1;
+					}
+				}
+				CNetComm.Instance.Send(new DataSessionJoinFinalize() {
+					sessionID = sessionID,
+					sessionPlayers = ids,
+				}, false);
+				onClose?.Invoke(new SessionPickerHUDCloseArgs());
 			}
 		}
 
@@ -128,26 +158,29 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			yPos += 100;
 
-			// In Session
-			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerCurrentTitle"),
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
-			yPos += 100;
-			foreach (PlayerID id in joined) {
-				ActiveFont.DrawOutline(id.Name,
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One*0.7f, Color.White, 1f, Color.Black);
-				yPos += 70;
-			}
-
-			// Available
+			// Player List
 			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
 				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 			yPos += 100;
 			foreach (Tuple<PlayerID,RequestState> kvp in availablePlayers) {
 				if (kvp.Item2 == RequestState.Joined) continue;
 				string display = kvp.Item1.Name;
-				if (kvp.Item2 == RequestState.Pending) display += " (Pending)";  // TODO do better
-				ActiveFont.DrawOutline(kvp.Item1.Name,
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.White, 1f, Color.Black);
+				Color color = Color.White;
+				// TODO do better
+				if (kvp.Item2 == RequestState.Pending) {
+					display += " (Pending)";
+					color = Color.Yellow;
+				}
+				if (kvp.Item2 == RequestState.Left) {
+					display += " (Left)";
+					color = Color.Gray;
+				}
+				if (kvp.Item2 == RequestState.Joined) {
+					display += " (Joined!)";
+					color = new Color(0.5f, 1f, 0.5f);
+				}
+
+				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.White, 1f, Color.Black);
 				yPos += 100;
 			}
 		}
@@ -158,12 +191,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// TODO
 
 			if (Input.MenuCancel.Pressed) {
+				CNetComm.Instance.Send(new DataSessionJoinAvailable() {
+					newAvailability = false,
+				}, false);
 				onClose?.Invoke(new SessionPickerHUDCloseArgs());
+				return;
 			}
-			if (Input.MenuConfirm.Pressed) {
+			if (CanSendRequests && Input.MenuConfirm.Pressed) {
 				if (hovered >= 0 && hovered < availablePlayers.Count && availablePlayers[hovered].Item2 == RequestState.Available) {
+					PlayerID target = availablePlayers[hovered].Item1;
 					Audio.Play("event:/ui/main/button_select");
-					// TODO send a response
+					SetState(target, RequestState.Pending);
+					CNetComm.Instance.Send(new DataSessionJoinRequest() {
+						sessionID = sessionID,
+						targetID = target,
+					}, false);
 				}
 				else Audio.Play("event:/ui/main/button_invalid");
 			}

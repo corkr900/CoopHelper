@@ -108,12 +108,16 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Ahorn\entities\SessionPicker.jl">
+      <Link>Entity Plugins\Ahorn\SessionPicker.jl</Link>
+    </None>
     <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
-      <Link>Entity Plugins\SessionPicker.lua</Link>
+      <Link>Entity Plugins\Loenn\SessionPicker.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\lang\en_gb.lang">
-      <Link>Entity Plugins\en_gb.lang</Link>
+      <Link>Entity Plugins\Loenn\en_gb.lang</Link>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

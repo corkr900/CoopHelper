@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Data {
-	public class DataSessionJoinFinalize : DataType<DataSessionJoinRequest> {
+	public class DataSessionJoinFinalize : DataType<DataSessionJoinFinalize> {
 		public DataPlayerInfo player;
 		public CoopSessionID sessionID;
 		public PlayerID[] sessionPlayers = new PlayerID[0];
