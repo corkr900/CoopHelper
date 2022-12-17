@@ -13,8 +13,11 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public CoopSessionID sessionID;
 		public PlayerID[] sessionPlayers = new PlayerID[0];
 
-		public DataSessionJoinFinalize() {
+		static DataSessionJoinFinalize() {
 			DataID = "corkr900CoopHelper_JoinConfirmation_" + CoopHelperModule.ProtocolVersion;
+		}
+
+		public DataSessionJoinFinalize() {
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }

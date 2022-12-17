@@ -15,9 +15,12 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public CoopSessionID sessionID;
 		public bool response;
 
+		static DataSessionJoinResponse() {
+			DataID = "corkr900CoopHelper_JoinResponse_" + CoopHelperModule.ProtocolVersion;
+		}
+
 		public DataSessionJoinResponse() {
 			senderID = PlayerID.MyID;
-			DataID = "corkr900CoopHelper_JoinResponse_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }

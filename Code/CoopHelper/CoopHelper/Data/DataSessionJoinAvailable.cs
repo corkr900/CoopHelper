@@ -14,9 +14,12 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public PlayerID senderID;
 		public bool newAvailability;
 
+		static DataSessionJoinAvailable() {
+			DataID = "corkr900CoopHelper_JoinAvailable_" + CoopHelperModule.ProtocolVersion;
+		}
+
 		public DataSessionJoinAvailable() {
 			senderID = PlayerID.MyID;
-			DataID = "corkr900CoopHelper_JoinAvailable_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
