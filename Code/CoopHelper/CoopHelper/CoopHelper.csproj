@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
+    <Compile Include="Entities\SessionDebugHUD.cs" />
     <Compile Include="Module\CoopHelperModule.cs" />
     <Compile Include="Data\DataSessionJoinFinalize.cs" />
     <Compile Include="Data\DataSessionJoinRequest.cs" />

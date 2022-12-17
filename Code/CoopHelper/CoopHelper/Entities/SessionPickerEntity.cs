@@ -18,7 +18,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private Player player;
 
 
-		public SessionPickerEntity(EntityData data, Vector2 offset) {
+		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
 			Add(sprite = GFX.SpriteBank.Create("corkr900_CoopHelper_SessionPicker"));
 			sprite.Play("idle");
@@ -28,6 +28,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				new Vector2(0, -16),
 				Open
 			) { PlayerMustBeFacing = false });
+
 		}
 
 		public void Open(Player player) {
@@ -37,6 +38,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			player.StateMachine.State = Player.StDummy;
 			this.player = player;
 			Audio.Play("event:/ui/game/pause");
+
+			Scene.Add(new SessionDebugHUD());
 		}
 
 		public void Close(SessionPickerHUDCloseArgs args) {

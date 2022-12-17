@@ -2,6 +2,7 @@
 using Celeste.Mod.CoopHelper.Data;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
+using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -114,7 +115,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnFinalize(DataSessionJoinFinalize data) {
-			// TODO
+			DoFinalize(data.sessionID, data.sessionPlayers);
 		}
 
 		private void CheckFinalize() {
@@ -132,12 +133,32 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					sessionID = sessionID,
 					sessionPlayers = ids,
 				}, false);
-				onClose?.Invoke(new SessionPickerHUDCloseArgs());
+				DoFinalize(sessionID, ids);
 			}
 		}
 
+		private void DoFinalize(CoopSessionID id, PlayerID[] players) {
+			CoopHelperModuleSession ses = CoopHelperModule.Session;
+			if (ses == null) return;
+
+			int myRole = -1;
+			for (int i = 0; i < players.Length; i++) {
+				if (players[i].Equals(PlayerID.MyID)) {
+					myRole = i;
+				}
+			}
+			if (myRole < 0) return;  // I'm not in this
+
+			ses.IsInCoopSession = true;
+			ses.SessionID = id;
+			ses.SessionRole = myRole;
+			ses.SessionMembers = new List<PlayerID>(players);
+
+			onClose?.Invoke(new SessionPickerHUDCloseArgs());
+		}
+
 		public override void Render() {
-			base.Update();
+			base.Render();
 
 			float yPos = 100;
 			List<PlayerID> joined = new List<PlayerID>();

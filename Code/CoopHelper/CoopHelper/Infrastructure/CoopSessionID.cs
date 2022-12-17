@@ -35,6 +35,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			if (l == null || r == null) return false;
 			return l.Equals(r);
 		}
+
+		public override string ToString() {
+			return (creator.GetHashCode() + creationInstant.GetHashCode() + idcounter.GetHashCode()).ToString();
+		}
 	}
 
 	public static class CoopSessionIDExt {
