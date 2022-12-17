@@ -138,22 +138,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void DoFinalize(CoopSessionID id, PlayerID[] players) {
-			CoopHelperModuleSession ses = CoopHelperModule.Session;
-			if (ses == null) return;
-
-			int myRole = -1;
-			for (int i = 0; i < players.Length; i++) {
-				if (players[i].Equals(PlayerID.MyID)) {
-					myRole = i;
-				}
-			}
-			if (myRole < 0) return;  // I'm not in this
-
-			ses.IsInCoopSession = true;
-			ses.SessionID = id;
-			ses.SessionRole = myRole;
-			ses.SessionMembers = new List<PlayerID>(players);
-
+			CoopHelperModule.Instance.ChangeSessionInfo(id, players);
 			onClose?.Invoke(new SessionPickerHUDCloseArgs());
 		}
 

@@ -84,6 +84,8 @@
   <ItemGroup>
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
     <Compile Include="Entities\SessionDebugHUD.cs" />
+    <Compile Include="Entities\SessionGate.cs" />
+    <Compile Include="IO\Commands.cs" />
     <Compile Include="Module\CoopHelperModule.cs" />
     <Compile Include="Data\DataSessionJoinFinalize.cs" />
     <Compile Include="Data\DataSessionJoinRequest.cs" />
@@ -111,6 +113,9 @@
   <ItemGroup>
     <None Include="..\..\..\Ahorn\entities\SessionPicker.jl">
       <Link>Entity Plugins\Ahorn\SessionPicker.jl</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SessionGate.lua">
+      <Link>Entity Plugins\Loenn\SessionGate.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
       <Link>Entity Plugins\Loenn\SessionPicker.lua</Link>

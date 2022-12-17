@@ -53,5 +53,31 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		#endregion
+
+		public delegate void OnSessionInfoChangedHandler();
+		public static event OnSessionInfoChangedHandler OnSessionInfoChanged;
+
+		public static void NotifySessionChanged() {
+			OnSessionInfoChanged?.Invoke();
+		}
+
+		public void ChangeSessionInfo(CoopSessionID id, PlayerID[] players) {
+			if (Session == null) return;
+
+			int myRole = -1;
+			for (int i = 0; i < players.Length; i++) {
+				if (players[i].Equals(PlayerID.MyID)) {
+					myRole = i;
+				}
+			}
+			if (myRole < 0) return;  // I'm not in this one
+
+			Session.IsInCoopSession = true;
+			Session.SessionID = id;
+			Session.SessionRole = myRole;
+			Session.SessionMembers = new List<PlayerID>(players);
+
+			NotifySessionChanged();
+		}
 	}
 }
