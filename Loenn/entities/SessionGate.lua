@@ -15,7 +15,7 @@ for texture, _ in pairs(textures) do
     textureOptions[utils.titleCase(texture)] = texture
 end
 
-sessionGate.name = "corkr900/CoopHelper/SessionGate"
+sessionGate.name = "corkr900CoopHelper/SessionGate"
 sessionGate.depth = -9000
 sessionGate.canResize = {false, false}
 sessionGate.fieldInformation = {

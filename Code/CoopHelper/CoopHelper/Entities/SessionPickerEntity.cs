@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	[CustomEntity("corkr900/CoopHelper/SessionPicker")]
+	[CustomEntity("corkr900CoopHelper/SessionPicker")]
 	public class SessionPickerEntity : Entity {
 		private Sprite sprite;
 		private int PlayersNeeded = 2;

@@ -2,7 +2,7 @@ module corkr900CoopHelperEntityPicker
 
 using ..Ahorn, Maple
 
-@mapdef Entity "corkr900/CoopHelper/EntityPicker" EntityPicker(x::Integer, y::Integer)
+@mapdef Entity "corkr900CoopHelper/EntityPicker" EntityPicker(x::Integer, y::Integer)
 
 const placements = Ahorn.PlacementDict(
     "Entity Picker (Co-op Helper)" => Ahorn.EntityPlacement(

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	[CustomEntity("corkr900/CoopHelper/SessionGate")]
+	[CustomEntity("corkr900CoopHelper/SessionGate")]
 	class SessionGate : Solid {
 		public int requireRole = -1;
 		private Sprite sprite;

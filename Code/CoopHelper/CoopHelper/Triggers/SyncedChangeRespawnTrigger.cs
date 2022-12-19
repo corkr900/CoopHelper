@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Triggers {
-	[CustomEntity("corkr900/CoopHelper/SyncedChangeRespawnTrigger")]
+	[CustomEntity("corkr900CoopHelper/SyncedChangeRespawnTrigger")]
 	public class SyncedChangeRespawnTrigger : ChangeRespawnTrigger, ISynchronizable {
 		private EntityID id;
 		private Vector2 assignedState;

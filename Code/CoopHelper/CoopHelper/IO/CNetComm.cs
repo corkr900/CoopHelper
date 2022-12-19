@@ -37,6 +37,9 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public delegate void OnReceiveSessionJoinFinalizeHandler(DataSessionJoinFinalize data);
 		public static event OnReceiveSessionJoinFinalizeHandler OnReceiveSessionJoinFinalize;
 
+		public delegate void OnReceiveBundledEntityUpdateHandler(DataBundledEntityUpdate data);
+		public static event OnReceiveBundledEntityUpdateHandler OnReceiveBundledEntityUpdate;
+
 		#endregion
 
 		#region Current State Information
@@ -165,6 +168,12 @@ namespace Celeste.Mod.CoopHelper.IO {
 			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinFinalize>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinFinalize?.Invoke(data));
+		}
+
+		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
+			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinFinalize>).GetField("DataID").GetValue(data));
+			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
+			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
 		}
 
 		#endregion

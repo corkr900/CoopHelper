@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 
-	[CustomEntity("corkr900/CoopHelper/SyncedTempleGate")]
+	[CustomEntity("corkr900CoopHelper/SyncedTempleGate")]
 	public class SyncedTempleGate : Solid, ISynchronizable {
 
 		public SyncedTempleGate(EntityData data, Vector2 offset, string levelID)

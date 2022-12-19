@@ -1,6 +1,6 @@
 local SyncedChangeRespawn = {}
 
-SyncedChangeRespawn.name = "corkr900/CoopHelper/SyncedChangeRespawnTrigger"
+SyncedChangeRespawn.name = "corkr900CoopHelper/SyncedChangeRespawnTrigger"
 SyncedChangeRespawn.nodeLimits = {0, 1}
 SyncedChangeRespawn.placements = {
     name = "trigger",

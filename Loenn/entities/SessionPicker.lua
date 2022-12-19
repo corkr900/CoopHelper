@@ -1,7 +1,7 @@
 local utils = require("utils")
 
 local SessionPicker = {}
-SessionPicker.name = "corkr900/CoopHelper/SessionPicker"
+SessionPicker.name = "corkr900CoopHelper/SessionPicker"
 SessionPicker.depth = 0
 SessionPicker.placements = {
     {
