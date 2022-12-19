@@ -3,6 +3,7 @@ using Celeste.Mod.CelesteNet.Client;
 using Celeste.Mod.CelesteNet.Client.Components;
 using Celeste.Mod.CelesteNet.DataTypes;
 using Celeste.Mod.CoopHelper.Data;
+using Celeste.Mod.CoopHelper.Infrastructure;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -70,6 +71,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		private ConcurrentQueue<Action> updateQueue = new ConcurrentQueue<Action>();
+		public static ulong msgCount { get; private set; } = 0;
 
 		#endregion
 
@@ -125,6 +127,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 				if (sendToSelf) CnetClient.SendAndHandle(data);
 				else CnetClient.Send(data);
 				Engine.Commands.Log("Sent - " + typeof(DataType<T>).GetField("DataID").GetValue(data));
+				++msgCount;
 			}
 			catch(Exception e) {
 				// a well-timed connection blorp might theoretically get us here
@@ -133,7 +136,9 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		internal void Tick() {
-			// TODO link up ticking
+			if (EntityStateTracker.HasUpdates) {
+				Send(new DataBundledEntityUpdate(), false);
+			}
 		}
 
 		#region Message Handlers

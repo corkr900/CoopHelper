@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,13 +47,24 @@ namespace Celeste.Mod.CoopHelper {
 
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
+
+			EntityStateTracker.DoAnything();
+
+			Everest.Events.Player.OnDie += OnDie;
+			On.Celeste.Player.Die += OnPlayerDie;
 		}
 
 		public override void Unload() {
+			Celeste.Instance.Components.Remove(Comm);
+			Comm = null;
 
+			Everest.Events.Player.OnDie -= OnDie;
+			On.Celeste.Player.Die -= OnPlayerDie;
 		}
 
 		#endregion
+
+		#region Session Information
 
 		public delegate void OnSessionInfoChangedHandler();
 		public static event OnSessionInfoChangedHandler OnSessionInfoChanged;
@@ -79,5 +91,19 @@ namespace Celeste.Mod.CoopHelper {
 
 			NotifySessionChanged();
 		}
+
+		#endregion
+
+		#region Session-dependent behavior
+
+		private void OnDie(Player pl) {
+
+		}
+
+		private PlayerDeadBody OnPlayerDie(On.Celeste.Player.orig_Die orig, Player self, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats) {
+			return orig(self, direction, evenIfInvincible, registerDeathInStats);
+		}
+
+		#endregion
 	}
 }

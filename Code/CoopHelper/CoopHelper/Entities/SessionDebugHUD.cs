@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -10,7 +11,7 @@ using Monocle;
 namespace Celeste.Mod.CoopHelper.Entities {
 	public class SessionDebugHUD : Entity {
 		public SessionDebugHUD() {
-			Tag = Tags.HUD;
+			Tag = Tags.HUD | Tags.Persistent;
 		}
 
 		public override void Render() {
@@ -29,6 +30,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			y += 24;
 			ActiveFont.DrawOutline(string.Format("Session ID: {0}", ses.SessionID),
 				Vector2.UnitY * y, Vector2.Zero, Vector2.One/2f, Color.White, 1f, Color.Black);
+			y += 24;
+			ActiveFont.DrawOutline(string.Format("Packets Sent: {0}", CNetComm.msgCount),
+				Vector2.UnitY * y, Vector2.Zero, Vector2.One / 2f, Color.White, 1f, Color.Black);
 		}
 	}
 }

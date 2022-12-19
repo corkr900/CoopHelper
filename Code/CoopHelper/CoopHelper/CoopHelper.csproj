@@ -82,9 +82,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\DataBundledEntityUpdate.cs" />
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
     <Compile Include="Entities\SessionDebugHUD.cs" />
     <Compile Include="Entities\SessionGate.cs" />
+    <Compile Include="Entities\SyncedTempleGate.cs" />
+    <Compile Include="Infrastructure\EntityStateTracker.cs" />
+    <Compile Include="Infrastructure\PlayerState.cs" />
     <Compile Include="IO\Commands.cs" />
     <Compile Include="Module\CoopHelperModule.cs" />
     <Compile Include="Data\DataSessionJoinFinalize.cs" />
@@ -104,6 +108,7 @@
     <Compile Include="Module\CoopHelperModuleSession.cs" />
     <Compile Include="Module\CoopHelperModuleSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Triggers\SyncedChangeRespawnTrigger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\Dialog\English.txt">
@@ -115,13 +120,16 @@
       <Link>Entity Plugins\Ahorn\SessionPicker.jl</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionGate.lua">
-      <Link>Entity Plugins\Loenn\SessionGate.lua</Link>
+      <Link>Entity Plugins\Loenn\entities\SessionGate.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
-      <Link>Entity Plugins\Loenn\SessionPicker.lua</Link>
+      <Link>Entity Plugins\Loenn\entities\SessionPicker.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\lang\en_gb.lang">
       <Link>Entity Plugins\Loenn\en_gb.lang</Link>
+    </None>
+    <None Include="..\..\..\Loenn\triggers\SyncedChangeRespawn.lua">
+      <Link>Entity Plugins\Loenn\triggers\SyncedChangeRespawn.lua</Link>
     </None>
   </ItemGroup>
   <ItemGroup />

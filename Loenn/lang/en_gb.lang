@@ -3,6 +3,11 @@ mods.CoopHelper.name=Co-op Helper
 
 # Session Picker
 entities.corkr900/CoopHelper/SessionPicker.placements.name.default=Session Picker [Co-op Helper]
+
+# Session Gate
 entities.corkr900/CoopHelper/SessionGate.placements.name.default=Session Gate [Co-op Helper]
 entities.corkr900/CoopHelper/SessionGate.attributes.description.sprite=Changes the visual appearance of the gate.
 entities.corkr900/CoopHelper/SessionGate.attributes.description.requiredRole=Changes the visual appearance of the gate.
+
+# Synced Change Respawn
+triggers.corkr900/CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn [Co-op Helper]
