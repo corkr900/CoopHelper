@@ -111,7 +111,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						incoming.Remove(node);
 					}
 					else {
-						// TODO queue up entity updates when player isn't listening for them
+						// TODO prevent incoming updates from sitting unprocessed for too long
 					}
 					node = next;
 				}
