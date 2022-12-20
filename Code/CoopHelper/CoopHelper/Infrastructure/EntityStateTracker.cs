@@ -90,7 +90,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void ReceiveUpdates(CelesteNetBinaryReader r) {
-			lock (incomingLock) {
+			lock (incoming) {
 				do {
 					int header = r.ReadInt32();
 					if (header == 0) break;
@@ -102,7 +102,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void FlushIncoming() {
-			lock (incomingLock) {
+			lock (incoming) {
 				LinkedListNode<Tuple<EntityID, object>> node = incoming.First;
 				while (node != null) {
 					LinkedListNode<Tuple<EntityID, object>> next = node.Next;
