@@ -100,6 +100,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		private void OnCNetClientContextStart(CelesteNetClientContext cxt) {
 			CnetClient.Data.RegisterHandlersIn(this);
 			CnetClient.Con.OnDisconnect += OnDisconnect;
+			CnetClient.Con.OnReceiveFilter += OnReceiveFilter;
 			updateQueue.Enqueue(() => OnConnected?.Invoke(cxt));
 		}
 
@@ -119,10 +120,17 @@ namespace Celeste.Mod.CoopHelper.IO {
 			base.Update(gameTime);
 		}
 
+		private bool OnReceiveFilter(CelesteNetConnection con, DataType data) {
+			if (data is DataBundledEntityUpdate upd) {
+				return CoopHelperModule.Session.IsInCoopSession
+					&& CoopHelperModule.Session.SessionID == upd.SessionID;
+			}
+			return true;
+		}
 
-		#endregion
+	#endregion
 
-		internal void Send<T>(T data, bool sendToSelf) where T : DataType<T> {
+	internal void Send<T>(T data, bool sendToSelf) where T : DataType<T> {
 			if (!CanSendMessages) {
 				return;
 			}
@@ -139,9 +147,10 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		internal void Tick() {
-			if (EntityStateTracker.HasUpdates) {
+			if (CoopHelperModule.Session.IsInCoopSession && EntityStateTracker.HasUpdates) {
 				Send(new DataBundledEntityUpdate(), false);
 			}
+			EntityStateTracker.FlushIncoming();
 		}
 
 		#region Message Handlers
@@ -171,7 +180,8 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinFinalize>).GetField("DataID").GetValue(data));
+			if (!CoopHelperModule.Session.IsInCoopSession) return;
+			if (!CoopHelperModule.Session.IsInCoopSession) return;
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
 		}

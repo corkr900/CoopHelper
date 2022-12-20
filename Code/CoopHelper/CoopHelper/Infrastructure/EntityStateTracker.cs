@@ -11,11 +11,20 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public static class EntityStateTracker {
 		private static readonly long MaximumMessageSize = 3200;
-		private static Queue<ISynchronizable> outgoingUpdates = new Queue<ISynchronizable>();
+		private static Queue<ISynchronizable> outgoing = new Queue<ISynchronizable>();
 		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
 		private static Dictionary<int, MethodInfo> parsers = new Dictionary<int, MethodInfo>();
+		private static LinkedList<Tuple<EntityID, object>> incoming = new LinkedList<Tuple<EntityID, object>>();
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable CS0649 // Private never assigned to
+		/// <summary>
+		/// This is a dummy object that serves as a lock for safely accessing the incoming LinkedList
+		/// </summary>
+		private static object incomingLock;
+#pragma warning restore CS0649 // Private never assigned to
+#pragma warning restore IDE0044 // Add readonly modifier
 
-		public static bool HasUpdates { get { return outgoingUpdates.Count > 0; } }
+		public static bool HasUpdates { get { return outgoing.Count > 0; } }
 
 		static EntityStateTracker() {
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -65,14 +74,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public static void PostUpdate(ISynchronizable entity) {
-			if (!outgoingUpdates.Contains(entity, new SynchronizableComparer())) {
-				outgoingUpdates.Enqueue(entity);
+			if (!outgoing.Contains(entity, new SynchronizableComparer())) {
+				outgoing.Enqueue(entity);
 			}
 		}
 
-		internal static void FlushUpdates(CelesteNetBinaryWriter w) {
-			while (outgoingUpdates.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
-				ISynchronizable ob = outgoingUpdates.Dequeue();
+		internal static void FlushOutgoing(CelesteNetBinaryWriter w) {
+			while (outgoing.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
+				ISynchronizable ob = outgoing.Dequeue();
 				w.Write(GetHeader(ob));
 				w.Write(ob.GetID());
 				ob.WriteState(w);
@@ -81,18 +90,32 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void ReceiveUpdates(CelesteNetBinaryReader r) {
-			do {
-				int header = r.ReadInt32();
-				if (header == 0) break;
-				EntityID id = r.ReadEntityID();
-				object parsedState = parsers[header].Invoke(null, new object[] { r });
-				if (listeners.ContainsKey(id)) {
-					listeners[id].ApplyState(parsedState);
+			lock (incomingLock) {
+				do {
+					int header = r.ReadInt32();
+					if (header == 0) break;
+					EntityID id = r.ReadEntityID();
+					object parsedState = parsers[header].Invoke(null, new object[] { r });
+					incoming.AddLast(new Tuple<EntityID, object>(id, parsedState));
+				} while (true);
+			}
+		}
+
+		internal static void FlushIncoming() {
+			lock (incomingLock) {
+				LinkedListNode<Tuple<EntityID, object>> node = incoming.First;
+				while (node != null) {
+					LinkedListNode<Tuple<EntityID, object>> next = node.Next;
+					if (listeners.ContainsKey(node.Value.Item1)) {
+						listeners[node.Value.Item1].ApplyState(node.Value.Item2);
+						incoming.Remove(node);
+					}
+					else {
+						// TODO queue up entity updates when player isn't listening for them
+					}
+					node = next;
 				}
-				else {
-					// TODO queue up entity updates when player isn't listening for them
-				}
-			} while (true);
+			}
 		}
 
 		public static void Write(this CelesteNetBinaryWriter w, EntityID id) {

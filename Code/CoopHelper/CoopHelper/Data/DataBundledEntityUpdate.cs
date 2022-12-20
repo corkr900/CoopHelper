@@ -12,6 +12,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public DataPlayerInfo player;
 
 		public PlayerID senderID;
+		public CoopSessionID SessionID;
 
 		static DataBundledEntityUpdate() {
 			DataID = "corkr900CoopHelper_BundledEntityUpdate_" + CoopHelperModule.ProtocolVersion;
@@ -19,6 +20,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public DataBundledEntityUpdate() {
 			senderID = PlayerID.MyID;
+			SessionID = CoopHelperModule.Session.SessionID;
 		}
 
 		public override DataFlags DataFlags { get { return CelesteNet.DataTypes.DataFlags.None; } }
@@ -33,12 +35,14 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		protected override void Read(CelesteNetBinaryReader reader) {
 			senderID = reader.ReadPlayerID();
+			SessionID = reader.ReadSessionID();
 			EntityStateTracker.ReceiveUpdates(reader);
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
-			EntityStateTracker.FlushUpdates(writer);
+			writer.Write(SessionID);
+			EntityStateTracker.FlushOutgoing(writer);
 		}
 	}
 }
