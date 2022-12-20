@@ -36,8 +36,15 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		public static void DoAnything() {
-			int y = 1;
+		public static void AddListener(ISynchronizable ent) {
+			EntityID id = ent.GetID();
+			if (listeners.ContainsKey(id)) listeners[id] = ent;
+			else listeners.Add(id, ent);
+		}
+
+		public static void RemoveListener(ISynchronizable ent) {
+			EntityID id = ent.GetID();
+			if (listeners.ContainsKey(id)) listeners.Remove(id);
 		}
 
 		public static void RegisterType(int header, MethodInfo parser) {

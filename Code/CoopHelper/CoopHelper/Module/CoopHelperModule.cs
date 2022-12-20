@@ -48,8 +48,6 @@ namespace Celeste.Mod.CoopHelper {
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
 
-			EntityStateTracker.DoAnything();
-
 			Everest.Events.Player.OnDie += OnDie;
 			On.Celeste.Player.Die += OnPlayerDie;
 		}
