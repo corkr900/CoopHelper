@@ -9,20 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Infrastructure {
+	// TODO separate critical and noncritical updates
+	// TODO leave incoming updates buffered during death animation
 	public static class EntityStateTracker {
 		private static readonly long MaximumMessageSize = 3200;
+		private static readonly int MaximumBufferRetention = 100;
+
 		private static Queue<ISynchronizable> outgoing = new Queue<ISynchronizable>();
-		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
-		private static Dictionary<int, MethodInfo> parsers = new Dictionary<int, MethodInfo>();
 		private static LinkedList<Tuple<EntityID, object>> incoming = new LinkedList<Tuple<EntityID, object>>();
-#pragma warning disable IDE0044 // Add readonly modifier
-#pragma warning disable CS0649 // Private never assigned to
-		/// <summary>
-		/// This is a dummy object that serves as a lock for safely accessing the incoming LinkedList
-		/// </summary>
-		private static object incomingLock;
-#pragma warning restore CS0649 // Private never assigned to
-#pragma warning restore IDE0044 // Add readonly modifier
+		private static Dictionary<int, MethodInfo> parsers = new Dictionary<int, MethodInfo>();
+		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
 
 		public static bool HasUpdates { get { return outgoing.Count > 0; } }
 
@@ -110,10 +106,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						listeners[node.Value.Item1].ApplyState(node.Value.Item2);
 						incoming.Remove(node);
 					}
-					else {
-						// TODO prevent incoming updates from sitting unprocessed for too long
-					}
+					// TODO discard updates from rooms that nobody's in
 					node = next;
+				}
+				// Prevent the incoming buffer from growing indefinitely with updates noone's listening to
+				while (incoming.Count > MaximumBufferRetention) {
+					incoming.RemoveFirst();
 				}
 			}
 		}

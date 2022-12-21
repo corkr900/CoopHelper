@@ -84,8 +84,9 @@
   <ItemGroup>
     <Compile Include="Data\DataBundledEntityUpdate.cs" />
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
-    <Compile Include="Entities\SessionDebugHUD.cs" />
+    <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\SessionGate.cs" />
+    <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Entities\SyncedTempleGate.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
     <Compile Include="Infrastructure\PlayerState.cs" />
@@ -94,9 +95,9 @@
     <Compile Include="Data\DataSessionJoinFinalize.cs" />
     <Compile Include="Data\DataSessionJoinRequest.cs" />
     <Compile Include="Data\DataSessionJoinResponse.cs" />
-    <Compile Include="Entities\ISynchronizable.cs" />
+    <Compile Include="Entities\Helper\ISynchronizable.cs" />
     <Compile Include="Entities\SessionPickerEntity.cs" />
-    <Compile Include="Entities\SessionPickerHUD.cs" />
+    <Compile Include="Entities\Helper\SessionPickerHUD.cs" />
     <Compile Include="Infrastructure\CoopGameComponent.cs" />
     <Compile Include="Infrastructure\CoopSessionID.cs" />
     <Compile Include="Infrastructure\GlobalAreaKey.cs" />
@@ -124,6 +125,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
       <Link>Entity Plugins\Loenn\entities\SessionPicker.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedDashSwitch.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedDashSwitch.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\lang\en_gb.lang">
       <Link>Entity Plugins\Loenn\en_gb.lang</Link>
