@@ -19,8 +19,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public override void OnStaticMoverTrigger(StaticMover sm) {
+			bool before = Triggered;
 			base.OnStaticMoverTrigger(sm);
-			if (Triggered) {
+			if (Triggered && !before) {
 				EntityStateTracker.PostUpdate(this);
 			}
 		}

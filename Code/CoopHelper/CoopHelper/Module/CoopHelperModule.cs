@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Entities;
+using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
@@ -56,6 +57,7 @@ namespace Celeste.Mod.CoopHelper {
 
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
@@ -69,6 +71,7 @@ namespace Celeste.Mod.CoopHelper {
 
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
@@ -156,6 +159,15 @@ namespace Celeste.Mod.CoopHelper {
 				PlayerState.Mine.RespawnPoint = s.RespawnPoint.Value;
 				PlayerState.Mine.SendUpdateImmediate();
 			}
+		}
+
+		private bool OnFallingBlockPlayerCheck(On.Celeste.FallingBlock.orig_PlayerFallCheck orig, FallingBlock self) {
+			bool res = orig(self);
+			if (res && !self.Triggered && self is SyncedFallingBlock sfb) {
+				self.Triggered = true;
+				EntityStateTracker.PostUpdate(sfb);
+			}
+			return res;
 		}
 
 		#endregion
