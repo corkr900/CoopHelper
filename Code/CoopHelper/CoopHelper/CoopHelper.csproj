@@ -89,6 +89,7 @@
     <Compile Include="Entities\SessionGate.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
+    <Compile Include="Infrastructure\DeathSynchronizer.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
     <Compile Include="Infrastructure\PlayerState.cs" />
     <Compile Include="IO\Commands.cs" />

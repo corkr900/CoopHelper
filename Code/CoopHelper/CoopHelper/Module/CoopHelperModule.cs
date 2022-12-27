@@ -54,11 +54,12 @@ namespace Celeste.Mod.CoopHelper {
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
 
-			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
+			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
+			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Player.OnDie += OnDie;
-			//Everest.Events.Level.OnEnter += onLevelEnter;
 			Everest.Events.Level.OnExit += onLevelExit;
 		}
 
@@ -66,11 +67,12 @@ namespace Celeste.Mod.CoopHelper {
 			Celeste.Instance.Components.Remove(Comm);
 			Comm = null;
 
-			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
+			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
+			Everest.Events.Player.OnSpawn -= OnSpawn;
 			Everest.Events.Player.OnDie -= OnDie;
-			//Everest.Events.Level.OnEnter -= onLevelEnter;
 			Everest.Events.Level.OnExit -= onLevelExit;
 		}
 
@@ -106,10 +108,16 @@ namespace Celeste.Mod.CoopHelper {
 
 		#endregion
 
-		#region Session-dependent behavior
+		#region Hooked Code + Event Handlers
+
+		private void OnSpawn(Player pl) {
+			if (pl.Get<DeathSynchronizer>() == null) {
+				pl.Add(new DeathSynchronizer(pl, true, false));
+			}
+		}
 
 		private void OnDie(Player pl) {
-
+			pl.Get<DeathSynchronizer>()?.PlayerDied();
 		}
 
 		private void OnPlayerTransition(On.Celeste.Player.orig_OnTransition orig, Player self) {
@@ -137,6 +145,15 @@ namespace Celeste.Mod.CoopHelper {
 				PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Session.Area);
 				PlayerState.Mine.CurrentRoom = self.Session.Level;
 				PlayerState.Mine.RespawnPoint = self.Session.RespawnPoint ?? Vector2.Zero;
+				PlayerState.Mine.SendUpdateImmediate();
+			}
+		}
+
+		private void OnChangeRespawnTriggerEnter(On.Celeste.ChangeRespawnTrigger.orig_OnEnter orig, ChangeRespawnTrigger self, Player player) {
+			orig(self, player);
+			Session s = player.SceneAs<Level>().Session;
+			if (s.RespawnPoint != null && s.RespawnPoint != PlayerState.Mine.RespawnPoint) {
+				PlayerState.Mine.RespawnPoint = s.RespawnPoint.Value;
 				PlayerState.Mine.SendUpdateImmediate();
 			}
 		}

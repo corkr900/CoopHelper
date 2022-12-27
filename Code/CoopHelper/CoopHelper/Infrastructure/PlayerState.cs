@@ -89,8 +89,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		#endregion
 
 		public DateTime LastUpdateReceived;
-		// TODO This doesn't get updated except at map enter + room changes...
-		// it should at LEAST work with synced triggers, probably vanilla too
 		public Vector2 RespawnPoint;
 		public GlobalAreaKey CurrentMap;
 		public string CurrentRoom;
