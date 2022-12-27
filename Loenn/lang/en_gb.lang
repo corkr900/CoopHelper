@@ -10,6 +10,9 @@ entities.corkr900CoopHelper/SessionGate.placements.name.default=Session Gate
 entities.corkr900CoopHelper/SessionGate.attributes.description.sprite=Changes the visual appearance of the gate.
 entities.corkr900CoopHelper/SessionGate.attributes.description.requiredRole=Role required to open the gate. Roles start at 0. Use -1 for any role.
 
+# Synced Touch Switch
+entities.corkr900CoopHelper/SyncedTouchSwitch.placements.name.default=Synced Touch Switch
+
 # Synced Dash Switch
 entities.corkr900CoopHelper/SyncedDashSwitch.placements.name.default=Synced Dash Switch
 

@@ -144,6 +144,9 @@
     <None Include="..\..\..\Loenn\entities\SyncedFallingBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedFallingBlock.lua</Link>
     </None>
+    <None Include="..\..\..\Loenn\entities\SyncedTouchSwitch.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedTouchSwitch.lua</Link>
+    </None>
     <None Include="..\..\..\Loenn\lang\en_gb.lang">
       <Link>Entity Plugins\Loenn\en_gb.lang</Link>
     </None>
