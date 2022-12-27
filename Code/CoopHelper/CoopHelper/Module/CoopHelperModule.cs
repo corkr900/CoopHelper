@@ -58,6 +58,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
+			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
@@ -72,6 +73,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
+			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
@@ -168,6 +170,18 @@ namespace Celeste.Mod.CoopHelper {
 				EntityStateTracker.PostUpdate(sfb);
 			}
 			return res;
+		}
+
+		private void OnCoreModeTogglePlayer(On.Celeste.CoreModeToggle.orig_OnPlayer orig, CoreModeToggle self, Player player) {
+			if (self is SyncedCoreModeToggle synced) {
+				Session.CoreModes before = self.SceneAs<Level>().CoreMode;
+				orig(self, player);
+				Session.CoreModes after = self.SceneAs<Level>().CoreMode;
+				if (after != before) {
+					EntityStateTracker.PostUpdate(synced);
+				}
+			}
+			else orig(self, player);
 		}
 
 		#endregion
