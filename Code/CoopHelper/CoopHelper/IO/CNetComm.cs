@@ -25,6 +25,9 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public delegate void OnDisonnectedHandler(CelesteNetConnection con);
 		public static event OnDisonnectedHandler OnDisconnected;
 
+		public delegate void OnReceiveBundledEntityUpdateHandler(DataBundledEntityUpdate data);
+		public static event OnReceiveBundledEntityUpdateHandler OnReceiveBundledEntityUpdate;
+
 		public delegate void OnReceiveSessionJoinAvailableHandler(DataSessionJoinAvailable data);
 		public static event OnReceiveSessionJoinAvailableHandler OnReceiveSessionJoinAvailable;
 
@@ -37,12 +40,17 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public delegate void OnReceiveSessionJoinFinalizeHandler(DataSessionJoinFinalize data);
 		public static event OnReceiveSessionJoinFinalizeHandler OnReceiveSessionJoinFinalize;
 
-		public delegate void OnReceiveBundledEntityUpdateHandler(DataBundledEntityUpdate data);
-		public static event OnReceiveBundledEntityUpdateHandler OnReceiveBundledEntityUpdate;
+		public delegate void OnReceivePlayerStateHandler(Data.DataPlayerState data);
+		public static event OnReceivePlayerStateHandler OnReceivePlayerState;
+
+		public delegate void OnReceiveConnectionInfoHandler(DataConnectionInfo data);
+		public static event OnReceiveConnectionInfoHandler OnReceiveConnectionInfo;
+
+		
 
 		#endregion
 
-		#region Current State Information
+		#region Local State Information
 
 		public CelesteNetClientContext CnetContext { get { return CelesteNetClientModule.Instance?.Context; } }
 
@@ -74,6 +82,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		private ConcurrentQueue<Action> updateQueue = new ConcurrentQueue<Action>();
+
 		public static ulong msgCount { get; private set; } = 0;
 
 		#endregion
@@ -86,6 +95,8 @@ namespace Celeste.Mod.CoopHelper.IO {
 			Disposed += OnComponentDisposed;
 			CelesteNetClientContext.OnStart += OnCNetClientContextStart;
 			CelesteNetClientContext.OnDispose += OnCNetClientContextDispose;
+			OnReceivePlayerState += PlayerState.OnPlayerStateReceived;
+			OnReceiveConnectionInfo += PlayerState.OnConnectionDataReceived;
 		}
 
 		private void OnComponentDisposed(object sender, EventArgs args) {
@@ -128,9 +139,17 @@ namespace Celeste.Mod.CoopHelper.IO {
 			return true;
 		}
 
-	#endregion
+		#endregion
 
-	internal void Send<T>(T data, bool sendToSelf) where T : DataType<T> {
+		#region Entry Points
+
+		/// <summary>
+		/// Send a packet immediately
+		/// </summary>
+		/// <typeparam name="T">DataType</typeparam>
+		/// <param name="data">Packet object</param>
+		/// <param name="sendToSelf">If true, handlers on this client will also fire for this message</param>
+		internal void Send<T>(T data, bool sendToSelf) where T : DataType<T> {
 			if (!CanSendMessages) {
 				return;
 			}
@@ -146,14 +165,31 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 		}
 
-		internal void Tick() {
+		internal void Tick(ulong counter) {
 			if (CoopHelperModule.Session.IsInCoopSession && EntityStateTracker.HasUpdates) {
 				Send(new DataBundledEntityUpdate(), false);
 			}
 			EntityStateTracker.FlushIncoming();
+			if (counter % 30 == 0) {  // Some things don't need to happen very often, so only do them every 30 ticks
+				PlayerState.PurgeStale();
+				PlayerState.Mine.CheckSendUpdate();
+			}
 		}
 
+		#endregion
+
 		#region Message Handlers
+
+		public void Handle(CelesteNetConnection con, DataConnectionInfo data) {
+			if (data.Player == null) data.Player = CnetClient.PlayerInfo;  // It's null when handling our own messages
+			updateQueue.Enqueue(() => OnReceiveConnectionInfo?.Invoke(data));
+		}
+
+		public void Handle(CelesteNetConnection con, Data.DataPlayerState data) {
+			Engine.Commands.Log("Received - " + typeof(DataType<Data.DataPlayerState>).GetField("DataID").GetValue(data));
+			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
+			updateQueue.Enqueue(() => OnReceivePlayerState?.Invoke(data));
+		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
 			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinAvailable>).GetField("DataID").GetValue(data));

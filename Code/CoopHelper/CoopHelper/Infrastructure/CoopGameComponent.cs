@@ -14,8 +14,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		}
 
+		private ulong tickCounter = 0;
+
 		public override void Tick() {
-			CNetComm.Instance?.Tick();
+			CNetComm.Instance?.Tick(++tickCounter);
 		}
 	}
 }

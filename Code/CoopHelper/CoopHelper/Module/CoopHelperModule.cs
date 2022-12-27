@@ -2,11 +2,17 @@
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
+using Monocle;
+using MonoMod.RuntimeDetour;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Celeste.Mod.CoopHelper {
 	public class CoopHelperModule : EverestModule {
@@ -48,16 +54,24 @@ namespace Celeste.Mod.CoopHelper {
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
 
+			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.Level.LoadLevel += OnLevelLoad;
+
 			Everest.Events.Player.OnDie += OnDie;
-			On.Celeste.Player.Die += OnPlayerDie;
+			//Everest.Events.Level.OnEnter += onLevelEnter;
+			Everest.Events.Level.OnExit += onLevelExit;
 		}
 
 		public override void Unload() {
 			Celeste.Instance.Components.Remove(Comm);
 			Comm = null;
 
+			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.Level.LoadLevel -= OnLevelLoad;
+
 			Everest.Events.Player.OnDie -= OnDie;
-			On.Celeste.Player.Die -= OnPlayerDie;
+			//Everest.Events.Level.OnEnter -= onLevelEnter;
+			Everest.Events.Level.OnExit -= onLevelExit;
 		}
 
 		#endregion
@@ -98,8 +112,33 @@ namespace Celeste.Mod.CoopHelper {
 
 		}
 
-		private PlayerDeadBody OnPlayerDie(On.Celeste.Player.orig_Die orig, Player self, Vector2 direction, bool evenIfInvincible, bool registerDeathInStats) {
-			return orig(self, direction, evenIfInvincible, registerDeathInStats);
+		private void OnPlayerTransition(On.Celeste.Player.orig_OnTransition orig, Player self) {
+			orig(self);
+			Session s = self.SceneAs<Level>()?.Session;
+			if (s == null) return;
+			PlayerState.Mine.CurrentRoom = s.Level;
+			PlayerState.Mine.RespawnPoint = s.RespawnPoint ?? Vector2.Zero;
+			PlayerState.Mine.SendUpdateImmediate();
+		}
+
+		private void onLevelExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
+			// If we're restarting, another update is close behind so don't bother updating
+			if (mode != LevelExit.Mode.Restart) {
+				PlayerState.Mine.CurrentMap = GlobalAreaKey.Overworld;
+				PlayerState.Mine.CurrentRoom = "";
+				PlayerState.Mine.RespawnPoint = Vector2.Zero;
+				PlayerState.Mine.SendUpdateImmediate();
+			}
+		}
+
+		private void OnLevelLoad(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader) {
+			orig(self, playerIntro, isFromLoader);
+			if (isFromLoader && playerIntro != Player.IntroTypes.Transition) {
+				PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Session.Area);
+				PlayerState.Mine.CurrentRoom = self.Session.Level;
+				PlayerState.Mine.RespawnPoint = self.Session.RespawnPoint ?? Vector2.Zero;
+				PlayerState.Mine.SendUpdateImmediate();
+			}
 		}
 
 		#endregion

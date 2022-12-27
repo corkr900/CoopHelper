@@ -8,22 +8,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Data {
-	public class DataBundledEntityUpdate : DataType<DataBundledEntityUpdate> {
+	public class DataPlayerState : DataType<DataPlayerState> {
 		public DataPlayerInfo player;
 
 		public PlayerID senderID;
-		public CoopSessionID SessionID;
+		public PlayerState newState;
 
-		static DataBundledEntityUpdate() {
-			DataID = "corkr900CoopHelper_BundledEntityUpdate_" + CoopHelperModule.ProtocolVersion;
+		static DataPlayerState() {
+			DataID = "corkr900CoopHelper_PlayerState_" + CoopHelperModule.ProtocolVersion;
 		}
 
-		public DataBundledEntityUpdate() {
+		public DataPlayerState() {
 			senderID = PlayerID.MyID;
-			SessionID = CoopHelperModule.Session.SessionID;
 		}
 
-		public override DataFlags DataFlags { get { return DataFlags.Unreliable; } }
+		public override DataFlags DataFlags { get { return DataFlags.None; } }
 
 		public override void FixupMeta(DataContext ctx) {
 			player = Get<MetaPlayerPrivateState>(ctx);
@@ -35,14 +34,12 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		protected override void Read(CelesteNetBinaryReader reader) {
 			senderID = reader.ReadPlayerID();
-			SessionID = reader.ReadSessionID();
-			EntityStateTracker.ReceiveUpdates(reader);
+			newState = reader.ReadPlayerState();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
-			writer.Write(SessionID);
-			EntityStateTracker.FlushOutgoing(writer);
+			writer.Write(newState);
 		}
 	}
 }

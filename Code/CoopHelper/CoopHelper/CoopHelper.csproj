@@ -83,11 +83,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DataBundledEntityUpdate.cs" />
+    <Compile Include="Data\DataPlayerState.cs" />
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\SessionGate.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
-    <Compile Include="Entities\SyncedTempleGate.cs" />
+    <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
     <Compile Include="Infrastructure\PlayerState.cs" />
     <Compile Include="IO\Commands.cs" />
@@ -119,6 +120,9 @@
   <ItemGroup>
     <None Include="..\..\..\Ahorn\entities\SessionPicker.jl">
       <Link>Entity Plugins\Ahorn\SessionPicker.jl</Link>
+    </None>
+    <None Include="..\..\..\everest.yaml">
+      <Link>everest.yaml</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionGate.lua">
       <Link>Entity Plugins\Loenn\entities\SessionGate.lua</Link>
