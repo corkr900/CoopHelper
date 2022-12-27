@@ -66,7 +66,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				if (!dss.player.Equals(PlayerID.MyID)
 					&& CoopHelperModule.Session?.IsInCoopSession == true
 					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)
-					&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000)
+					&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000
+					&& EntityAs<Player>()?.SceneAs<Level>()?.Transitioning == false)
 				{
 					CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
 					EntityAs<Player>()?.Die(Vector2.Zero, true, true);
