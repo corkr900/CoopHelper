@@ -20,7 +20,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static Dictionary<int, MethodInfo> parsers = new Dictionary<int, MethodInfo>();
 		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
 
-		public static bool HasUpdates { get { return outgoing.Count > 0; } }
+		public static bool HasUpdates { get { lock (outgoing) { return outgoing.Count > 0 && !IgnorePendingUpdatesInUpdateCheck; } } }
+		private static volatile bool IgnorePendingUpdatesInUpdateCheck = false;
 
 		static EntityStateTracker() {
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -70,19 +71,29 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public static void PostUpdate(ISynchronizable entity) {
-			if (!outgoing.Contains(entity, new SynchronizableComparer())) {
-				outgoing.Enqueue(entity);
+			lock (outgoing) {
+				if (!outgoing.Contains(entity, new SynchronizableComparer())) {
+					outgoing.Enqueue(entity);
+				}
+				IgnorePendingUpdatesInUpdateCheck = false;
 			}
 		}
 
+		internal static void NotifyInitiatingOutgoingMessage() {
+			IgnorePendingUpdatesInUpdateCheck = true;
+		}
+
 		internal static void FlushOutgoing(CelesteNetBinaryWriter w) {
-			while (outgoing.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
-				ISynchronizable ob = outgoing.Dequeue();
-				w.Write(GetHeader(ob));
-				w.Write(ob.GetID());
-				ob.WriteState(w);
+			lock (outgoing) {
+				while (outgoing.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
+					ISynchronizable ob = outgoing.Dequeue();
+					w.Write(GetHeader(ob));
+					w.Write(ob.GetID());
+					ob.WriteState(w);
+				}
+				w.Write(0);
+				IgnorePendingUpdatesInUpdateCheck = false;
 			}
-			w.Write(0);
 		}
 
 		internal static void ReceiveUpdates(CelesteNetBinaryReader r) {
