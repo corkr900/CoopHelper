@@ -1,6 +1,8 @@
 ﻿using Celeste.Mod.CelesteNet;
+using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
+using Monocle;
 using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
@@ -22,6 +24,25 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			DynamicData dd = new DynamicData(this);
 			return dd.Get<bool>("Usable") && dd.Get<float>("cooldownTimer") <= 0f;
 		}
+
+		#region These 3 overrides MUST be defined for synced entities/triggers
+
+		public override void Added(Scene scene) {
+			base.Added(scene);
+			EntityStateTracker.AddListener(this);
+		}
+
+		public override void SceneEnd(Scene scene) {
+			base.SceneEnd(scene);
+			EntityStateTracker.RemoveListener(this);
+		}
+
+		public override void Removed(Scene scene) {
+			base.Removed(scene);
+			EntityStateTracker.RemoveListener(this);
+		}
+
+		#endregion
 
 		public static int GetHeader() => 5;
 
