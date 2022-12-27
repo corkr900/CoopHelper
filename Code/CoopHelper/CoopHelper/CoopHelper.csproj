@@ -87,6 +87,7 @@
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\SessionGate.cs" />
+    <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
     <Compile Include="Infrastructure\DeathSynchronizer.cs" />
@@ -117,6 +118,7 @@
     <Content Include="..\..\..\Dialog\English.txt">
       <Link>English.txt</Link>
     </Content>
+    <Content Include="Idea Dump.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Ahorn\entities\SessionPicker.jl">

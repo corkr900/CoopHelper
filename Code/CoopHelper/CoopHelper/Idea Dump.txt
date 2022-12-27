@@ -1,0 +1,78 @@
+﻿
+Something to require both players to be present
+
+Synced Crumble Platform
+	- would require IL hook on a coroutiune or totally custom
+
+Synced zip mover
+	- would require IL hook on a coroutiune or totally custom
+
+synced falling block
+
+synced touch switches
+
+Synced key/door
+
+Synced clutter
+
+Synced move block
+
+synced lightning breaker box
+
+synced seeker
+	- Would probably have to be only on 1 client at a time and bounce back and forth
+
+synced temple cracked block
+
+synced theo crystal
+
+synced core mode toggle
+
+synced core blocks
+
+synced jelly
+	- conflict resolution necessary
+
+synced puffer
+	- conflict resolution necessary?
+
+synced kevin
+	- conflict resolution necessary
+
+synced badeline booster
+
+synced fling bird
+
+synced swap block
+	- Difficult because of how fast they move?
+
+role-specific  entity enabling (role flag?)
+	- Just setting a flag would probably suffice
+
+synced badeline boss
+	- Attack target sync would be hard
+
+something custom to be hostile toward other players >:)
+
+============== triggers ===================
+
+wind trigger
+
+===========================================
+
+sync collectables
+- strawberries
+- heart
+- cassette
+
+co-op mode everywhere?
+
+===========================================
+
+Sync mod entities:
+	Communalhelper dream entities
+	JungleHelper birds
+	trigger spikes / grouped trigger spikes
+	crumble block on touch
+	drivable intro car
+	jungle cobwebs
