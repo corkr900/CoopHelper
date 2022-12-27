@@ -90,6 +90,7 @@
     <Compile Include="Entities\SyncedCoreModeToggle.cs" />
     <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
+    <Compile Include="Entities\SyncedTouchSwitch.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
     <Compile Include="Infrastructure\DeathSynchronizer.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
