@@ -15,7 +15,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 	}
 
 	public class DeathSynchronizer : Component, ISynchronizable {
-		private static DateTime lastTriggeredDeath = SyncTime.Now;
+		private static DateTime lastTriggeredDeathLocal = DateTime.MinValue;
+		private static DateTime lastTriggeredDeathRemote = DateTime.MinValue;
 		private static bool CurrentDeathIsSecondary = false;
 
 		public Player playerEntity { get; private set; }
@@ -46,7 +47,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal void PlayerDied() {
 			if (!CurrentDeathIsSecondary) {
-				lastTriggeredDeath = SyncTime.Now;
+				lastTriggeredDeathLocal = SyncTime.Now;
 				EntityStateTracker.PostUpdate(this);
 			}
 		}
@@ -65,13 +66,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				if (!dss.player.Equals(PlayerID.MyID)
 					&& CoopHelperModule.Session?.IsInCoopSession == true
 					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)
-					&& lastTriggeredDeath < dss.instant
-					&& (dss.instant - lastTriggeredDeath).TotalMilliseconds > 1000)
+					&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000)
 				{
 					CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
 					EntityAs<Player>()?.Die(Vector2.Zero, true, true);
 					CurrentDeathIsSecondary = false;
-					lastTriggeredDeath = dss.instant;
+					lastTriggeredDeathRemote = dss.instant;
 				}
 			}
 		}
@@ -82,7 +82,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(PlayerID.MyID);
-			w.Write(lastTriggeredDeath);
+			w.Write(lastTriggeredDeathLocal);
 		}
 	}
 }
