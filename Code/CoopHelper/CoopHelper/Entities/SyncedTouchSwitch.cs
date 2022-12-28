@@ -49,7 +49,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void ApplyState(object state) {
-			if (state is bool on && on && !Switch.Active) {
+			if (state is bool on && on) {
 				TurnOn();
 			}
 		}
