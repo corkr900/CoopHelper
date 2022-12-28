@@ -16,6 +16,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public SyncedTouchSwitch(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			Action oldOnActivate = Switch.OnActivate;
+			Switch.OnActivate = delegate {
+				oldOnActivate();
+				EntityStateTracker.PostUpdate(this);
+			};
 		}
 
 		#region These 3 overrides MUST be defined for synced entities/triggers

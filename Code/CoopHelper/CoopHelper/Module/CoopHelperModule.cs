@@ -57,7 +57,6 @@ namespace Celeste.Mod.CoopHelper {
 
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
-			On.Celeste.TouchSwitch.TurnOn += OnTouchSwitchTurnOn;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
@@ -73,7 +72,6 @@ namespace Celeste.Mod.CoopHelper {
 
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
-			On.Celeste.TouchSwitch.TurnOn -= OnTouchSwitchTurnOn;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
@@ -184,18 +182,6 @@ namespace Celeste.Mod.CoopHelper {
 				}
 			}
 			else orig(self, player);
-		}
-
-		private void OnTouchSwitchTurnOn(On.Celeste.TouchSwitch.orig_TurnOn orig, TouchSwitch self) {
-			if (self is SyncedTouchSwitch sts) {
-				bool before = self.Switch.Active;
-				orig(self);
-				bool after = self.Switch.Active;
-				if (before != after) {
-					EntityStateTracker.PostUpdate(sts);
-				}
-			}
-			else orig(self);
 		}
 
 		#endregion
