@@ -322,44 +322,49 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private IEnumerator Sequence() {
 			Vector2 start = Position;
+			state = State.StopStart;
 			while (true) {
 				// idle start
-				state = State.IdleStart;
-				streetlight.SetAnimationFrame(1);
-				while (state == State.IdleStart && !HasPlayerRider()) {
-					yield return null;
-				}
-				if (state == State.IdleStart) {
-					EntityStateTracker.PostUpdate(this);
+				if (state == State.StopStart) {
+					state = State.IdleStart;
+					streetlight.SetAnimationFrame(1);
+					while (state == State.IdleStart && !HasPlayerRider()) {
+						yield return null;
+					}
+					if (state == State.IdleStart) {
+						EntityStateTracker.PostUpdate(this);
+					}
 				}
 
 				// Move forward
-				state = State.MovingForward;
-				PlaySound(State.MovingForward);
-				Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
-				StartShaking(0.1f);
-				yield return 0.1f;
-				streetlight.SetAnimationFrame(3);
-				StopPlayerRunIntoAnimation = false;
-				float timeLerp = 0f;
-				while (timeLerp < 1f) {
-					yield return null;
-					timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeForward);
-					if (state != State.MovingForward) {
-						MoveTo(target);
-						break;
+				if (state == State.IdleStart || state == State.MovingForward) {
+					state = State.MovingForward;
+					PlaySound(State.MovingForward);
+					Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
+					StartShaking(0.1f);
+					yield return 0.1f;
+					streetlight.SetAnimationFrame(3);
+					StopPlayerRunIntoAnimation = false;
+					float timeLerp = 0f;
+					while (timeLerp < 1f) {
+						yield return null;
+						timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeForward);
+						if (state != State.MovingForward) {
+							MoveTo(target);
+							break;
+						}
+						percent = Ease.SineIn(timeLerp);
+						Vector2 vector = Vector2.Lerp(start, target, percent);
+						ScrapeParticlesCheck(vector);
+						if (Scene.OnInterval(0.1f)) {
+							pathRenderer.CreateSparks();
+						}
+						MoveTo(vector);
 					}
-					percent = Ease.SineIn(timeLerp);
-					Vector2 vector = Vector2.Lerp(start, target, percent);
-					ScrapeParticlesCheck(vector);
-					if (Scene.OnInterval(0.1f)) {
-						pathRenderer.CreateSparks();
-					}
-					MoveTo(vector);
 				}
 
-				// Stop end
-				if (state != State.MovingBack) {
+				// Stop at end node
+				if (state == State.MovingForward) {
 					state = State.StopEnd;
 					StartShaking(0.2f);
 					Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
@@ -368,7 +373,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					if (toggleMode) {
 						streetlight.SetAnimationFrame(2);
 					}
-					timeLerp = 0f;
+					float timeLerp = 0f;
 					while (timeLerp < stopTimeEnd && state == State.StopEnd) {
 						timeLerp += Engine.DeltaTime;
 						yield return null;
@@ -376,7 +381,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 
 				// idle end
-				if (toggleMode && state != State.MovingBack) {
+				if (toggleMode && state == State.StopEnd) {
 					state = State.IdleEnd;
 					streetlight.SetAnimationFrame(1);
 					while (state == State.IdleEnd && !HasPlayerRider()) {
@@ -388,38 +393,42 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 
 				// Move Reverse
-				state = State.MovingBack;
-				PlaySound(State.MovingBack);
-				if (toggleMode) {
-					Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
-					StartShaking(0.1f);
-					yield return 0.1f;
-				}
-				StopPlayerRunIntoAnimation = false;
-				streetlight.SetAnimationFrame(toggleMode ? 3 : 2);
-				timeLerp = 0f;
-				while (timeLerp < 1f) {
-					yield return null;
-					timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeReverse);
-					if (state != State.MovingBack) {
-						MoveTo(start);
-						break;
+				if (state == State.IdleStart || state == State.MovingForward) {
+					state = State.MovingBack;
+					PlaySound(State.MovingBack);
+					if (toggleMode) {
+						Input.Rumble(RumbleStrength.Medium, RumbleLength.Short);
+						StartShaking(0.1f);
+						yield return 0.1f;
 					}
-					percent = 1f - Ease.SineIn(timeLerp);
-					Vector2 position = Vector2.Lerp(target, start, Ease.SineIn(timeLerp));
-					MoveTo(position);
+					StopPlayerRunIntoAnimation = false;
+					streetlight.SetAnimationFrame(toggleMode ? 3 : 2);
+					float timeLerp = 0f;
+					while (timeLerp < 1f) {
+						yield return null;
+						timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeReverse);
+						if (state != State.MovingBack) {
+							MoveTo(start);
+							break;
+						}
+						percent = 1f - Ease.SineIn(timeLerp);
+						Vector2 position = Vector2.Lerp(target, start, Ease.SineIn(timeLerp));
+						MoveTo(position);
+					}
 				}
 
-				// stop start
-				state = State.StopStart;
-				if (!toggleMode) PlaySound(State.StopStart);
-				StopPlayerRunIntoAnimation = true;
-				StartShaking(0.2f);
-				streetlight.SetAnimationFrame(2);
-				timeLerp = 0f;
-				while (timeLerp < stopTimeStart && state == State.StopStart) {
-					timeLerp += Engine.DeltaTime;
-					yield return null;
+				// stop at start node
+				if (state == State.MovingBack) {
+					state = State.StopStart;
+					if (!toggleMode) PlaySound(State.StopStart);
+					StopPlayerRunIntoAnimation = true;
+					StartShaking(0.2f);
+					streetlight.SetAnimationFrame(2);
+					float timeLerp = 0f;
+					while (timeLerp < stopTimeStart && state == State.StopStart) {
+						timeLerp += Engine.DeltaTime;
+						yield return null;
+					}
 				}
 			}
 		}
