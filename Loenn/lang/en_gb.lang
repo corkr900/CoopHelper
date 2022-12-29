@@ -35,5 +35,16 @@ entities.corkr900CoopHelper/SyncedSwapBlock.placements.name.normal=Synced Swap B
 entities.corkr900CoopHelper/SyncedSwapBlock.placements.name.moon=Synced Swap Block (Moon)
 entities.corkr900CoopHelper/SyncedSwapBlock.attributes.description.theme=Changes the appearance of the swap block
 
+# Synced Zip Mover
+entities.corkr900CoopHelper/SyncedZipMover.placements.name.normal=Synced Zip Mover (Normal)
+entities.corkr900CoopHelper/SyncedZipMover.placements.name.moon=Synced Zip Mover (Moon)
+entities.corkr900CoopHelper/SyncedZipMover.placements.name.normalNoReturn=Synced Zip Mover (Normal, No Return)
+entities.corkr900CoopHelper/SyncedZipMover.placements.name.moonNoReturn=Synced Zip Mover (Moon, No Return)
+entities.corkr900CoopHelper/SyncedZipMover.attributes.description.moveTimeForward=Move time when the zip mover is moving forward
+entities.corkr900CoopHelper/SyncedZipMover.attributes.description.moveTimeReverse=Move time when the zip mover is moving in reverse
+entities.corkr900CoopHelper/SyncedZipMover.attributes.description.stopTimeEnd=Time the zip mover waits after moving forward
+entities.corkr900CoopHelper/SyncedZipMover.attributes.description.stopTimeStart=Time the zip mover waits after moving in reverse
+entities.corkr900CoopHelper/SyncedZipMover.attributes.description.noReturn=If set, zip mover will stay at the end until triggered again
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

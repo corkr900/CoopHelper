@@ -92,6 +92,7 @@
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Entities\SyncedSwapBlock.cs" />
     <Compile Include="Entities\SyncedTouchSwitch.cs" />
+    <Compile Include="Entities\SyncedZipMover.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
     <Compile Include="Infrastructure\DeathSynchronizer.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
@@ -150,6 +151,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedTouchSwitch.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedTouchSwitch.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedZipMover.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedZipMover.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\lang\en_gb.lang">
       <Link>Entity Plugins\Loenn\en_gb.lang</Link>
