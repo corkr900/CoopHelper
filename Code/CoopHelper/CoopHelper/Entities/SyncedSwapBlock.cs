@@ -3,6 +3,7 @@ using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,24 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	[CustomEntity("corkr900CoopHelper/SyncedTouchSwitch")]
-	[TrackedAs(typeof(TouchSwitch))]
-	public class SyncedTouchSwitch : TouchSwitch, ISynchronizable {
-		EntityID id;
+	[CustomEntity("corkr900CoopHelper/SyncedSwapBlock")]
+	[TrackedAs(typeof(SwapBlock))]
+	public class SyncedSwapBlock : SwapBlock, ISynchronizable {
+		private EntityID id;
+		private Action<Vector2> orig_OnDash;
+		private Vector2 lastDashDir = Vector2.Zero;
 
-		public SyncedTouchSwitch(EntityData data, Vector2 offset) : base(data, offset) {
+		public SyncedSwapBlock(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
-			Action oldOnActivate = Switch.OnActivate;
-			Switch.OnActivate = delegate {
-				oldOnActivate();
-				EntityStateTracker.PostUpdate(this);
-			};
+			DashListener listener = Get<DashListener>();
+			orig_OnDash = listener.OnDash;
+			listener.OnDash = SyncedOnDash;
+		}
+
+		private void SyncedOnDash(Vector2 direction) {
+			orig_OnDash(direction);
+			lastDashDir = direction;
+			EntityStateTracker.PostUpdate(this);
 		}
 
 		#region These 3 overrides MUST be defined for synced entities/triggers
@@ -43,22 +50,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		#endregion
 
-		public static int GetHeader() => 6;
+		public static int GetHeader() => 7;
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
-			return r.ReadBoolean();
+		public static Vector2 ParseState(CelesteNetBinaryReader r) {
+			return r.ReadVector2();
 		}
 
 		public void ApplyState(object state) {
-			if (state is bool on && on) {
-				TurnOn();
+			if (state is Vector2 dir) {
+				DynamicData dd = new DynamicData(this);
+				dd.Invoke("OnDash", dir);
 			}
 		}
 
 		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(Switch.Active);
+			w.Write(lastDashDir);
 		}
 	}
 }

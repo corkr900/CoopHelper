@@ -48,13 +48,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static Session.CoreModes ParseState(CelesteNetBinaryReader r) {
 			Session.CoreModes mode;
-			Enum.TryParse(r.ReadString(), out mode);
+			if (!Enum.TryParse(r.ReadString(), out mode)) {
+				mode = Session.CoreModes.None;
+			}
 			return mode;
 		}
 
 		public void ApplyState(object state) {
 			Level level = SceneAs<Level>();
-			if (state is Session.CoreModes newMode && level.CoreMode != newMode) {
+			if (state is Session.CoreModes newMode && level.CoreMode != newMode && newMode != Session.CoreModes.None) {
 				level.CoreMode = newMode;
 				DynamicData dd = new DynamicData(this);
 				if (dd.Get<bool>("persistent")) level.Session.CoreMode = level.CoreMode;
@@ -66,7 +68,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(SceneAs<Level>().CoreMode.ToString());
+			w.Write(SceneAs<Level>()?.CoreMode.ToString() ?? "");
 		}
 	}
 }

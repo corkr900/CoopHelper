@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedFallingBlock")]
+	[TrackedAs(typeof(FallingBlock))]
 	public class SyncedFallingBlock : FallingBlock, ISynchronizable {
 		// TODO Not everything that triggers a falling block will actually trigger the sync (most notably, kevin hits)
 		EntityID id;

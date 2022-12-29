@@ -22,13 +22,18 @@ entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.tiletype=S
 entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.climbFall=If true, grabbing the side will cause the block to fall
 entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.behind=Changes the visual appearance of the gate.
 
-# Synced Falling Block
+# Synced Core Mode Toggle
 entities.corkr900CoopHelper/SyncedCoreModeToggle.placements.name.both=Synced Core Mode Toggle (Both)
 entities.corkr900CoopHelper/SyncedCoreModeToggle.placements.name.fire=Synced Core Mode Toggle (Fire)
 entities.corkr900CoopHelper/SyncedCoreModeToggle.placements.name.ice=Synced Core Mode Toggle (Ice)
 entities.corkr900CoopHelper/SyncedCoreModeToggle.attributes.description.onlyIce=This switch should only switch to ice mode
 entities.corkr900CoopHelper/SyncedCoreModeToggle.attributes.description.onlyFire=This switch should only switch to fire mode
 entities.corkr900CoopHelper/SyncedCoreModeToggle.attributes.description.persistent=If persistent, state will be kept on death
+
+# Synced Swap Block
+entities.corkr900CoopHelper/SyncedSwapBlock.placements.name.normal=Synced Swap Block (Normal)
+entities.corkr900CoopHelper/SyncedSwapBlock.placements.name.moon=Synced Swap Block (Moon)
+entities.corkr900CoopHelper/SyncedSwapBlock.attributes.description.theme=Changes the appearance of the swap block
 
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
