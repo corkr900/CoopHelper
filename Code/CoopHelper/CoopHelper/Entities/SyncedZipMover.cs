@@ -156,10 +156,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			: this(data.Position + offset, data.Width, data.Height, data.Nodes[0] + offset, data.Enum("theme", ZipMover.Themes.Normal)) {
 			id = new EntityID(data.Level.Name, data.ID);
 			toggleMode = data.Bool("noReturn", false);
-			moveTimeForward = Calc.Max(0.2f, data.Float("moveTimeForward", 0.5f));
-			moveTimeReverse = Calc.Max(0.2f, data.Float("moveTimeReverse", toggleMode ? 0.5f : 2.0f));
-			stopTimeStart = Calc.Max(0.2f, data.Float("stopTimeStart", 0.5f));
-			stopTimeEnd = Calc.Max(0.2f, data.Float("stopTimeEnd", 0.5f));
+			moveTimeForward = Calc.Max(0.05f, data.Float("moveTimeForward", 0.5f));
+			moveTimeReverse = Calc.Max(0.05f, data.Float("moveTimeReverse", toggleMode ? 0.5f : 2.0f));
+			stopTimeStart = Calc.Max(0.05f, data.Float("stopTimeStart", 0.5f));
+			stopTimeEnd = Calc.Max(0.05f, data.Float("stopTimeEnd", 0.5f));
 		}
 
 		public override void Added(Scene scene) {
