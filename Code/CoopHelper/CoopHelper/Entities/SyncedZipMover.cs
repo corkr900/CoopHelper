@@ -156,10 +156,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			: this(data.Position + offset, data.Width, data.Height, data.Nodes[0] + offset, data.Enum("theme", ZipMover.Themes.Normal)) {
 			id = new EntityID(data.Level.Name, data.ID);
 			toggleMode = data.Bool("noReturn", false);
-			moveTimeForward = data.Float("moveTimeForward", 0.5f);
-			moveTimeReverse = data.Float("moveTimeReverse", toggleMode ? 0.5f : 2.0f);
-			stopTimeStart = data.Float("stopTimeStart", 0.5f);
-			stopTimeEnd = data.Float("stopTimeEnd", 0.5f);
+			moveTimeForward = Calc.Max(0.2f, data.Float("moveTimeForward", 0.5f));
+			moveTimeReverse = Calc.Max(0.2f, data.Float("moveTimeReverse", toggleMode ? 0.5f : 2.0f));
+			stopTimeStart = Calc.Max(0.2f, data.Float("stopTimeStart", 0.5f));
+			stopTimeEnd = Calc.Max(0.2f, data.Float("stopTimeEnd", 0.5f));
 		}
 
 		public override void Added(Scene scene) {
@@ -345,14 +345,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				while (timeLerp < 1f) {
 					yield return null;
 					timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeForward);
-					if (toggleMode) {
-						if (timeLerp < 0.5f) {
-							state = State.MovingForward;  // Ignore any remote updates
-						}
-						else if (state != State.MovingForward) {
-							MoveTo(target);
-							break;
-						}
+					if (state != State.MovingForward) {
+						MoveTo(target);
+						break;
 					}
 					percent = Ease.SineIn(timeLerp);
 					Vector2 vector = Vector2.Lerp(start, target, percent);
@@ -406,10 +401,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				while (timeLerp < 1f) {
 					yield return null;
 					timeLerp = Calc.Approach(timeLerp, 1f, Engine.DeltaTime / moveTimeReverse);
-					if (timeLerp < 0.5f) {
-						state = State.MovingBack;
-					}
-					else if (state != State.MovingBack) {
+					if (state != State.MovingBack) {
 						MoveTo(start);
 						break;
 					}
