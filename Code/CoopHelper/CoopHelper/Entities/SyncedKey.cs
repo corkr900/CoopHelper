@@ -62,7 +62,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => ID;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(SceneAs<Level>().Session.Keys.Contains(ID));
+			w.Write(SceneAs<Level>()?.Session?.Keys?.Contains(ID) ?? false);
 		}
 
 		#endregion
