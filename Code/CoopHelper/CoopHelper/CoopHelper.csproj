@@ -90,6 +90,8 @@
     <Compile Include="Entities\SyncedCoreModeToggle.cs" />
     <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
+    <Compile Include="Entities\SyncedKey.cs" />
+    <Compile Include="Entities\SyncedLockBlock.cs" />
     <Compile Include="Entities\SyncedSwapBlock.cs" />
     <Compile Include="Entities\SyncedTouchSwitch.cs" />
     <Compile Include="Entities\SyncedZipMover.cs" />
@@ -122,6 +124,9 @@
     <Content Include="..\..\..\Dialog\English.txt">
       <Link>English.txt</Link>
     </Content>
+    <Content Include="..\..\..\Graphics\Sprites.xml">
+      <Link>Sprites.xml</Link>
+    </Content>
     <Content Include="Idea Dump.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -145,6 +150,12 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedFallingBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedFallingBlock.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedKey.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedKey.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedLockBlock.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedLockBlock.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedSwapBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedSwapBlock.lua</Link>

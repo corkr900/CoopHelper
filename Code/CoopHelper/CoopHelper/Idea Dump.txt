@@ -4,13 +4,6 @@ Something to require both players to be present
 Synced Crumble Platform
 	- would require IL hook on a coroutiune or totally custom
 
-Synced zip mover
-	- would require IL hook on a coroutiune or totally custom
-
-synced falling block
-
-synced touch switches
-
 Synced key/door
 
 Synced clutter
@@ -25,8 +18,6 @@ synced seeker
 synced temple cracked block
 
 synced theo crystal
-
-synced core mode toggle
 
 synced core blocks
 
@@ -43,9 +34,6 @@ synced badeline booster
 
 synced fling bird
 
-synced swap block
-	- Difficult because of how fast they move?
-
 role-specific  entity enabling (role flag?)
 	- Just setting a flag would probably suffice
 
@@ -58,12 +46,22 @@ something custom to be hostile toward other players >:)
 
 wind trigger
 
+============== improvements ===============
+
+fix session creation UI
+set a flag for session role
+swap block toggle mode
+horizontal session gates
+
 ===========================================
 
 sync collectables
 - strawberries
 - heart
 - cassette
+
+sync other session info
+- keys
 
 co-op mode everywhere?
 

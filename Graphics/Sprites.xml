@@ -4,4 +4,5 @@
 		<Loop id="idle" path="Idle" delay=".22" frames="0,0,0,1,2,2,2,1" />
 	</corkr900_CoopHelper_SessionPicker>
 
+
 </Sprites>

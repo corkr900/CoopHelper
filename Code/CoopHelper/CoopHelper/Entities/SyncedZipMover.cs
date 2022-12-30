@@ -393,7 +393,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 
 				// Move Reverse
-				if (state == State.IdleEnd || state == State.MovingBack) {
+				if ((!toggleMode && state == State.StopEnd) || state == State.IdleEnd || state == State.MovingBack) {
 					state = State.MovingBack;
 					PlaySound(State.MovingBack);
 					if (toggleMode) {

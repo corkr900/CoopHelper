@@ -46,5 +46,18 @@ entities.corkr900CoopHelper/SyncedZipMover.attributes.description.stopTimeEnd=Ti
 entities.corkr900CoopHelper/SyncedZipMover.attributes.description.stopTimeStart=Time the zip mover waits after moving in reverse (minimum 0.2)
 entities.corkr900CoopHelper/SyncedZipMover.attributes.description.noReturn=If set, zip mover will stay at the end until triggered again
 
+# Synced Key
+entities.corkr900CoopHelper/SyncedKey.placements.name.normal=Synced Key
+entities.corkr900CoopHelper/SyncedKey.placements.name.with_return=Synced Key (With Return)
+
+# Synced Lock Block
+entities.corkr900CoopHelper/SyncedLockBlock.placements.name.wood=Synced Lock Block (Wood)
+entities.corkr900CoopHelper/SyncedLockBlock.placements.name.moon=Synced Lock Block (Moon)
+entities.corkr900CoopHelper/SyncedLockBlock.placements.name.temple_a=Synced Lock Block (Temple A)
+entities.corkr900CoopHelper/SyncedLockBlock.placements.name.temple_b=Synced Lock Block (Temple B)
+entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.sprite=Changes the appearance of the lock block
+entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.unlock_sfx=Changes the sound of the lock block
+entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.stepMusicProgress=If set, music progress will be incremented when unlocked
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
