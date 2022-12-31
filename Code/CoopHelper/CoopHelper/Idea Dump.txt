@@ -70,12 +70,7 @@ something custom to be hostile toward other players >:)
 
 ============== improvements ===============
 
-sync collectables
-	- strawberries
-	- heart
-	- cassette
-fix session creation UI
-set a flag for session role
+manual role picking
 swap block toggle mode
 horizontal session gates
 
@@ -84,6 +79,12 @@ horizontal session gates
 
 sync other session info
 - keys
+- core mode
+- collectables
+	- strawberries
+	- heart
+	- cassette
+	- Custom?
 
 co-op mode everywhere?
 
