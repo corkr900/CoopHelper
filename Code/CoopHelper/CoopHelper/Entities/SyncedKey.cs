@@ -65,9 +65,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
-						Vector2[] nodes = dd.Get<Vector2[]>("nodes");
-						if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
-							Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
+						if (dd.Get<Follower>("follower")?.HasLeader == false) {
+							Vector2[] nodes = dd.Get<Vector2[]>("nodes");
+							if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
+								Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
+							}
 						}
 						RegisterUsed();
 					}
