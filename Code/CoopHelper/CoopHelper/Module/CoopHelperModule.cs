@@ -204,7 +204,7 @@ namespace Celeste.Mod.CoopHelper {
 
 		private IEnumerator OnLockBlockUnlockRoutine(On.Celeste.LockBlock.orig_UnlockRoutine orig, LockBlock self, Follower fol) {
 			if (self is SyncedLockBlock slb) {
-				yield return new SwapImmediately(slb.UnlockRoutineOverride(fol));
+				yield return new SwapImmediately(slb.UnlockRoutineOverride(fol.EntityAs<Key>()));
 			}
 			else yield return new SwapImmediately(orig(self, fol));
 		}

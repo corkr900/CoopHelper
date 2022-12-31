@@ -38,8 +38,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			player.StateMachine.State = Player.StDummy;
 			this.player = player;
 			Audio.Play("event:/ui/game/pause");
-
-			Scene.Add(new SessionDebugHUD());
 		}
 
 		public void Close(SessionPickerHUDCloseArgs args) {

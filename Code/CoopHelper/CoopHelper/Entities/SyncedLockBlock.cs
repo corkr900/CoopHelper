@@ -40,11 +40,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					break;
 				}
 			}
-			Follower fol = usedKey?.Get<Follower>();
-			Add(new Coroutine(UnlockRoutineOverride(fol)));
+			Add(new Coroutine(UnlockRoutineOverride(usedKey)));
 		}
 
-		internal IEnumerator UnlockRoutineOverride(Follower fol) {
+		internal IEnumerator UnlockRoutineOverride(Key key) {
 			DynamicData dd = new DynamicData(this);
 			string unlockSfxName = dd.Get<string>("unlockSfxName");
 			bool stepMusicProgress = dd.Get<bool>("stepMusicProgress");
@@ -54,7 +53,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			SoundEmitter emitter = SoundEmitter.Play(unlockSfxName, this);
 			emitter.Source.DisposeOnTransition = true;
 			Level level = SceneAs<Level>();
-			Key key = fol == null ? null : fol.Entity as Key;
 			if (key != null) {
 				usedKeyID = key.ID;
 				Add(new Coroutine(key.UseRoutine(Center + new Vector2(0f, 2f))));

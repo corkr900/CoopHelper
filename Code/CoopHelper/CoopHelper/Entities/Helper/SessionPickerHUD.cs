@@ -61,6 +61,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CNetComm.OnReceiveSessionJoinRequest += OnRequest;
 			CNetComm.OnReceiveSessionJoinResponse += OnResponse;
 			CNetComm.OnReceiveSessionJoinFinalize += OnFinalize;
+			Everest.Events.Level.OnPause += OnPause;
 
 			sessionID = CoopSessionID.GetNewID();
 
@@ -76,6 +77,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CNetComm.OnReceiveSessionJoinRequest -= OnRequest;
 			CNetComm.OnReceiveSessionJoinResponse -= OnResponse;
 			CNetComm.OnReceiveSessionJoinFinalize -= OnFinalize;
+			Everest.Events.Level.OnPause -= OnPause;
 		}
 
 		private void OnAvailable(DataSessionJoinAvailable data) {
@@ -116,6 +118,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void OnFinalize(DataSessionJoinFinalize data) {
 			DoFinalize(data.sessionID, data.sessionPlayers);
+		}
+
+		private void OnPause(Level level, int startIndex, bool minimal, bool quickReset) {
+			CloseSelf();
 		}
 
 		private void CheckFinalize() {
@@ -168,11 +174,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
 				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 			yPos += 100;
-			foreach (Tuple<PlayerID,RequestState> kvp in availablePlayers) {
+			for (int i = 0; i < availablePlayers.Count; i++) {
+				Tuple<PlayerID, RequestState> kvp = availablePlayers[i];
 				if (kvp.Item2 == RequestState.Joined) continue;
 				string display = kvp.Item1.Name;
 				Color color = Color.White;
 				// TODO do better
+				if (hovered == i) {
+					display = "> " + display;
+				}
 				if (kvp.Item2 == RequestState.Pending) {
 					display += " (Pending)";
 					color = Color.Yellow;
@@ -191,20 +201,42 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
+		private void CloseSelf() {
+			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
+				newAvailability = false,
+			}, false);
+			onClose?.Invoke(new SessionPickerHUDCloseArgs());
+		}
+
 		public override void Update() {
 			base.Update();
 
-			// TODO
-
 			if (Input.MenuCancel.Pressed) {
-				CNetComm.Instance.Send(new DataSessionJoinAvailable() {
-					newAvailability = false,
-				}, false);
-				onClose?.Invoke(new SessionPickerHUDCloseArgs());
+				CloseSelf();
 				return;
 			}
-			if (CanSendRequests && Input.MenuConfirm.Pressed) {
-				if (hovered >= 0 && hovered < availablePlayers.Count && availablePlayers[hovered].Item2 == RequestState.Available) {
+
+			if (Input.MenuDown.Pressed) {
+				if (hovered < availablePlayers.Count - 1) {
+					hovered++;
+					Audio.Play("event:/ui/main/rollover_down");
+				}
+				else Audio.Play("event:/ui/main/button_invalid");
+			}
+			else if (Input.MenuUp.Pressed) {
+				if (hovered > 0) {
+					hovered--;
+					Audio.Play("event:/ui/main/rollover_up");
+				}
+				else Audio.Play("event:/ui/main/button_invalid");
+			}
+
+			if (Input.MenuConfirm.Pressed) {
+				if (CanSendRequests
+					&& hovered >= 0
+					&& hovered < availablePlayers.Count
+					&& availablePlayers[hovered].Item2 == RequestState.Available)
+				{
 					PlayerID target = availablePlayers[hovered].Item1;
 					Audio.Play("event:/ui/main/button_select");
 					SetState(target, RequestState.Pending);

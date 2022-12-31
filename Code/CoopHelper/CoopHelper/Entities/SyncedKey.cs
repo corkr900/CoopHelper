@@ -61,8 +61,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					if (!IsUsed) {
 						Session session = SceneAs<Level>().Session;
 						Collidable = false;
-						if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
-						if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
+						session.DoNotLoad.Add(ID);
+						session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
 						// TODO setting on key for whether to bubble the player who didn't get it... or maybe to bubble them to a different spot

@@ -12,6 +12,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public class DeathSyncState {
 		public PlayerID player;
 		public DateTime instant;
+		public string room;
 	}
 
 	public class DeathSynchronizer : Component, ISynchronizable {
@@ -58,6 +59,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			return new DeathSyncState {
 				player = r.ReadPlayerID(),
 				instant = r.ReadDateTime(),
+				room = r.ReadString(),
 			};
 		}
 
@@ -66,6 +68,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				if (!dss.player.Equals(PlayerID.MyID)
 					&& CoopHelperModule.Session?.IsInCoopSession == true
 					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)
+					&& PlayerState.Mine?.CurrentRoom != null
+					&& dss.room == PlayerState.Mine.CurrentRoom
 					&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000
 					&& EntityAs<Player>()?.SceneAs<Level>()?.Transitioning == false)
 				{
@@ -84,6 +88,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(PlayerID.MyID);
 			w.Write(lastTriggeredDeathLocal);
+			w.Write(PlayerState.Mine?.CurrentRoom ?? "");
 		}
 	}
 }

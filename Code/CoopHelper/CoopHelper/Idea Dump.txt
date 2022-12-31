@@ -1,20 +1,23 @@
 ﻿
+===== BUGS =====
+
+- Keys used while you're out of the room aren't update right (visual only)
+- Persistent core mode should probably be moved to Session-level stuff
+- Falling blocks aren't always synced (depending on how theyre triggered)
+
 ===== City =====
 
-Crumble Platform
-	- would require IL hook on a coroutine or totally custom
 
 ===== Site =====
 
 
 ===== Resort =====
 
-clutter
+clutter (this seems pretty tough)
 
 ===== Ridge =====
 
 move block
-wind
 
 ===== Temple =====
 
@@ -49,6 +52,7 @@ fling bird
 
 ===== Totally New =====
 
+role-specific spawn points
 role-specific  entity enabling (role flag?)
 	- Just setting a flag would probably suffice
 	- one for all roles + 1 for specific role
