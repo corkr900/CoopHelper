@@ -1,53 +1,66 @@
 ﻿
-Something to require both players to be present
+===== City =====
 
-Synced Crumble Platform
-	- would require IL hook on a coroutiune or totally custom
+Crumble Platform
+	- would require IL hook on a coroutine or totally custom
 
-Synced key/door
+===== Site =====
 
-Synced clutter
 
-Synced move block
+===== Resort =====
 
-synced lightning breaker box
+clutter
 
-synced seeker
+===== Ridge =====
+
+move block
+wind
+
+===== Temple =====
+
+seeker
 	- Would probably have to be only on 1 client at a time and bounce back and forth
+temple cracked block
+theo crystal
 
-synced temple cracked block
+===== Reflection =====
 
-synced theo crystal
-
-synced core blocks
-
-synced jelly
+kevin
 	- conflict resolution necessary
+ badeline boss
+	- Attack target sync would be hard
 
-synced puffer
+===== Summit =====
+
+badeline booster
+
+===== Core =====
+
+core blocks
+
+===== Farewell =====
+
+lightning breaker box
+jelly
+	- conflict resolution necessary
+puffer
 	- conflict resolution necessary?
+fling bird
 
-synced kevin
-	- conflict resolution necessary
-
-synced badeline booster
-
-synced fling bird
+===== Totally New =====
 
 role-specific  entity enabling (role flag?)
 	- Just setting a flag would probably suffice
-
-synced badeline boss
-	- Attack target sync would be hard
-
+	- one for all roles + 1 for specific role
+Something to require both players to be present
 something custom to be hostile toward other players >:)
-
-============== triggers ===================
-
-wind trigger
 
 ============== improvements ===============
 
+sync collectables
+	- strawberries
+	- heart
+	- cassette
 fix session creation UI
 set a flag for session role
 swap block toggle mode
@@ -55,10 +68,6 @@ horizontal session gates
 
 ===========================================
 
-sync collectables
-- strawberries
-- heart
-- cassette
 
 sync other session info
 - keys

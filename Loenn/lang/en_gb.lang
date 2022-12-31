@@ -59,5 +59,14 @@ entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.sprite=Change
 entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.unlock_sfx=Changes the sound of the lock block
 entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.stepMusicProgress=If set, music progress will be incremented when unlocked
 
+# Synced Crumble Blocks
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.placements.name.default=Synced Crumble Blocks (Default)
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.placements.name.cliffside=Synced Crumble Blocks (Cliffside)
+entities.corkr900CoopHelper/SyncedLockBlock.attributes.description.texture=Changes the appearance of the blocks
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.shakeTimeTop=How long the platform shakes before breaking when the player stands on top
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.shakeTimeSide=How long the platform shakes before breaking when the player grabs the side
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.respawnDelay=How long the platform waits after breaking to reappear
+entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.breakOnJump=If set, the platform will break immediately if triggered on top and then the player jumps off. Using this mirrors vanilla behavior but may cause minor desync issues.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

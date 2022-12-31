@@ -88,6 +88,7 @@
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\SessionGate.cs" />
     <Compile Include="Entities\SyncedCoreModeToggle.cs" />
+    <Compile Include="Entities\SyncedCrumblePlatform.cs" />
     <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Entities\SyncedKey.cs" />
@@ -144,6 +145,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedCoreModeToggle.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedCoreModeToggle.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedCrumbleBlocks.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedCrumbleBlocks.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedDashSwitch.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedDashSwitch.lua</Link>
