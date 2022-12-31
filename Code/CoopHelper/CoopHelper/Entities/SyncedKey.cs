@@ -65,6 +65,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
+						// TODO setting on key for whether to bubble the player who didn't get it... or maybe to bubble them to a different spot
 						if (dd.Get<Follower>("follower")?.HasLeader == false) {
 							Vector2[] nodes = dd.Get<Vector2[]>("nodes");
 							if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
