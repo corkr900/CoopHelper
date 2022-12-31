@@ -15,19 +15,19 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedKey")]
 	[Tracked]
 	public class SyncedKey : Key, ISynchronizable {
-		private bool isObtained = false;
+		internal bool AnotherPlayerUsed { get; private set; }
 
 		public SyncedKey(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			PlayerCollider coll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = coll.OnCollide;
 			coll.OnCollide = (Player p) => {
 				orig_OnPlayer(p);
-				EntityStateTracker.PostUpdate(this);
+				if (!AnotherPlayerUsed) EntityStateTracker.PostUpdate(this);
 			};
 		}
 
 		internal void OnRegisterUsed() {
-			EntityStateTracker.PostUpdate(this);
+			if (!AnotherPlayerUsed) EntityStateTracker.PostUpdate(this);
 		}
 
 		#region ISync implementation
@@ -56,18 +56,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void ApplyState(object state) {
 			if (state is bool newIsUsed) {
 				DynamicData dd = new DynamicData(this);
-				if (newIsUsed && !IsUsed) {
-					Session session = SceneAs<Level>().Session;
-					Collidable = false;
-					if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
-					if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
-					session.UpdateLevelStartDashes();
-					Depth = -1000000;
-					Vector2[] nodes = dd.Get<Vector2[]>("nodes");
-					if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
-						Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
+				if (newIsUsed) {
+					AnotherPlayerUsed = true;
+					if (!IsUsed) {
+						Session session = SceneAs<Level>().Session;
+						Collidable = false;
+						if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
+						if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
+						session.UpdateLevelStartDashes();
+						Depth = -1000000;
+						Vector2[] nodes = dd.Get<Vector2[]>("nodes");
+						if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
+							Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
+						}
+						RegisterUsed();
 					}
-					RegisterUsed();
 				}
 				else {
 					dd.Invoke("OnPlayer", GetPlayer());
