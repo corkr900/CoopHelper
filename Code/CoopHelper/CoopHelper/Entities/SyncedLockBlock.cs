@@ -32,16 +32,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void DoRemoteUnlock() {
-			List<Component> followers = SceneAs<Level>().Tracker.GetComponents<Follower>();
-			Follower followerForUsedKey = null;
-			foreach (Follower fol in followers) {
-				Entity e = fol.Entity;
-				if (e is Key key && key.ID.Equals(usedKeyID)) {
-					followerForUsedKey = fol;
+			List<Entity> syncKeys = SceneAs<Level>().Tracker.GetEntities<SyncedKey>();
+			SyncedKey usedKey = null;
+			foreach (SyncedKey key in syncKeys) {
+				if (key.ID.Equals(usedKeyID)) {
+					usedKey = key;
 					break;
 				}
 			}
-			Add(new Coroutine(UnlockRoutineOverride(followerForUsedKey)));
+			Follower fol = usedKey?.Get<Follower>();
+			Add(new Coroutine(UnlockRoutineOverride(fol)));
 		}
 
 		internal IEnumerator UnlockRoutineOverride(Follower fol) {
