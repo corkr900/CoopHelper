@@ -53,6 +53,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				case MovementState.Breaking:
 				case MovementState.Idling:
 					currentlyActive = false;
+					myLastMovement = 0;
+					otherPlayerTotalMovement = 0;
 					break;
 
 				default:
@@ -94,6 +96,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					}
 					float diff = mbs.playersMovement - otherPlayerTotalMovement;
 					otherPlayerTotalMovement = mbs.playersMovement;  // TODO this paradigm will only work with 2 players, not 3+
+					Directions dir = dd.Get<Directions>("direction");
+					Vector2 shift = (dir == Directions.Up || dir == Directions.Down ? Vector2.UnitX : Vector2.UnitY) * diff;
+					Position += shift;
 				}
 				else if (movingState == MovementState.Moving) {
 					// TODO break move blocks when the remote says to
