@@ -14,13 +14,76 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedLockBlock")]
 	public class SyncedLockBlock : LockBlock, ISynchronizable {
-
-		public class DummyKey : Key {
-			public DummyKey() : base (Vector2.Zero, EntityID.None, new Vector2[0]) { }
-		}
+		private bool remotePlayerOpened = false;
+		private EntityID usedKeyID;
+		private bool transitionComplete = false;
 
 		public SyncedLockBlock(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
+			TransitionListener tlisten = new TransitionListener();
+			tlisten.OnInEnd = delegate () {
+				transitionComplete = true;
+				if (remotePlayerOpened) {
+					DoRemoteUnlock();
+				}
+				tlisten?.RemoveSelf();
+				tlisten = null;
+			};
+			Add(tlisten);
+		}
 
+		private void DoRemoteUnlock() {
+			List<Component> followers = SceneAs<Level>().Tracker.GetComponents<Follower>();
+			Follower followerForUsedKey = null;
+			foreach (Follower fol in followers) {
+				Entity e = fol.Entity;
+				if (e is Key key && key.ID.Equals(usedKeyID)) {
+					followerForUsedKey = fol;
+					break;
+				}
+			}
+			Add(new Coroutine(UnlockRoutineOverride(followerForUsedKey)));
+		}
+
+		internal IEnumerator UnlockRoutineOverride(Follower fol) {
+			DynamicData dd = new DynamicData(this);
+			string unlockSfxName = dd.Get<string>("unlockSfxName");
+			bool stepMusicProgress = dd.Get<bool>("stepMusicProgress");
+			Sprite sprite = dd.Get<Sprite>("sprite");
+
+
+			SoundEmitter emitter = SoundEmitter.Play(unlockSfxName, this);
+			emitter.Source.DisposeOnTransition = true;
+			Level level = SceneAs<Level>();
+			Key key = fol == null ? null : fol.Entity as Key;
+			if (key != null) {
+				usedKeyID = key.ID;
+				Add(new Coroutine(key.UseRoutine(Center + new Vector2(0f, 2f))));
+				if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
+			}
+			yield return 1.2f;
+			UnlockingRegistered = true;
+			if (stepMusicProgress) {
+				level.Session.Audio.Music.Progress++;
+				level.Session.Audio.Apply(forceSixteenthNoteHack: false);
+			}
+			level.Session.DoNotLoad.Add(ID);
+			if (key == null) {
+				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
+			}
+			else key.RegisterUsed();
+			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
+
+			while (key?.Turning ?? false) {
+				yield return null;
+			}
+			Tag |= Tags.TransitionUpdate;
+			Collidable = false;
+			emitter.Source.DisposeOnTransition = false;
+			yield return sprite.PlayRoutine("open");
+			level.Shake();
+			Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
+			yield return sprite.PlayRoutine("burst");
+			RemoveSelf();
 		}
 
 		#region ISync implementation
@@ -42,24 +105,34 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static int GetHeader() => 10;
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
-			return r.ReadBoolean();
+		public static SyncedLockBlockStatus ParseState(CelesteNetBinaryReader r) {
+			SyncedLockBlockStatus s = new SyncedLockBlockStatus();
+			s.UnlockingRegistered = r.ReadBoolean();
+			s.KeyUsed = r.ReadEntityID();
+			return s;
 		}
 
 		public void ApplyState(object state) {
-			if (state is bool b && b) {
-				DynamicData dd = new DynamicData(this);
-				Add(new Coroutine(new DynamicData(this).Invoke<IEnumerator>("UnlockRoutine",
-					new DynamicData(new DummyKey()).Get<Follower>("follower"))));
+			if (state is SyncedLockBlockStatus s) {
+				remotePlayerOpened = true;
+				usedKeyID = s.KeyUsed;
+				if (transitionComplete) DoRemoteUnlock();
+				else remotePlayerOpened = true;
 			}
 		}
 
 		public EntityID GetID() => ID;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(true);
+			w.Write(UnlockingRegistered);
+			w.Write(usedKeyID);
 		}
 
 		#endregion
+	}
+
+	public class SyncedLockBlockStatus {
+		public bool UnlockingRegistered;
+		public EntityID KeyUsed;
 	}
 }

@@ -55,8 +55,10 @@ namespace Celeste.Mod.CoopHelper {
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
 
+			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
@@ -70,8 +72,10 @@ namespace Celeste.Mod.CoopHelper {
 			Celeste.Instance.Components.Remove(Comm);
 			Comm = null;
 
+			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
@@ -182,6 +186,20 @@ namespace Celeste.Mod.CoopHelper {
 				}
 			}
 			else orig(self, player);
+		}
+
+		private void OnKeyRegisterUsed(On.Celeste.Key.orig_RegisterUsed orig, Key self) {
+			orig(self);
+			if (self is SyncedKey key) {
+				key.OnRegisterUsed();
+			}
+		}
+
+		private IEnumerator OnLockBlockUnlockRoutine(On.Celeste.LockBlock.orig_UnlockRoutine orig, LockBlock self, Follower fol) {
+			if (self is SyncedLockBlock slb) {
+				yield return new SwapImmediately(slb.UnlockRoutineOverride(fol));
+			}
+			else yield return new SwapImmediately(orig(self, fol));
 		}
 
 		#endregion

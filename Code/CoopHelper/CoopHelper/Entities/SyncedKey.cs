@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,9 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedKey")]
+	[Tracked]
 	public class SyncedKey : Key, ISynchronizable {
+		private bool isObtained = false;
 
 		public SyncedKey(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			PlayerCollider coll = Get<PlayerCollider>();
@@ -21,6 +24,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				orig_OnPlayer(p);
 				EntityStateTracker.PostUpdate(this);
 			};
+		}
+
+		internal void OnRegisterUsed() {
+			EntityStateTracker.PostUpdate(this);
 		}
 
 		#region ISync implementation
@@ -47,23 +54,41 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void ApplyState(object state) {
-			if (state is bool b) {
-				if (b) {
-					List<Entity> players = SceneAs<Level>().Tracker.GetEntities<Player>();
-					foreach (Entity player in players) {
-						if (player.GetType().Equals(typeof(Player))) {  // Filter out doppelgangers, etc
-							DynamicData dd = new DynamicData(this);
-							dd.Invoke("OnPlayer", player);
-						}
+			if (state is bool newIsUsed) {
+				DynamicData dd = new DynamicData(this);
+				if (newIsUsed && !IsUsed) {
+					Session session = SceneAs<Level>().Session;
+					Collidable = false;
+					if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
+					if (!session.Keys.Contains(ID)) session.Keys.Add(ID);
+					session.UpdateLevelStartDashes();
+					Depth = -1000000;
+					Vector2[] nodes = dd.Get<Vector2[]>("nodes");
+					if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
+						Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
 					}
+					RegisterUsed();
+				}
+				else {
+					dd.Invoke("OnPlayer", GetPlayer());
 				}
 			}
+		}
+
+		private Player GetPlayer() {
+			List<Entity> players = SceneAs<Level>().Tracker.GetEntities<Player>();
+			foreach (Entity player in players) {
+				if (player.GetType().Equals(typeof(Player))) {  // Filter out doppelgangers, etc
+					return player as Player;
+				}
+			}
+			return null;
 		}
 
 		public EntityID GetID() => ID;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(true);
+			w.Write(IsUsed);
 		}
 
 		#endregion
