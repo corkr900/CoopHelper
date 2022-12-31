@@ -58,6 +58,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
@@ -76,6 +77,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
@@ -207,6 +209,13 @@ namespace Celeste.Mod.CoopHelper {
 				yield return new SwapImmediately(slb.UnlockRoutineOverride(fol.EntityAs<Key>()));
 			}
 			else yield return new SwapImmediately(orig(self, fol));
+		}
+
+		private void OnDashBlockBreak(On.Celeste.DashBlock.orig_Break_Vector2_Vector2_bool_bool orig, DashBlock self, Vector2 from, Vector2 direction, bool playSound, bool playDebrisSound) {
+			orig(self, from, direction, playSound, playDebrisSound);
+			if (self is SyncedDashBlock sdb) {
+				sdb.OnBreak();
+			}
 		}
 
 		#endregion

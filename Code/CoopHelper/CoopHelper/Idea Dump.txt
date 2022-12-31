@@ -1,6 +1,7 @@
 ﻿
 ===== BUGS =====
 
+- steerable move blocks keep their offset on respawn
 - Need to have some distinction of important / unimportant / buffered / unbuffered / stackable updates
 - Need to remove frivolous dependencies
 - Keys used while you're out of the room aren't update right (visual only)
