@@ -107,7 +107,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					onTop = false;
 					EntityStateTracker.PostUpdate(this);
 				}
-				else if (otherPlayerTriggered) {
+				else if (!otherPlayerTriggered) {
 					yield return null;
 					continue;
 				}
