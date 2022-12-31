@@ -5,6 +5,18 @@
 - Persistent core mode should probably be moved to Session-level stuff
 - Falling blocks aren't always synced (depending on how theyre triggered)
 
+===== Utility =====
+
+Trigger spikes
+Dialog Trigger
+Dash Block
+
+===== Basic / Low Utility =====
+
+Refill
+Green Bubble
+Red Bubble
+
 ===== City =====
 
 
@@ -53,9 +65,6 @@ fling bird
 ===== Totally New =====
 
 role-specific spawn points
-role-specific  entity enabling (role flag?)
-	- Just setting a flag would probably suffice
-	- one for all roles + 1 for specific role
 Something to require both players to be present
 something custom to be hostile toward other players >:)
 

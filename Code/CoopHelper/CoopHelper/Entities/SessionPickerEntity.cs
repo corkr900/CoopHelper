@@ -1,4 +1,5 @@
 ﻿using Celeste;
+using Celeste.Mod.CoopHelper.Module;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -46,6 +47,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Scene.Remove(hud);
 			hud = null;
 			Audio.Play("event:/ui/game/unpause");
+			CoopHelperModuleSession coopSes = CoopHelperModule.Session;
+			Session currentSession = SceneAs<Level>()?.Session;
+			if (coopSes?.IsInCoopSession == true && currentSession != null) {
+				int role = coopSes.SessionRole;
+				currentSession.SetFlag("CoopHelper_InSession", true);
+				for (int i = 0; i < PlayersNeeded; i++) {
+					currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
+				}
+			}
+			else {
+				currentSession.SetFlag("CoopHelper_InSession", false);
+				for (int i = 0; i < PlayersNeeded; i++) {
+					currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
+				}
+			}
 		}
 	}
 }
