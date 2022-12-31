@@ -133,7 +133,8 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		private bool OnReceiveFilter(CelesteNetConnection con, DataType data) {
 			if (data is DataBundledEntityUpdate upd) {
-				return CoopHelperModule.Session.IsInCoopSession
+				return !PlayerState.Mine.CurrentMap.IsOverworld
+					&& CoopHelperModule.Session.IsInCoopSession
 					&& CoopHelperModule.Session.SessionID == upd.SessionID;
 			}
 			return true;

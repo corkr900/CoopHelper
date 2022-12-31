@@ -127,6 +127,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
+		internal static void ClearBuffers() {
+			outgoing?.Clear();
+			incoming?.Clear();
+			listeners?.Clear();
+		}
+
 		public static void Write(this CelesteNetBinaryWriter w, EntityID id) {
 			w.Write(id.Level);
 			w.Write(id.ID);

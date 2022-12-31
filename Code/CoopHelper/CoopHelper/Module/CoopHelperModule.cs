@@ -66,6 +66,7 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Player.OnDie += OnDie;
 			Everest.Events.Level.OnExit += onLevelExit;
+			Everest.Events.Level.OnEnter += OnLevelEnter;
 		}
 
 		public override void Unload() {
@@ -83,6 +84,7 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Player.OnSpawn -= OnSpawn;
 			Everest.Events.Player.OnDie -= OnDie;
 			Everest.Events.Level.OnExit -= onLevelExit;
+			Everest.Events.Level.OnEnter -= OnLevelEnter;
 		}
 
 		#endregion
@@ -138,6 +140,10 @@ namespace Celeste.Mod.CoopHelper {
 			PlayerState.Mine.SendUpdateImmediate();
 		}
 
+		private void OnLevelEnter(Session session, bool fromSaveData) {
+			EntityStateTracker.ClearBuffers();
+		}
+
 		private void onLevelExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
 			// If we're restarting, another update is close behind so don't bother updating
 			if (mode != LevelExit.Mode.Restart) {
@@ -146,6 +152,7 @@ namespace Celeste.Mod.CoopHelper {
 				PlayerState.Mine.RespawnPoint = Vector2.Zero;
 				PlayerState.Mine.SendUpdateImmediate();
 			}
+			EntityStateTracker.ClearBuffers();
 		}
 
 		private void OnLevelLoad(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader) {
