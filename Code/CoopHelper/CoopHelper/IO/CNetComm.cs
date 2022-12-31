@@ -167,7 +167,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		internal void Tick(ulong counter) {
-			if (CoopHelperModule.Session.IsInCoopSession && EntityStateTracker.HasUpdates) {
+			if (CoopHelperModule.Session?.IsInCoopSession == true && EntityStateTracker.HasUpdates) {
 				EntityStateTracker.NotifyInitiatingOutgoingMessage();
 				Send(new DataBundledEntityUpdate(), false);
 			}
