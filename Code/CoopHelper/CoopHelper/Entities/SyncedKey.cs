@@ -3,6 +3,7 @@ using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedKey")]
 	public class SyncedKey : Key, ISynchronizable {
 
-		// TODO problems happen if both players grab it at the same time
-
 		public SyncedKey(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			PlayerCollider coll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = coll.OnCollide;
@@ -22,10 +21,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				orig_OnPlayer(p);
 				EntityStateTracker.PostUpdate(this);
 			};
-		}
-
-		private void OtherPlayerGrabbed() {
-			RemoveSelf();
 		}
 
 		#region ISync implementation
@@ -54,7 +49,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void ApplyState(object state) {
 			if (state is bool b) {
 				if (b) {
-					OtherPlayerGrabbed();
+					List<Entity> players = SceneAs<Level>().Tracker.GetEntities<Player>();
+					foreach (Entity player in players) {
+						if (player.GetType().Equals(typeof(Player))) {  // Filter out doppelgangers, etc
+							DynamicData dd = new DynamicData(this);
+							dd.Invoke("OnPlayer", player);
+						}
+					}
 				}
 			}
 		}
@@ -62,7 +63,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => ID;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(SceneAs<Level>()?.Session?.Keys?.Contains(ID) ?? false);
+			w.Write(true);
 		}
 
 		#endregion
