@@ -68,5 +68,18 @@ entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.shakeTime
 entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.respawnDelay=How long the platform waits after breaking to reappear
 entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.breakOnJump=If set, the platform will break immediately if triggered on top and then the player jumps off. Using this mirrors vanilla behavior but may cause minor desync issues.
 
+# Synced Move Block
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.up_nosteer=Synced Move Block (Up)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.down_nosteer=Synced Move Block (Down)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.left_nosteer=Synced Move Block (Left)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.right_nosteer=Synced Move Block (Right)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.up_steer=Synced Move Block (Up, Steerable)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.down_steer=Synced Move Block (Down, Steerable)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.left_steer=Synced Move Block (Left, Steerable)
+entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.right_steer=Synced Move Block (Right, Steerable)
+entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.direction=Changes the direction of movement
+entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.canSteer=If set, players can steer the move block
+entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.fast=Changes the speed of the block
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

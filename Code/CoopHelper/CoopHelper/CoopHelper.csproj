@@ -93,6 +93,7 @@
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Entities\SyncedKey.cs" />
     <Compile Include="Entities\SyncedLockBlock.cs" />
+    <Compile Include="Entities\SyncedMoveBlock.cs" />
     <Compile Include="Entities\SyncedSwapBlock.cs" />
     <Compile Include="Entities\SyncedTouchSwitch.cs" />
     <Compile Include="Entities\SyncedZipMover.cs" />
@@ -160,6 +161,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedLockBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedLockBlock.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedMoveBlock.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedMoveBlock.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedSwapBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedSwapBlock.lua</Link>

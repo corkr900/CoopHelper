@@ -157,7 +157,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 			try {
 				if (sendToSelf) CnetClient.SendAndHandle(data);
 				else CnetClient.Send(data);
-				Engine.Commands.Log("Sent - " + typeof(DataType<T>).GetField("DataID").GetValue(data));
 				++msgCount;
 			}
 			catch(Exception e) {
@@ -188,31 +187,26 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		public void Handle(CelesteNetConnection con, Data.DataPlayerState data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<Data.DataPlayerState>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceivePlayerState?.Invoke(data));
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinAvailable>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinAvailable?.Invoke(data));
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinRequest data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinRequest>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinRequest?.Invoke(data));
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinResponse data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinResponse>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinResponse?.Invoke(data));
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinFinalize data) {
-			Engine.Commands.Log("Received - " + typeof(DataType<DataSessionJoinFinalize>).GetField("DataID").GetValue(data));
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinFinalize?.Invoke(data));
 		}

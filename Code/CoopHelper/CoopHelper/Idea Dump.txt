@@ -1,6 +1,8 @@
 ﻿
 ===== BUGS =====
 
+- Need to have some distinction of important / unimportant updates
+- Need to remove frivolous dependencies
 - Keys used while you're out of the room aren't update right (visual only)
 - Persistent core mode should probably be moved to Session-level stuff
 - Falling blocks aren't always synced (depending on how theyre triggered)
