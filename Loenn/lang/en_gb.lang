@@ -12,6 +12,7 @@ entities.corkr900CoopHelper/SessionGate.attributes.description.requiredRole=Role
 
 # Group Button
 entities.corkr900CoopHelper/GroupButton.placements.name.default=Group Button
+entities.corkr900CoopHelper/GroupButton.attributes.description.flag=Flag to set when all players in the session have stood on the button simultaneously
 
 # Synced Touch Switch
 entities.corkr900CoopHelper/SyncedTouchSwitch.placements.name.default=Synced Touch Switch

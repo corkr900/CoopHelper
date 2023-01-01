@@ -68,7 +68,6 @@ fling bird
 ===== Totally New =====
 
 role-specific spawn points
-Something to require both players to be present
 something custom to be hostile toward other players >:)
 
 ============== improvements ===============

@@ -26,10 +26,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			id = new EntityID(data.Level.Name, data.ID);
 			direction = data.Attr("direction", "Right");
 			flagToSet = data.Attr("flag", "");
-			data.Height = 6;
-			data.Width = 28;
-			data.Position += new Vector2(-14, -6);
-			trigger = new GroupButtonDetector(data, offset);
+			trigger = new GroupButtonDetector(new EntityData() {
+				Width = 6,
+				Height = 28,
+				Position = data.Position + new Vector2(-14, -6),
+			}, offset);
 			trigger.OnPlayerStand = (Player p) => {
 				player = p;
 				CheckComplete();
@@ -65,7 +66,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			else {
 				foreach (PlayerID p in CoopHelperModule.Session?.SessionMembers) {
-					bool isOn = p.Equals(PlayerID.MyID) ? player != null : otherPlayerStanding.Contains(p);
+					bool isOn = complete || (p.Equals(PlayerID.MyID) ? player != null : otherPlayerStanding.Contains(p));
 					indicators[p].Play(isOn ? "on" : "off");
 				}
 			}
