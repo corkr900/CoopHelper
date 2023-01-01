@@ -17,6 +17,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			CoopHelperModule.Session.SessionID = CoopSessionID.GetNewID();
 			CoopHelperModule.Session.SessionRole = role;
 			CoopHelperModule.Session.SessionMembers = new List<PlayerID>(new PlayerID[(int)Calc.Max(2, role + 1)]);
+			CoopHelperModule.Session.SessionMembers[role] = PlayerID.MyID;
 			CoopHelperModule.NotifySessionChanged();
 		}
 	}

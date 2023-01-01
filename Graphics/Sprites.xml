@@ -4,5 +4,14 @@
 		<Loop id="idle" path="Idle" delay=".22" frames="0,0,0,1,2,2,2,1" />
 	</corkr900_CoopHelper_SessionPicker>
 
+  <corkr900_CoopHelper_GroupSwitch path="corkr900/CoopHelper/GroupSwitch/" start="idle">
+    <Loop id="idle" path="button" frames="0" />
+    <Loop id="pressed" path="button" frames="1" />
+  </corkr900_CoopHelper_GroupSwitch>
+
+  <corkr900_CoopHelper_GroupSwitchIndicator path="corkr900/CoopHelper/GroupSwitch/" start="off">
+    <Loop id="off" path="indicator" frames="0" />
+    <Loop id="on" path="indicator" frames="1" />
+  </corkr900_CoopHelper_GroupSwitchIndicator>
 
 </Sprites>

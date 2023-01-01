@@ -10,6 +10,9 @@ entities.corkr900CoopHelper/SessionGate.placements.name.default=Session Gate
 entities.corkr900CoopHelper/SessionGate.attributes.description.sprite=Changes the visual appearance of the gate.
 entities.corkr900CoopHelper/SessionGate.attributes.description.requiredRole=Role required to open the gate. Roles start at 0. Use -1 for any role.
 
+# Group Button
+entities.corkr900CoopHelper/GroupButton.placements.name.default=Group Button
+
 # Synced Touch Switch
 entities.corkr900CoopHelper/SyncedTouchSwitch.placements.name.default=Synced Touch Switch
 
@@ -80,6 +83,13 @@ entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.right_steer=Synced M
 entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.direction=Changes the direction of movement
 entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.canSteer=If set, players can steer the move block
 entities.corkr900CoopHelper/SyncedMoveBlock.attributes.description.fast=Changes the speed of the block
+
+# Synced Dash Block
+entities.corkr900CoopHelper/SyncedDashBlock.placements.name.dash_block=Synced Dash Block
+entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.tiletype=Tileset to use for the block
+entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.blendin=If set, block will blend with surrounding tiles
+entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.canDash=If set, player can break the block by dashing
+entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.permanent=If set, the block will not reapper after death or returning to the room
 
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

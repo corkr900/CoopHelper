@@ -46,7 +46,7 @@ syncedZipMover.fieldInformation = {
 }
 syncedZipMover.placements = {
 	{
-        name = normal,
+        name = "normal",
         data = {
             width = 16,
             height = 16,
@@ -59,7 +59,7 @@ syncedZipMover.placements = {
         }
     },
 	{
-        name = moon,
+        name = "moon",
         data = {
             width = 16,
             height = 16,
@@ -72,7 +72,7 @@ syncedZipMover.placements = {
         }
     },
 	{
-        name = normalNoReturn,
+        name = "normalNoReturn",
         data = {
             width = 16,
             height = 16,
@@ -85,7 +85,7 @@ syncedZipMover.placements = {
         }
     },
 	{
-        name = moonNoReturn,
+        name = "moonNoReturn",
         data = {
             width = 16,
             height = 16,
