@@ -27,8 +27,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			direction = data.Attr("direction", "Right");
 			flagToSet = data.Attr("flag", "");
 			trigger = new GroupButtonDetector(new EntityData() {
-				Width = 6,
-				Height = 28,
+				Width = 28,
+				Height = 6,
 				Position = data.Position + new Vector2(-14, -6),
 			}, offset);
 			trigger.OnPlayerStand = (Player p) => {
