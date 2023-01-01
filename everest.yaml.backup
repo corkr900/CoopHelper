@@ -1,8 +1,0 @@
-- Name: CoopHelper
-  Version: 0.0.1
-  DLL: Code/CoopHelper.dll
-  Dependencies:
-  - Name: Everest
-    Version: 1.3471.0
-  - Name: CelesteNet.Client
-    Version: 2.1.0

@@ -4,9 +4,13 @@
   Dependencies:
   - Name: Everest
     Version: 1.3471.0
-  - Name: DJMapHelper
-    Version: 1.11.3
   - Name: JackalHelper
     Version: 1.6.8
+  - Name: MaxHelpingHand
+    Version: 1.22.10
+  - Name: DJMapHelper
+    Version: 1.11.3
+  - Name: CrystallineHelper
+    Version: 1.13.0
   - Name: CelesteNet.Client
     Version: 2.1.0
