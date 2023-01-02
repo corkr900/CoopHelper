@@ -111,7 +111,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 		private void OnCNetClientContextStart(CelesteNetClientContext cxt) {
 			CnetClient.Data.RegisterHandlersIn(this);
 			CnetClient.Con.OnDisconnect += OnDisconnect;
-			CnetClient.Con.OnReceiveFilter += OnReceiveFilter;
 			updateQueue.Enqueue(() => OnConnected?.Invoke(cxt));
 		}
 
@@ -129,15 +128,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 			foreach (Action act in queue) act();
 
 			base.Update(gameTime);
-		}
-
-		private bool OnReceiveFilter(CelesteNetConnection con, DataType data) {
-			if (data is DataBundledEntityUpdate upd) {
-				return !PlayerState.Mine.CurrentMap.IsOverworld
-					&& CoopHelperModule.Session.IsInCoopSession
-					&& CoopHelperModule.Session.SessionID == upd.SessionID;
-			}
-			return true;
 		}
 
 		#endregion

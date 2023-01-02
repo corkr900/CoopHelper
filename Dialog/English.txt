@@ -1,3 +1,5 @@
+corkr900= Cork's test stuff
+corkr900_01_BarrenCity= Barren City
 
 corkr900_CoopHelper_Setting_TimeServer= Time Server
 #corkr900_CoopHelper_Setting_TimeServer_Subtext= 

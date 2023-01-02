@@ -67,7 +67,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			else {
 				foreach (PlayerID p in CoopHelperModule.Session?.SessionMembers) {
 					bool isOn = complete || (p.Equals(PlayerID.MyID) ? player != null : otherPlayerStanding.Contains(p));
-					indicators[p].Play(isOn ? "on" : "off");
+					indicators[p]?.Play(isOn ? "on" : "off");
 				}
 			}
 		}
@@ -99,6 +99,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			base.Added(scene);
 			scene.Add(trigger);
 			EntityStateTracker.AddListener(this);
+			if ((scene as Level)?.Session?.GetFlag(flagToSet) == true) {
+				complete = true;
+				UpdateSprites();
+			}
 		}
 
 		public override void Removed(Scene scene) {

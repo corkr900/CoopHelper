@@ -96,14 +96,16 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		internal static void ReceiveUpdates(CelesteNetBinaryReader r) {
+		internal static void ReceiveUpdates(CelesteNetBinaryReader r, bool isMySession) {
 			lock (incoming) {
 				do {
 					int header = r.ReadInt32();
 					if (header == 0) break;
 					EntityID id = r.ReadEntityID();
 					object parsedState = parsers[header].Invoke(null, new object[] { r });
-					incoming.AddLast(new Tuple<EntityID, object>(id, parsedState));
+					if (isMySession) {
+						incoming.AddLast(new Tuple<EntityID, object>(id, parsedState));
+					}
 				} while (true);
 			}
 		}

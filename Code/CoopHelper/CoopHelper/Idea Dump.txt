@@ -1,6 +1,7 @@
 ﻿
 ===== BUGS =====
 
+- entity updates from other sessions are received
 - steerable move blocks keep their offset on respawn
 - Need to have some distinction of important / unimportant / buffered / unbuffered / stackable updates
 - Need to remove frivolous dependencies
