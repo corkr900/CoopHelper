@@ -124,13 +124,13 @@ namespace Celeste.Mod.CoopHelper {
 		#region Hooked Code + Event Handlers
 
 		private void OnSpawn(Player pl) {
-			if (pl.Get<DeathSynchronizer>() == null) {
-				pl.Add(new DeathSynchronizer(pl, true, false));
+			if (pl.Get<SessionSynchronizer>() == null) {
+				pl.Add(new SessionSynchronizer(pl, true, false));
 			}
 		}
 
 		private void OnDie(Player pl) {
-			pl.Get<DeathSynchronizer>()?.PlayerDied();
+			pl.Get<SessionSynchronizer>()?.PlayerDied();
 		}
 
 		private void OnPlayerTransition(On.Celeste.Player.orig_OnTransition orig, Player self) {

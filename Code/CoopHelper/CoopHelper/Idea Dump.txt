@@ -13,13 +13,13 @@
 
 Trigger spikes
 Dialog Trigger
-Dash Block
 
 ===== Basic / Low Utility =====
 
 Refill
 Green Bubble
 Red Bubble
+core blocks
 
 ===== City =====
 
@@ -33,7 +33,6 @@ clutter (this seems pretty tough)
 
 ===== Ridge =====
 
-move block
 
 ===== Temple =====
 
@@ -55,7 +54,6 @@ badeline booster
 
 ===== Core =====
 
-core blocks
 
 ===== Farewell =====
 
