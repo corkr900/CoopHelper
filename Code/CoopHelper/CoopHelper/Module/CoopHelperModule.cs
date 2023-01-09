@@ -5,6 +5,7 @@ using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -65,6 +66,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
@@ -88,6 +90,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
@@ -232,6 +235,14 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, from, direction, playSound, playDebrisSound);
 			if (self is SyncedDashBlock sdb) {
 				sdb.OnBreak();
+			}
+		}
+
+		private void OnCasetteOnPlayer(On.Celeste.Cassette.orig_OnPlayer orig, Cassette self, Player player) {
+			bool alreadyCollected = new DynamicData(self).Get<bool>("collected");
+			orig(self, player);
+			if (!alreadyCollected) {
+				player.Get<SessionSynchronizer>()?.CassetteCollected();
 			}
 		}
 

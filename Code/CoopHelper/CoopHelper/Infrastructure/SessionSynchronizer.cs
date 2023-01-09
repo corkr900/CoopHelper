@@ -17,6 +17,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public string room;
 		public bool dead;
 		public List<EntityID> collectedStrawbs;
+		public bool cassette;
 	}
 
 	public class SessionSynchronizer : Component, ISynchronizable {
@@ -24,7 +25,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static DateTime lastTriggeredDeathRemote = DateTime.MinValue;
 		private static bool CurrentDeathIsSecondary = false;
 
+		private object basicFlagsLock = new object();
 		private bool deathPending = false;
+		private bool cassettePending = false;
 		public List<EntityID> newlyCollectedStrawbs = new List<EntityID>();
 
 		public Player playerEntity { get; private set; }
@@ -55,9 +58,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal void PlayerDied() {
 			if (!CurrentDeathIsSecondary) {
-				deathPending = true;
-				lastTriggeredDeathLocal = SyncTime.Now;
-				EntityStateTracker.PostUpdate(this);
+				lock (basicFlagsLock) {
+					deathPending = true;
+					lastTriggeredDeathLocal = SyncTime.Now;
+					EntityStateTracker.PostUpdate(this);
+				}
 			}
 		}
 
@@ -68,11 +73,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
+		internal void CassetteCollected() {
+			lock (basicFlagsLock) {
+				cassettePending = true;
+				EntityStateTracker.PostUpdate(this);
+			}
+		}
+
 		public static int GetHeader() => 1;
 
 		public static SessionSyncState ParseState(CelesteNetBinaryReader r) {
 			SessionSyncState state = new SessionSyncState {
 				dead = r.ReadBoolean(),
+				cassette = r.ReadBoolean(),
 				player = r.ReadPlayerID(),
 				instant = r.ReadDateTime(),
 				room = r.ReadString(),
@@ -92,13 +105,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					&& CoopHelperModule.Session?.IsInCoopSession == true
 					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player))
 				{
+					Level level = SceneAs<Level>();
 
 					// death sync
 					if (dss.dead
 						&& PlayerState.Mine?.CurrentRoom != null
 						&& dss.room == PlayerState.Mine.CurrentRoom
 						&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000
-						&& EntityAs<Player>()?.SceneAs<Level>()?.Transitioning == false)
+						&& level?.Transitioning == false)
 					{
 						CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
 						EntityAs<Player>()?.Die(Vector2.Zero, true, true);
@@ -111,12 +125,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						foreach (EntityID id in dss.collectedStrawbs) {
 							// register strawb as collected
 							SaveData.Instance.AddStrawberry(id, false);  // TODO handle golden strawbs
-							Level level = SceneAs<Level>();
 							Session session = level.Session;
 							session.DoNotLoad.Add(id);
 							session.Strawberries.Add(id);
 							// handle if the strawb is in the current room
-							foreach (Entity e in level.Entities) {  // TODO handle strawberries that don't inherit Strawberry
+							foreach (Entity e in Scene.Entities) {
+								// TODO handle strawberries that don't inherit Strawberry
 								if (e is Strawberry strawb && strawb.ID.Equals(id)) {
 									if (strawb.Follower.HasLeader) {
 										strawb.Follower.Leader.LoseFollower(strawb.Follower);
@@ -134,7 +148,25 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						}
 					}
 
-					// TODO cassette sync
+					// cassette sync
+					if (dss.cassette && !level.Session.Cassette) {
+						bool cassetteFound = false;
+						foreach (Entity e in Scene.Entities) {
+							if (e is Cassette cass) {
+								DynamicData dd = new DynamicData(cass);
+								dd.Invoke("OnPlayer", EntityAs<Player>());
+								cassetteFound = true;
+								break;
+							}
+						}
+						if (!cassetteFound) {
+							level.Session.Cassette = true;
+							SaveData.Instance.RegisterCassette(level.Session.Area);
+							CassetteBlockManager cbm = Scene.Tracker.GetEntity<CassetteBlockManager>();
+							cbm?.StopBlocks();
+							cbm?.Finish();
+						}
+					}
 
 					// TODO heart sync
 				}
@@ -146,7 +178,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(deathPending);
+			lock (basicFlagsLock) {
+				w.Write(deathPending);
+				deathPending = false;
+				w.Write(cassettePending);
+				cassettePending = false;
+			}
 			w.Write(PlayerID.MyID);
 			w.Write(lastTriggeredDeathLocal);
 			w.Write(PlayerState.Mine?.CurrentRoom ?? "");
