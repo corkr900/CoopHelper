@@ -116,8 +116,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 							session.DoNotLoad.Add(id);
 							session.Strawberries.Add(id);
 							// handle if the strawb is in the current room
-							foreach (Strawberry strawb in level.Entities) {  // TODO handle strawberries that don't inherit Strawberry
-								if (strawb.ID.Equals(id)) {
+							foreach (Entity e in level.Entities) {  // TODO handle strawberries that don't inherit Strawberry
+								if (e is Strawberry strawb && strawb.ID.Equals(id)) {
 									if (strawb.Follower.HasLeader) {
 										strawb.Follower.Leader.LoseFollower(strawb.Follower);
 									}
