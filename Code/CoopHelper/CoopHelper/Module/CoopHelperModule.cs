@@ -44,6 +44,8 @@ namespace Celeste.Mod.CoopHelper {
 
 		private CNetComm Comm;
 
+		private static IDetour hook_Strawberry_orig_OnCollect;
+
 		public CoopHelperModule() {
 			Instance = this;
 		}
@@ -54,6 +56,11 @@ namespace Celeste.Mod.CoopHelper {
 
 		public override void Load() {
 			Celeste.Instance.Components.Add(Comm = new CNetComm(Celeste.Instance));
+
+			// Manual Hooks
+			hook_Strawberry_orig_OnCollect = new Hook(
+				typeof(Strawberry).GetMethod("orig_OnCollect", BindingFlags.Public | BindingFlags.Instance),
+				typeof(CoopHelperModule).GetMethod("OnStrawberryCollect"));
 
 			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
@@ -73,6 +80,10 @@ namespace Celeste.Mod.CoopHelper {
 		public override void Unload() {
 			Celeste.Instance.Components.Remove(Comm);
 			Comm = null;
+
+			// Manual Hooks
+			hook_Strawberry_orig_OnCollect?.Dispose();
+			hook_Strawberry_orig_OnCollect = null;
 
 			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
@@ -122,6 +133,12 @@ namespace Celeste.Mod.CoopHelper {
 		#endregion
 
 		#region Hooked Code + Event Handlers
+
+		public static void OnStrawberryCollect(Action<Strawberry> orig, Strawberry self) {
+			orig(self);
+			Player player = self.SceneAs<Level>().Tracker.GetEntity<Player>();
+			player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID);
+		}
 
 		private void OnSpawn(Player pl) {
 			if (pl.Get<SessionSynchronizer>() == null) {

@@ -100,7 +100,7 @@
     <Compile Include="Entities\SyncedTouchSwitch.cs" />
     <Compile Include="Entities\SyncedZipMover.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
-    <Compile Include="Infrastructure\DeathSynchronizer.cs" />
+    <Compile Include="Infrastructure\SessionSynchronizer.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
     <Compile Include="Infrastructure\PlayerState.cs" />
     <Compile Include="IO\Commands.cs" />
