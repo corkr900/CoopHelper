@@ -71,6 +71,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
+			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
@@ -95,6 +96,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
+			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
@@ -243,6 +245,13 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, player);
 			if (!alreadyCollected) {
 				player.Get<SessionSynchronizer>()?.CassetteCollected();
+			}
+		}
+
+		private void OnTempleCrackedBlockBreak(On.Celeste.TempleCrackedBlock.orig_Break orig, TempleCrackedBlock self, Vector2 from) {
+			orig(self, from);
+			if (self is SyncedTempleCrackedBlock synced) {
+				synced.OnBreak(from);
 			}
 		}
 

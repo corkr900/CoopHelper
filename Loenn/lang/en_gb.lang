@@ -92,5 +92,9 @@ entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.blendin=If se
 entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.canDash=If set, player can break the block by dashing
 entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.permanent=If set, the block will not reapper after death or returning to the room
 
+# Synced Temple Cracked Block
+entities.corkr900CoopHelper/SyncedTempleCrackedBlock.placements.name.temple_block=Synced Temple Cracked Block
+entities.corkr900CoopHelper/SyncedTempleCrackedBlock.attributes.description.persistent=If set, the block will not reapper after death or returning to the room
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

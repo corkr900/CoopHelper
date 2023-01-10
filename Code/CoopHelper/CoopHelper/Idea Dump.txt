@@ -1,11 +1,11 @@
 ﻿
 ===== BUGS =====
 
-- entity updates from other sessions are received
 - steerable move blocks keep their offset on respawn
 - Need to have some distinction of important / unimportant / buffered / unbuffered / stackable updates
-- Need to remove frivolous dependencies
-- Keys used while you're out of the room aren't update right (visual only)
+- Need to remove frivolous dependencies from everest.yaml
+- Keys used while you're out of the room aren't updated correctly
+- Lock blocks can desync but idk how
 - Persistent core mode should probably be moved to Session-level stuff
 - Falling blocks aren't always synced (depending on how theyre triggered)
 
@@ -38,7 +38,6 @@ clutter (this seems pretty tough)
 
 seeker
 	- Would probably have to be only on 1 client at a time and bounce back and forth
-temple cracked block
 theo crystal
 
 ===== Reflection =====
@@ -82,9 +81,7 @@ sync other session info
 - keys
 - core mode
 - collectables
-	- strawberries
 	- heart
-	- cassette
 	- Custom?
 
 co-op mode everywhere?
