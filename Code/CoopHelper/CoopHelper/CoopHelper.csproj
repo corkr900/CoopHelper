@@ -94,6 +94,7 @@
     <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
     <Compile Include="Entities\SyncedKey.cs" />
+    <Compile Include="Entities\SyncedLightningBreakerBox.cs" />
     <Compile Include="Entities\SyncedLockBlock.cs" />
     <Compile Include="Entities\SyncedMoveBlock.cs" />
     <Compile Include="Entities\SyncedSwapBlock.cs" />

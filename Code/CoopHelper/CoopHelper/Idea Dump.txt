@@ -73,11 +73,13 @@ something custom to be hostile toward other players >:)
 manual role picking
 swap block toggle mode
 horizontal session gates
+custom flags for lightning breaker boxes
 
 ===========================================
 
 
 sync other session info
+- flags (!!!)
 - keys
 - core mode
 - collectables
