@@ -169,6 +169,9 @@
     <None Include="..\..\..\Loenn\entities\SyncedKey.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedKey.lua</Link>
     </None>
+    <None Include="..\..\..\Loenn\entities\SyncedLightningBreakerBox.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedLightningBreakerBox.lua</Link>
+    </None>
     <None Include="..\..\..\Loenn\entities\SyncedLockBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedLockBlock.lua</Link>
     </None>

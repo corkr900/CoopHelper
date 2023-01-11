@@ -96,5 +96,13 @@ entities.corkr900CoopHelper/SyncedDashBlock.attributes.description.permanent=If 
 entities.corkr900CoopHelper/SyncedTempleCrackedBlock.placements.name.temple_block=Synced Temple Cracked Block
 entities.corkr900CoopHelper/SyncedTempleCrackedBlock.attributes.description.persistent=If set, the block will not reapper after death or returning to the room
 
+# Synced Lightning Breaker Box
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.placements.name.breaker_box=Synced Lightning Breaker Box
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.flipX=Whether the sprite should be vertically mirrored.
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.music_progress=The new music progress once box is broken.\n-1 keeps the same progress.
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.music_session=Whether the music should be stored in session when box is broken.
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.music=Change the currently playing music to this when box is broken.\nLeave empty to not change song.
+entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.flag=Whether the breaker box should disable all lightning entities without the perLevel attribute set when loading a new room.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
