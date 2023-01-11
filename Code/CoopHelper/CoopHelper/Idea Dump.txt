@@ -8,6 +8,8 @@
 - Lock blocks can desync but idk how
 - Persistent core mode should probably be moved to Session-level stuff
 - Falling blocks aren't always synced (depending on how theyre triggered)
+- breaker boxes easy to desync with screen transition
+- persistent breaker boxes don't take effect until you enter the room they're in
 
 ===== Utility =====
 
@@ -56,7 +58,6 @@ badeline booster
 
 ===== Farewell =====
 
-lightning breaker box
 jelly
 	- conflict resolution necessary
 puffer
