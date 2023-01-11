@@ -16,6 +16,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private object healthDiffLock = new object();
 		private int healthLost = 0;
 		private EntityID id;
+		public Vector2 lastDashedDir;
 
 		public SyncedLightningBreakerBox(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
@@ -28,6 +29,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (healthAfter != healthBefore) {
 					lock (healthDiffLock) {
 						healthLost++;
+						lastDashedDir = dir;
 						EntityStateTracker.PostUpdate(this);
 					}
 				}
@@ -52,17 +54,28 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static int GetHeader() => 16;
 
-		public static int ParseState(CelesteNetBinaryReader r) {
-			return r.ReadInt32();
+		public static SyncedLightningBreakerBoxState ParseState(CelesteNetBinaryReader r) {
+			return new SyncedLightningBreakerBoxState() {
+				healthLost = r.ReadInt32(),
+				dir = r.ReadVector2(),
+			};
 		}
 
 		public void ApplyState(object state) {
-			if (state is int remoteHealthLost) {
-				DynamicData dd = new DynamicData(this);
-				int health = dd.Get<int>("health");
-				health -= remoteHealthLost;
-				dd.Set("health", health);
-				// TODO (!!!) simulate getting dashed
+			if (state is SyncedLightningBreakerBoxState st) {
+				// Handle multiple health lost at once
+				if (st.healthLost > 1) {
+					DynamicData dd = new DynamicData(this);
+					int health = dd.Get<int>("health");
+					dd.Set("health", health - st.healthLost + 1);
+				}
+				// I don't want to duplicate the Dashed function or IL Hook it...
+				// If I don't give Dashed a Player it crashes, but all it does is restore dashes.
+				// But i don't want it to restore dashes here so i have to undo any changes to the dash count
+				Player player = Scene.Tracker.GetEntity<Player>();
+				int dashCtBefore = player.Dashes;
+				Dashed(player, st.dir);
+				player.Dashes = dashCtBefore; 
 			}
 		}
 
@@ -71,8 +84,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void WriteState(CelesteNetBinaryWriter w) {
 			lock (healthDiffLock) {
 				w.Write(healthLost);
+				w.Write(lastDashedDir);
 				healthLost = 0;
 			}
 		}
+	}
+
+	public class SyncedLightningBreakerBoxState {
+		public int healthLost;
+		public Vector2 dir;
 	}
 }
