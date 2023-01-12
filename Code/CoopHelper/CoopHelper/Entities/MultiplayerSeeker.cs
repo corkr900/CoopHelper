@@ -819,7 +819,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.Locked = true;
 			Light.StartRadius = 16f;
 			Light.EndRadius = 32f;
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			//if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private void RegenerateEnd() {
