@@ -143,9 +143,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private long lastUpdateSent = 0;
 		private int owner = 0;
 		private bool claimingOwnership = false;
-		private bool bounced = false;
 		private Vector2 bouncePosition;
 		private bool applyingRemoteState = false;
+		private string stateChangeIDToSync = "";
+		private const int statusChangeHistoryDepth = 3;
+		private Queue<string> stateChangeIDHistory = new Queue<string>();
 
 		public bool IsOwner {
 			get {
@@ -232,7 +234,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					Audio.Play("event:/game/05_mirror_temple/seeker_death", Position);
 					RemoveSelf();
 					dead = true;
-					if (!applyingRemoteState) EntityStateTracker.PostUpdate(this);
+					SendStateChangeUpdate(false);
 				}
 			};
 			scaleWiggler = Wiggler.Create(0.8f, 2f);
@@ -248,7 +250,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void GenericStateBegin() {
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		public override void Added(Scene scene) {
@@ -319,8 +321,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			sprite.Scale = new Vector2(1.4f, 0.6f);
 			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
 			bouncePosition = entity.Center;
-			bounced = true;
-			if (!applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate(false);
 		}
 
 		public void HitSpring() {
@@ -594,7 +595,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private void PatrolBegin() {
 			State.State = ChoosePatrolTarget();
 			patrolWaitTimer = 0f;
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		private int PatrolUpdate() {
@@ -656,7 +657,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			lastPathTo = lastSpottedAt;
 			pathIndex = 0;
 			lastPathFound = SceneAs<Level>().Pathfinder.Find(ref path, Center, FollowTarget);
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 			return StPatrol;
 		}
 
@@ -670,7 +671,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			spottedLosePlayerTimer = SpottedLosePlayerTime;
 			spottedTurnDelay = 1f;
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		private int SpottedUpdate() {
@@ -737,7 +738,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			attackWindUp = true;
 			attackSpeed = AttackWindUpSpeed;
 			Speed = (FollowTarget - Center).SafeNormalize(AttackWindUpSpeed);
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		private int AttackUpdate() {
@@ -782,7 +783,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play("event:/game/05_mirror_temple/seeker_dash_turn", Position);
 			strongSkid = false;
 			TurnFacing(-facing);
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		private int SkiddingUpdate() {
@@ -813,7 +814,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.Locked = true;
 			Light.StartRadius = 16f;
 			Light.EndRadius = 32f;
-			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
+			SendStateChangeUpdate();
 		}
 
 		private void RegenerateEnd() {
@@ -876,16 +877,36 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.State = StIdle;
 		}
 
+		private void SendStateChangeUpdate(bool requireIsOwner = true) {
+			if ((IsOwner || !requireIsOwner) && !applyingRemoteState) {
+				EntityStateTracker.PostUpdate(this);
+				stateChangeIDToSync = GetNewStateChangeID();
+				AddChangeToHistory(stateChangeIDToSync);
+			}
+		}
 
+		private int changeIDCounter = 0;
+		private string GetNewStateChangeID() {
+			string addr = (PlayerID.MyID.MacAddressHash ?? 0).ToString(4);
+			changeIDCounter = (changeIDCounter + 1) % 100;
+			return addr + changeIDCounter;
+		}
 
+		private void AddChangeToHistory(string changeID) {
+			stateChangeIDHistory.Enqueue(changeID);
+			while (stateChangeIDHistory.Count > statusChangeHistoryDepth) {
+				stateChangeIDHistory.Dequeue();
+			}
+		}
 
 
 		public static int GetHeader() => 17;
 
 		public static MultiplayerSeekerState ParseState(CelesteNetBinaryReader r) {
 			MultiplayerSeekerState s = new MultiplayerSeekerState();
+			s.stateChangeID = r.ReadString();
+
 			s.Dead = r.ReadBoolean();
-			s.Bounced = r.ReadBoolean();
 			s.Spotted = r.ReadBoolean();
 			s.CanSeePlayer = r.ReadBoolean();
 			s.LastPathFound = r.ReadBoolean();
@@ -914,9 +935,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
+			w.Write(stateChangeIDToSync);
+			stateChangeIDToSync = "";
 			w.Write(dead);
-			w.Write(bounced);
-			bounced = false;
 			w.Write(spotted);
 			w.Write(canSeePlayer);
 			w.Write(lastPathFound);
@@ -968,12 +989,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (st.Dead && !dead) {
 					SquishCallback(new CollisionData());
 				}
-				//else if (st.Bounced) {
-				//	bouncedRemotely = true;
-				//	GotBouncedOn(new Entity() { Center = st.BouncePosition });
-				//}
-				else if (State.State != st.StateID) {
+				else if (State.State != st.StateID && !stateChangeIDHistory.Contains(st.stateChangeID)) {
 					State.State = st.StateID;
+					AddChangeToHistory(st.stateChangeID);
 				}
 				// TODO switch ownership
 
@@ -1011,8 +1029,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	}
 
 	public class MultiplayerSeekerState {
+		public string stateChangeID;
+
 		public bool Dead;
-		public bool Bounced;
 		public bool Spotted;
 		public bool CanSeePlayer;
 		public bool LastPathFound;
