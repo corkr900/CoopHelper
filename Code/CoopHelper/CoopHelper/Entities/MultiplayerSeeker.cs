@@ -992,10 +992,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					SquishCallback(new CollisionData());
 				}
 				else if (State.State != st.StateID && !stateChangeIDHistory.Contains(st.stateChangeID)) {
-					Engine.Commands.Log("Applying: " + st.stateChangeID);
-					State.State = st.StateID;
-					if (!string.IsNullOrEmpty(st.stateChangeID)) AddChangeToHistory(st.stateChangeID);
-					else Engine.Commands.Log("!!! EMPTY UPDATE CHANGED STATE: " + st.StateID);
+					// Prevent disruptive double boop
+					// (rubberbanding/repeating other states is much less noticeable so they are allowed)
+					if (!string.IsNullOrEmpty(st.stateChangeID) || st.StateID != StRegenerate) {
+						State.State = st.StateID;
+						if (!string.IsNullOrEmpty(st.stateChangeID)) AddChangeToHistory(st.stateChangeID);
+					}
 				}
 				// TODO switch ownership
 
