@@ -879,10 +879,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void SendStateChangeUpdate(bool requireIsOwner = true) {
 			if ((IsOwner || !requireIsOwner) && !applyingRemoteState) {
-				EntityStateTracker.PostUpdate(this);
 				stateChangeIDToSync = GetNewStateChangeID();
+				Engine.Commands.Log("Generated: " + stateChangeIDToSync);
 				AddChangeToHistory(stateChangeIDToSync);
+				EntityStateTracker.PostUpdate(this);
 			}
+			else Engine.Commands.Log("Skipping update send");
 		}
 
 		private int changeIDCounter = 0;
@@ -893,6 +895,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void AddChangeToHistory(string changeID) {
+			Engine.Commands.Log("Logging: " + changeID);
 			stateChangeIDHistory.Enqueue(changeID);
 			while (stateChangeIDHistory.Count > statusChangeHistoryDepth) {
 				stateChangeIDHistory.Dequeue();
@@ -973,6 +976,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object stateRaw) {
 			if (stateRaw is MultiplayerSeekerState st) {
+				Engine.Commands.Log("Received: " + st.stateChangeID);
 				applyingRemoteState = true;
 
 				spotted = st.Spotted;

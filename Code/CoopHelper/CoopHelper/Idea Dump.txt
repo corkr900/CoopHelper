@@ -8,8 +8,15 @@
 - Lock blocks can desync but idk how
 - Persistent core mode should probably be moved to Session-level stuff
 - Falling blocks aren't always synced (depending on how theyre triggered)
-- breaker boxes easy to desync with screen transition
-- persistent breaker boxes don't take effect until you enter the room they're in
+- breaker boxes
+	- easy to desync with screen transition
+	- persistent breaker boxes don't take effect until you enter the room they're in
+- seekers
+	- When booped by owner, sometimes boops twice on other clients
+	- idle wobble is desynced
+	- Sometimes animation gets frozen on one frame
+	- Synced entities it interacts with don't have one single source of truth, can lead to weird behavior
+	- Need to implement ownership changes
 
 ===== Utility =====
 
