@@ -146,6 +146,9 @@
     <None Include="..\..\..\Loenn\entities\GroupSwitch.lua">
       <Link>Entity Plugins\Loenn\entities\GroupSwitch.lua</Link>
     </None>
+    <None Include="..\..\..\Loenn\entities\MultiplayerSeeker.lua">
+      <Link>Entity Plugins\Loenn\entities\MultiplayerSeeker.lua</Link>
+    </None>
     <None Include="..\..\..\Loenn\entities\SessionGate.lua">
       <Link>Entity Plugins\Loenn\entities\SessionGate.lua</Link>
     </None>

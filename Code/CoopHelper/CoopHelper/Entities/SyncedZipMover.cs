@@ -453,9 +453,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public EntityID GetID() => id;
+
+		public bool CheckRecurringUpdate() => false;
+
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(state.ToString() ?? "");
 		}
+
 		public void ApplyState(object newstate) {
 			if (newstate is State st) {
 				state = st;

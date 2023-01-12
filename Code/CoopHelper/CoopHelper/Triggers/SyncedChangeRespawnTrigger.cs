@@ -57,6 +57,8 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 
 		public EntityID GetID() => id;
 
+		public bool CheckRecurringUpdate() => false;
+
 		public static Vector2 ParseState(CelesteNetBinaryReader r) {
 			return r.ReadVector2();
 		}

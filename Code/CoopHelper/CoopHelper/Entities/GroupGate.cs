@@ -149,6 +149,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			w.Write(PlayerID.MyID);
 			w.Write(complete);
 		}
+
+		public bool CheckRecurringUpdate() => false;
 	}
 
 	public class GroupButtonState {

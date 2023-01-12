@@ -135,6 +135,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			listeners?.Clear();
 		}
 
+		internal static void CheckRecurringUpdates() {
+			foreach (ISynchronizable listener in listeners.Values) {
+				if (listener.CheckRecurringUpdate()) PostUpdate(listener);
+			}
+		}
+
 		public static void Write(this CelesteNetBinaryWriter w, EntityID id) {
 			w.Write(id.Level);
 			w.Write(id.ID);

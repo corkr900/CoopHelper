@@ -112,6 +112,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public EntityID GetID() => id;
 
+		public bool CheckRecurringUpdate() => false;
+
 		public void WriteState(CelesteNetBinaryWriter w) {
 			MovementState state = new DynamicData(this).Get<MovementState>("state");
 			w.Write(state == MovementState.Moving);

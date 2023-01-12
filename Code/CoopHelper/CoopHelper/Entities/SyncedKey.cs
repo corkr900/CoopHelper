@@ -93,6 +93,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public EntityID GetID() => ID;
 
+		public bool CheckRecurringUpdate() => false;
+
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(IsUsed);
 		}

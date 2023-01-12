@@ -104,5 +104,8 @@ entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.mus
 entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.music=Change the currently playing music to this when box is broken.\nLeave empty to not change song.
 entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.flag=Whether the breaker box should disable all lightning entities without the perLevel attribute set when loading a new room.
 
+# Multiplayer Seeker
+entities.corkr900CoopHelper/MultiplayerSeeker.placements.name.seeker=Multiplayer Seeker
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

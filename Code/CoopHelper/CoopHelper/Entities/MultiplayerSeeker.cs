@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	[CustomEntity("corkr900/MultiplayerSeeker")]
+	[CustomEntity("corkr900CoopHelper/MultiplayerSeeker")]
 	[Tracked]
 	public class MultiplayerSeeker : Actor, ISynchronizable {
 		private struct PatrolPoint {
@@ -44,11 +44,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		public static ParticleType P_Attack;
-		public static ParticleType P_HitWall;
-		public static ParticleType P_Stomp;
-		public static ParticleType P_Regen;
-		public static ParticleType P_BreakOut;
 		public static readonly Color TrailColor = Calc.HexToColor("99e550");
 
 		private const int StIdle = 0;
@@ -118,7 +113,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private Collision onCollideH;
 		private Collision onCollideV;
 		private Random random;
-		private Vector2 lastPosition;
 		private Shaker shaker;
 		private Wiggler scaleWiggler;
 		private bool lastPathFound;
@@ -142,23 +136,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private float attackSpeed;
 		private bool attackWindUp;
 		private bool strongSkid;
-		EntityID id;
+
+		private EntityID id;
+
+		private const double RecurringUpdateFrequency = 0.5;
+		private long lastUpdateSent = 0;
+		private int owner;
+		private bool claimingOwnership;
 
 		public bool Attacking {
 			get {
-				if (State.State == StAttack) {
-					return !attackWindUp;
-				}
-				return false;
+				return State.State == StAttack && !attackWindUp;
 			}
 		}
 
 		public bool Spotted {
 			get {
-				if (State.State != StAttack) {
-					return State.State == StSpotted;
-				}
-				return true;
+				return State.State == StAttack || State.State == StSpotted;
 			}
 		}
 
@@ -308,7 +302,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Speed = (base.Center - entity.Center).SafeNormalize(BounceSpeed);
 			State.State = StRegenerate;
 			sprite.Scale = new Vector2(1.4f, 0.6f);
-			SceneAs<Level>().Particles.Emit(P_Stomp, 8, base.Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
+			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, base.Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
 		}
 
 		public void HitSpring() {
@@ -465,7 +459,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				direction = 0f;
 				x = base.Left;
 			}
-			SceneAs<Level>().Particles.Emit(P_HitWall, size, new Vector2(x, base.Y), Vector2.UnitY * 4f, direction);
+			SceneAs<Level>().Particles.Emit(Seeker.P_HitWall, size, new Vector2(x, base.Y), Vector2.UnitY * 4f, direction);
 			if (data.Hit is DashSwitch) {
 				(data.Hit as DashSwitch).OnDashCollide(null, Vector2.UnitX * Math.Sign(Speed.X));
 			}
@@ -734,7 +728,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				Speed = Speed.RotateTowards(vector.Angle(), AttackMaxRotateRadians * Engine.DeltaTime).SafeNormalize(attackSpeed);
 				if (base.Scene.OnInterval(0.04f)) {
 					Vector2 vector2 = (-Speed).SafeNormalize();
-					SceneAs<Level>().Particles.Emit(P_Attack, 2, Position + vector2 * 4f, Vector2.One * 4f, vector2.Angle());
+					SceneAs<Level>().Particles.Emit(Seeker.P_Attack, 2, Position + vector2 * 4f, Vector2.One * 4f, vector2.Angle());
 				}
 				if (base.Scene.OnInterval(0.06f)) {
 					CreateTrail();
@@ -846,7 +840,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			level.Displacement.AddBurst(Position, 0.4f, 36f, 60f, 0.5f);
 			for (float num = 0f; num < (float)Math.PI * 2f; num += 0.17453292f) {
 				Vector2 position = Center + Calc.AngleToVector(num + Calc.Random.Range(-(float)Math.PI / 90f, (float)Math.PI / 90f), Calc.Random.Range(size, 18));
-				level.Particles.Emit(P_Regen, position, num);
+				level.Particles.Emit(Seeker.P_Regen, position, num);
 			}
 			shaker.On = false;
 			State.Locked = false;
@@ -862,17 +856,81 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 
 
+		public static int GetHeader() => 17;
 
+		public static MultiplayerSeekerState ParseState(CelesteNetBinaryReader r) {
+			MultiplayerSeekerState s = new MultiplayerSeekerState();
+			s.Dead = r.ReadBoolean();
+			s.Spotted = r.ReadBoolean();
+			s.CanSeePlayer = r.ReadBoolean();
+			s.LastPathFound = r.ReadBoolean();
+
+			s.NewOwner = r.ReadInt32();
+			s.StateID = r.ReadInt32();
+			s.Facing = r.ReadInt32();
+			s.PathIndex = r.ReadInt32();
+
+			s.Position = r.ReadVector2();
+			s.Speed = r.ReadVector2();
+			s.LastSpottedAt = r.ReadVector2();
+			s.LastPathTo = r.ReadVector2();
+
+			int count = r.ReadInt32();
+			List<Vector2> path = new List<Vector2>(count);
+			for (int i = 0; i < count; i++) {
+				path.Add(r.ReadVector2());
+			}
+			s.Path = path;
+
+			return s;
+		}
 
 		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			// TODO (!!!) state syncing
-			throw new NotImplementedException();
+			w.Write(dead);
+			w.Write(spotted);
+			w.Write(canSeePlayer);
+			w.Write(lastPathFound);
+
+			if (claimingOwnership) {
+				w.Write(CoopHelperModule.Session?.IsInCoopSession == true ? CoopHelperModule.Session.SessionRole : -1);
+			}
+			else {
+				w.Write(-1);
+			}
+			w.Write(State.State);
+			w.Write(facing);
+			w.Write(pathIndex);
+
+			w.Write(Position);
+			w.Write(Speed);
+			w.Write(lastSpottedAt);
+			w.Write(lastPathTo);
+
+			if (path == null) {
+				w.Write(0);
+			}
+			else {
+				w.Write(path.Count);
+				for (int i = 0; i < path.Count; i++) {
+					w.Write(path[i]);
+				}
+			}
+
+			lastUpdateSent = SaveData.Instance.Time;
 		}
 
-		public void ApplyState(object state) {
-			throw new NotImplementedException();
+		public void ApplyState(object stateRaw) {
+			if (stateRaw is MultiplayerSeekerState st) {
+				// TODO (!!!)
+			}
+		}
+
+		public bool CheckRecurringUpdate() {
+			return CoopHelperModule.Session?.IsInCoopSession == true
+				&& owner == CoopHelperModule.Session.SessionRole
+				&& Util.TimeToSeconds((SaveData.Instance?.Time ?? 0) - lastUpdateSent) > RecurringUpdateFrequency;
 		}
 	}
 
@@ -898,7 +956,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	}
 
 	public class MultiplayerSeekerState {
-		public byte StateID;
+		public bool Dead;
+		public bool Spotted;
+		public bool CanSeePlayer;
+		public bool LastPathFound;
+
+		public int NewOwner;
+		public int StateID;
+		public int Facing;
+		public int PathIndex;
+
 		public Vector2 Position;
+		public Vector2 Speed;
+		public Vector2 LastSpottedAt;
+		public Vector2 LastPathTo;
+
+		public List<Vector2> Path;
 	}
 }

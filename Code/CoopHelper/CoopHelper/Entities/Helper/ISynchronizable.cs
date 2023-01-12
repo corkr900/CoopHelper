@@ -11,6 +11,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		EntityID GetID();
 		void WriteState(CelesteNetBinaryWriter w);
 		void ApplyState(object state);
+
+		bool CheckRecurringUpdate();
 	}
 
 	public struct SynchronizableComparer : IEqualityComparer<ISynchronizable> {

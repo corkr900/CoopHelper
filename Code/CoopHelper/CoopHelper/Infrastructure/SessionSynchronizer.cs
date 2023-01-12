@@ -177,6 +177,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			return new EntityID("%SESSIONSYNC%", 99999);
 		}
 
+		public bool CheckRecurringUpdate() => false;
+
 		public void WriteState(CelesteNetBinaryWriter w) {
 			lock (basicFlagsLock) {
 				w.Write(deathPending);

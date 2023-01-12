@@ -46,6 +46,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static int GetHeader() => 5;
 
+		public bool CheckRecurringUpdate() => false;
+
 		public static Session.CoreModes ParseState(CelesteNetBinaryReader r) {
 			Session.CoreModes mode;
 			if (!Enum.TryParse(r.ReadString(), out mode)) {

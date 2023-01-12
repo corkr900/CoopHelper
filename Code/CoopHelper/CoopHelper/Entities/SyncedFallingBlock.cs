@@ -53,6 +53,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public EntityID GetID() => id;
 
+		public bool CheckRecurringUpdate() => false;
+
 		public static bool ParseState(CelesteNetBinaryReader r) {
 			bool triggered = r.ReadBoolean();
 			return triggered;

@@ -36,5 +36,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			return null;
 		}
 
+		internal static double TimeToSeconds(long ticks) {
+			TimeSpan timeSpan = TimeSpan.FromTicks(ticks);
+			return timeSpan.TotalSeconds;
+		}
+
 	}
 }
