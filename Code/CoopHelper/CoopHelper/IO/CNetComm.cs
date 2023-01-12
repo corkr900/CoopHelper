@@ -161,7 +161,11 @@ namespace Celeste.Mod.CoopHelper.IO {
 				Send(new DataBundledEntityUpdate(), false);
 			}
 			EntityStateTracker.FlushIncoming();
-			if (counter % 30 == 0) {  // Some things don't need to happen very often, so only do them every 30 ticks
+			// Some things don't need to happen very often, so only do them every X ticks
+			if (counter % 10 == 5) {
+				EntityStateTracker.CheckRecurringUpdates();
+			}
+			if (counter % 30 == 0) {
 				PlayerState.PurgeStale();
 				PlayerState.Mine.CheckSendUpdate();
 			}

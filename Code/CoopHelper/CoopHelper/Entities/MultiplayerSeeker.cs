@@ -141,8 +141,19 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private const double RecurringUpdateFrequency = 0.5;
 		private long lastUpdateSent = 0;
-		private int owner;
-		private bool claimingOwnership;
+		private int owner = 0;
+		private bool claimingOwnership = false;
+		private bool bounced = false;
+		private Vector2 bouncePosition;
+		private bool bouncedRemotely = false;
+		private bool killedRemotely = false;
+
+		public bool IsOwner {
+			get {
+				return CoopHelperModule.Session?.IsInCoopSession == true
+				&& owner == CoopHelperModule.Session?.SessionRole;
+			}
+		}
 
 		public bool Attacking {
 			get {
@@ -162,9 +173,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public MultiplayerSeeker(Vector2 position, Vector2[] patrolPoints)
 			: base(position) {
-			base.Depth = -200;
+			Depth = -200;
 			this.patrolPoints = patrolPoints;
-			base.Collider = (physicsHitbox = new Hitbox(6f, 6f, -3f, -3f));
+			Collider = (physicsHitbox = new Hitbox(6f, 6f, -3f, -3f));
 			breakWallsHitbox = new Hitbox(6f, 14f, -3f, -7f);
 			attackHitbox = new Hitbox(12f, 8f, -6f, -2f);
 			bounceHitbox = new Hitbox(16f, 6f, -8f, -8f);
@@ -173,14 +184,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Add(new PlayerCollider(OnBouncePlayer, bounceHitbox));
 			Add(shaker = new Shaker(on: false));
 			Add(State = new StateMachine());
-			State.SetCallbacks(StIdle, IdleUpdate, IdleCoroutine);
+			State.SetCallbacks(StIdle, IdleUpdate, IdleCoroutine, GenericStateBegin);
 			State.SetCallbacks(StPatrol, PatrolUpdate, null, PatrolBegin);
 			State.SetCallbacks(StSpotted, SpottedUpdate, SpottedCoroutine, SpottedBegin);
 			State.SetCallbacks(StAttack, AttackUpdate, AttackCoroutine, AttackBegin);
-			State.SetCallbacks(StStunned, StunnedUpdate, StunnedCoroutine);
+			State.SetCallbacks(StStunned, StunnedUpdate, StunnedCoroutine, GenericStateBegin);
 			State.SetCallbacks(StSkidding, SkiddingUpdate, SkiddingCoroutine, SkiddingBegin, SkiddingEnd);
 			State.SetCallbacks(StRegenerate, RegenerateUpdate, RegenerateCoroutine, RegenerateBegin, RegenerateEnd);
-			State.SetCallbacks(StReturned, null, ReturnedCoroutine);
+			State.SetCallbacks(StReturned, null, ReturnedCoroutine, GenericStateBegin);
 			onCollideH = OnCollideH;
 			onCollideV = OnCollideV;
 			Add(idleSineX = new SineWave(0.5f, 0f));
@@ -208,20 +219,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			};
 			SquishCallback = delegate (CollisionData d)
 			{
-				if (!dead && !TrySquishWiggle(d, 3, 3)) {
-					Entity entity = new Entity(Position);
-					DeathEffect component = new DeathEffect(Color.HotPink, base.Center - Position) {
+				if (!dead && (killedRemotely || !TrySquishWiggle(d, 3, 3))) {
+					Entity deathFXEntity = new Entity(Position);
+					DeathEffect deathFXComponent = new DeathEffect(Color.HotPink, base.Center - Position) {
 						OnEnd = delegate
 						{
-							entity.RemoveSelf();
+							deathFXEntity.RemoveSelf();
 						}
 					};
-					entity.Add(component);
-					entity.Depth = -1000000;
-					base.Scene.Add(entity);
+					deathFXEntity.Add(deathFXComponent);
+					deathFXEntity.Depth = -1000000;
+					Scene.Add(deathFXEntity);
 					Audio.Play("event:/game/05_mirror_temple/seeker_death", Position);
 					RemoveSelf();
 					dead = true;
+					if (!killedRemotely) EntityStateTracker.PostUpdate(this);
 				}
 			};
 			scaleWiggler = Wiggler.Create(0.8f, 2f);
@@ -234,6 +246,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public MultiplayerSeeker(EntityData data, Vector2 offset)
 			: this(data.Position + offset, data.NodesOffset(offset)) {
 			id = new EntityID(data.Level.Name, data.ID);
+		}
+
+		private void GenericStateBegin() {
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		public override void Added(Scene scene) {
@@ -276,17 +292,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				player.Die((player.Center - Position).SafeNormalize());
 				return;
 			}
-			Collider collider = base.Collider;
-			base.Collider = bounceHitbox;
-			player.PointBounce(base.Center);
-			Speed = (base.Center - player.Center).SafeNormalize(100f);
+			Collider collider = Collider;
+			Collider = bounceHitbox;
+			player.PointBounce(Center);
+			Speed = (Center - player.Center).SafeNormalize(100f);
 			scaleWiggler.Start();
-			base.Collider = collider;
+			Collider = collider;
 		}
 
 		private void OnBouncePlayer(Player player) {
-			Collider collider = base.Collider;
-			base.Collider = attackHitbox;
+			Collider collider = Collider;
+			Collider = attackHitbox;
 			if (CollideCheck(player)) {
 				OnAttackPlayer(player);
 			}
@@ -294,15 +310,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				player.Bounce(base.Top);
 				GotBouncedOn(player);
 			}
-			base.Collider = collider;
+			Collider = collider;
 		}
 
 		private void GotBouncedOn(Entity entity) {
 			Celeste.Freeze(0.15f);
-			Speed = (base.Center - entity.Center).SafeNormalize(BounceSpeed);
+			Speed = (Center - entity.Center).SafeNormalize(BounceSpeed);
 			State.State = StRegenerate;
 			sprite.Scale = new Vector2(1.4f, 0.6f);
-			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, base.Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
+			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
+			if (!bouncedRemotely) {
+				bouncePosition = entity.Center;
+				bounced = true;
+				EntityStateTracker.PostUpdate(this);
+				bouncedRemotely = false;
+			}
 		}
 
 		public void HitSpring() {
@@ -333,7 +355,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (State.State == StRegenerate) {
 				canSeePlayer = false;
 			}
-			else {
+			else if (IsOwner) {
 				Player player = Scene.Tracker.GetEntity<Player>();
 				canSeePlayer = CanSeePlayer(player);
 				if (canSeePlayer) {
@@ -525,9 +547,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				return StSpotted;
 			}
 			Vector2 vector = Vector2.Zero;
-			if (spotted && Vector2.DistanceSquared(base.Center, FollowTarget) > 64f) {
+			if (spotted && Vector2.DistanceSquared(Center, FollowTarget) > 64f) {
 				float speedMagnitude = GetSpeedMagnitude(IdleSpeed);
-				vector = ((!lastPathFound) ? (FollowTarget - base.Center).SafeNormalize(speedMagnitude) : GetPathSpeed(speedMagnitude));
+				vector = ((!lastPathFound) ? (FollowTarget - Center).SafeNormalize(speedMagnitude) : GetPathSpeed(speedMagnitude));
 			}
 			if (vector == Vector2.Zero) {
 				vector.X = idleSineX.Value * 6f;
@@ -565,12 +587,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private float GetSpeedMagnitude(float baseMagnitude) {
-			Player entity = base.Scene.Tracker.GetEntity<Player>();
-			if (entity != null) {
-				if (Vector2.DistanceSquared(base.Center, entity.Center) > FarDistSq) {
-					return baseMagnitude * 3f;
-				}
-				return baseMagnitude * 1.5f;
+			Player player = Scene.Tracker.GetEntity<Player>();
+			if (player != null) {
+				Vector2 playerPos = IsOwner ? (player.Center) : lastSpottedAt;
+				return Vector2.DistanceSquared(Center, playerPos) > FarDistSq ? baseMagnitude * 3f : baseMagnitude * 1.5f;
 			}
 			return baseMagnitude;
 		}
@@ -578,6 +598,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private void PatrolBegin() {
 			State.State = ChoosePatrolTarget();
 			patrolWaitTimer = 0f;
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int PatrolUpdate() {
@@ -605,51 +626,55 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private int ChoosePatrolTarget() {
-			Player entity = base.Scene.Tracker.GetEntity<Player>();
-			if (entity == null) {
+			Player player = Scene.Tracker.GetEntity<Player>();
+			if (player == null) {
 				return StIdle;
 			}
 			for (int i = 0; i < PatrolChoices; i++) {
 				patrolChoices[i].Distance = 0f;
 			}
-			int num = 0;
-			Vector2[] array = patrolPoints;
-			foreach (Vector2 vector in array) {
-				if (Vector2.DistanceSquared(base.Center, vector) < 576f) {
+			int numVisiblePoints = 0;
+			foreach (Vector2 patrolPt in patrolPoints) {
+				if (Vector2.DistanceSquared(Center, patrolPt) < SpottedMaxYDist * SpottedMaxYDist) {
 					continue;
 				}
-				float num2 = Vector2.DistanceSquared(vector, entity.Center);
+				Vector2 playerPos = IsOwner ? player.Center : lastSpottedAt;
+				float playerDistSqr = Vector2.DistanceSquared(patrolPt, playerPos);
 				for (int k = 0; k < PatrolChoices; k++) {
-					if (num2 < patrolChoices[k].Distance || patrolChoices[k].Distance <= 0f) {
-						num++;
-						for (int num3 = AttackTargetUpShift; num3 > k; num3--) {
-							patrolChoices[num3].Distance = patrolChoices[num3 - 1].Distance;
-							patrolChoices[num3].Point = patrolChoices[num3 - 1].Point;
+					if (playerDistSqr < patrolChoices[k].Distance || patrolChoices[k].Distance <= 0f) {
+						numVisiblePoints++;
+						for (int targetChoice = AttackTargetUpShift; targetChoice > k; targetChoice--) {
+							patrolChoices[targetChoice].Distance = patrolChoices[targetChoice - 1].Distance;
+							patrolChoices[targetChoice].Point = patrolChoices[targetChoice - 1].Point;
 						}
-						patrolChoices[k].Distance = num2;
-						patrolChoices[k].Point = vector;
+						patrolChoices[k].Distance = playerDistSqr;
+						patrolChoices[k].Point = patrolPt;
 						break;
 					}
 				}
 			}
-			if (num <= 0) {
+			if (numVisiblePoints <= 0) {
 				return StIdle;
 			}
-			lastSpottedAt = patrolChoices[random.Next(Math.Min(PatrolChoices, num))].Point;
+			lastSpottedAt = patrolChoices[random.Next(Math.Min(PatrolChoices, numVisiblePoints))].Point;
 			lastPathTo = lastSpottedAt;
 			pathIndex = 0;
-			lastPathFound = SceneAs<Level>().Pathfinder.Find(ref path, base.Center, FollowTarget);
+			lastPathFound = SceneAs<Level>().Pathfinder.Find(ref path, Center, FollowTarget);
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 			return StPatrol;
 		}
 
 		private void SpottedBegin() {
 			aggroSfx.Play("event:/game/05_mirror_temple/seeker_aggro");
-			Player entity = base.Scene.Tracker.GetEntity<Player>();
-			if (entity != null) {
-				TurnFacing(entity.X - base.X, "spot");
+			if (IsOwner) {
+				Player entity = Scene.Tracker.GetEntity<Player>();
+				if (entity != null) {
+					TurnFacing(entity.X - X, "spot");
+				}
 			}
 			spottedLosePlayerTimer = SpottedLosePlayerTime;
 			spottedTurnDelay = 1f;
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int SpottedUpdate() {
@@ -663,19 +688,19 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				spottedLosePlayerTimer = SpottedLosePlayerTime;
 			}
 			float speedMagnitude = GetSpeedMagnitude(SpottedTargetSpeed);
-			Vector2 vector = ((!lastPathFound) ? (FollowTarget - base.Center).SafeNormalize(speedMagnitude) : GetPathSpeed(speedMagnitude));
-			if (Vector2.DistanceSquared(base.Center, FollowTarget) < 2500f && base.Y < FollowTarget.Y) {
+			Vector2 vector = (!lastPathFound) ? (FollowTarget - Center).SafeNormalize(speedMagnitude) : GetPathSpeed(speedMagnitude);
+			if (Vector2.DistanceSquared(Center, FollowTarget) < 2500f && Y < FollowTarget.Y) {
 				float num = vector.Angle();
-				if (base.Y < FollowTarget.Y - 2f) {
+				if (Y < FollowTarget.Y - 2f) {
 					num = Calc.AngleLerp(num, (float)Math.PI / 2f, 0.5f);
 				}
-				else if (base.Y > FollowTarget.Y + 2f) {
+				else if (Y > FollowTarget.Y + 2f) {
 					num = Calc.AngleLerp(num, -(float)Math.PI / 2f, 0.5f);
 				}
 				vector = Calc.AngleToVector(num, SpottedTargetSpeed);
-				Vector2 vector2 = Vector2.UnitX * Math.Sign(base.X - lastSpottedAt.X) * 48f;
-				if (Math.Abs(base.X - lastSpottedAt.X) < 36f && !CollideCheck<Solid>(Position + vector2) && !CollideCheck<Solid>(lastSpottedAt + vector2)) {
-					vector.X = Math.Sign(base.X - lastSpottedAt.X) * 60;
+				Vector2 vector2 = Vector2.UnitX * Math.Sign(X - lastSpottedAt.X) * 48f;
+				if (Math.Abs(X - lastSpottedAt.X) < 36f && !CollideCheck<Solid>(Position + vector2) && !CollideCheck<Solid>(lastSpottedAt + vector2)) {
+					vector.X = Math.Sign(X - lastSpottedAt.X) * 60;
 				}
 			}
 			Speed = Calc.Approach(Speed, vector, Accel * Engine.DeltaTime);
@@ -715,7 +740,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play("event:/game/05_mirror_temple/seeker_dash", Position);
 			attackWindUp = true;
 			attackSpeed = AttackWindUpSpeed;
-			Speed = (FollowTarget - base.Center).SafeNormalize(AttackWindUpSpeed);
+			Speed = (FollowTarget - Center).SafeNormalize(AttackWindUpSpeed);
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int AttackUpdate() {
@@ -760,6 +786,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play("event:/game/05_mirror_temple/seeker_dash_turn", Position);
 			strongSkid = false;
 			TurnFacing(-facing);
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int SkiddingUpdate() {
@@ -790,6 +817,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.Locked = true;
 			Light.StartRadius = 16f;
 			Light.EndRadius = 32f;
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private void RegenerateEnd() {
@@ -861,6 +889,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static MultiplayerSeekerState ParseState(CelesteNetBinaryReader r) {
 			MultiplayerSeekerState s = new MultiplayerSeekerState();
 			s.Dead = r.ReadBoolean();
+			s.Bounced = r.ReadBoolean();
 			s.Spotted = r.ReadBoolean();
 			s.CanSeePlayer = r.ReadBoolean();
 			s.LastPathFound = r.ReadBoolean();
@@ -874,6 +903,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			s.Speed = r.ReadVector2();
 			s.LastSpottedAt = r.ReadVector2();
 			s.LastPathTo = r.ReadVector2();
+			s.BouncePosition = r.ReadVector2();
 
 			int count = r.ReadInt32();
 			List<Vector2> path = new List<Vector2>(count);
@@ -889,6 +919,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(dead);
+			w.Write(bounced);
+			bounced = false;
 			w.Write(spotted);
 			w.Write(canSeePlayer);
 			w.Write(lastPathFound);
@@ -907,6 +939,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			w.Write(Speed);
 			w.Write(lastSpottedAt);
 			w.Write(lastPathTo);
+			w.Write(bouncePosition);
 
 			if (path == null) {
 				w.Write(0);
@@ -923,7 +956,29 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object stateRaw) {
 			if (stateRaw is MultiplayerSeekerState st) {
-				// TODO (!!!)
+				spotted = st.Spotted;
+				canSeePlayer = st.CanSeePlayer;
+				lastPathFound = st.LastPathFound;
+				facing = st.Facing;
+				pathIndex = st.PathIndex;
+				Position = st.Position;
+				Speed = st.Speed;
+				lastSpottedAt = st.LastSpottedAt;
+				lastPathTo = st.LastPathTo;
+				path = st.Path;
+
+				if (st.Dead && !dead) {
+					killedRemotely = true;
+					SquishCallback(new CollisionData());
+				}
+				else if (st.Bounced) {
+					bouncedRemotely = true;
+					GotBouncedOn(new Entity() { Center = st.BouncePosition });
+				}
+				else if (State.State != st.StateID) {
+					State.State = st.StateID;
+				}
+				// TODO switch ownership
 			}
 		}
 
@@ -957,6 +1012,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 	public class MultiplayerSeekerState {
 		public bool Dead;
+		public bool Bounced;
 		public bool Spotted;
 		public bool CanSeePlayer;
 		public bool LastPathFound;
@@ -970,6 +1026,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public Vector2 Speed;
 		public Vector2 LastSpottedAt;
 		public Vector2 LastPathTo;
+		public Vector2 BouncePosition;
 
 		public List<Vector2> Path;
 	}
