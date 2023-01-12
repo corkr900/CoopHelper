@@ -145,8 +145,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private bool claimingOwnership = false;
 		private bool bounced = false;
 		private Vector2 bouncePosition;
-		private bool bouncedRemotely = false;
-		private bool killedRemotely = false;
+		private bool applyingRemoteState = false;
 
 		public bool IsOwner {
 			get {
@@ -219,7 +218,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			};
 			SquishCallback = delegate (CollisionData d)
 			{
-				if (!dead && (killedRemotely || !TrySquishWiggle(d, 3, 3))) {
+				if (!dead && (applyingRemoteState || !TrySquishWiggle(d, 3, 3))) {
 					Entity deathFXEntity = new Entity(Position);
 					DeathEffect deathFXComponent = new DeathEffect(Color.HotPink, base.Center - Position) {
 						OnEnd = delegate
@@ -233,7 +232,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					Audio.Play("event:/game/05_mirror_temple/seeker_death", Position);
 					RemoveSelf();
 					dead = true;
-					if (!killedRemotely) EntityStateTracker.PostUpdate(this);
+					if (!applyingRemoteState) EntityStateTracker.PostUpdate(this);
 				}
 			};
 			scaleWiggler = Wiggler.Create(0.8f, 2f);
@@ -319,14 +318,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.State = StRegenerate;
 			sprite.Scale = new Vector2(1.4f, 0.6f);
 			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
-			if (!bouncedRemotely) {
-				bouncePosition = entity.Center;
-				bounced = true;
-				EntityStateTracker.PostUpdate(this);
-			}
-			else {
-				bouncedRemotely = false;
-			}
+			bouncePosition = entity.Center;
+			bounced = true;
+			EntityStateTracker.PostUpdate(this);
 		}
 
 		public void HitSpring() {
@@ -819,7 +813,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.Locked = true;
 			Light.StartRadius = 16f;
 			Light.EndRadius = 32f;
-			//if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner) EntityStateTracker.PostUpdate(this);
 		}
 
 		private void RegenerateEnd() {
@@ -958,6 +952,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object stateRaw) {
 			if (stateRaw is MultiplayerSeekerState st) {
+				applyingRemoteState = true;
+
 				spotted = st.Spotted;
 				canSeePlayer = st.CanSeePlayer;
 				lastPathFound = st.LastPathFound;
@@ -970,17 +966,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				path = st.Path;
 
 				if (st.Dead && !dead) {
-					killedRemotely = true;
 					SquishCallback(new CollisionData());
 				}
-				else if (st.Bounced) {
-					bouncedRemotely = true;
-					GotBouncedOn(new Entity() { Center = st.BouncePosition });
-				}
+				//else if (st.Bounced) {
+				//	bouncedRemotely = true;
+				//	GotBouncedOn(new Entity() { Center = st.BouncePosition });
+				//}
 				else if (State.State != st.StateID) {
 					State.State = st.StateID;
 				}
 				// TODO switch ownership
+
+				applyingRemoteState = false;
 			}
 		}
 
