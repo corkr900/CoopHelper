@@ -884,7 +884,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				AddChangeToHistory(stateChangeIDToSync);
 				EntityStateTracker.PostUpdate(this);
 			}
-			else Engine.Commands.Log("Skipping update send");
 		}
 
 		private int changeIDCounter = 0;
@@ -976,7 +975,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object stateRaw) {
 			if (stateRaw is MultiplayerSeekerState st) {
-				Engine.Commands.Log("Received: " + st.stateChangeID);
 				applyingRemoteState = true;
 
 				spotted = st.Spotted;
@@ -994,8 +992,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					SquishCallback(new CollisionData());
 				}
 				else if (State.State != st.StateID && !stateChangeIDHistory.Contains(st.stateChangeID)) {
+					Engine.Commands.Log("Applying: " + st.stateChangeID);
 					State.State = st.StateID;
-					AddChangeToHistory(st.stateChangeID);
+					if (!string.IsNullOrEmpty(st.stateChangeID)) AddChangeToHistory(st.stateChangeID);
+					else Engine.Commands.Log("!!! EMPTY UPDATE CHANGED STATE: " + st.StateID);
 				}
 				// TODO switch ownership
 
