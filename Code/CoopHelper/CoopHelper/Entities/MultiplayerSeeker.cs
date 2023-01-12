@@ -248,7 +248,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void GenericStateBegin() {
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		public override void Added(Scene scene) {
@@ -320,7 +320,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
 			bouncePosition = entity.Center;
 			bounced = true;
-			EntityStateTracker.PostUpdate(this);
+			if (!applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		public void HitSpring() {
@@ -594,7 +594,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private void PatrolBegin() {
 			State.State = ChoosePatrolTarget();
 			patrolWaitTimer = 0f;
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int PatrolUpdate() {
@@ -656,7 +656,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			lastPathTo = lastSpottedAt;
 			pathIndex = 0;
 			lastPathFound = SceneAs<Level>().Pathfinder.Find(ref path, Center, FollowTarget);
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 			return StPatrol;
 		}
 
@@ -670,7 +670,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			spottedLosePlayerTimer = SpottedLosePlayerTime;
 			spottedTurnDelay = 1f;
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int SpottedUpdate() {
@@ -737,7 +737,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			attackWindUp = true;
 			attackSpeed = AttackWindUpSpeed;
 			Speed = (FollowTarget - Center).SafeNormalize(AttackWindUpSpeed);
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int AttackUpdate() {
@@ -782,7 +782,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play("event:/game/05_mirror_temple/seeker_dash_turn", Position);
 			strongSkid = false;
 			TurnFacing(-facing);
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		private int SkiddingUpdate() {
@@ -813,7 +813,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.Locked = true;
 			Light.StartRadius = 16f;
 			Light.EndRadius = 32f;
-			if (IsOwner) EntityStateTracker.PostUpdate(this);
+			if (IsOwner && !applyingRemoteState) EntityStateTracker.PostUpdate(this);
 		}
 
 		private void RegenerateEnd() {
