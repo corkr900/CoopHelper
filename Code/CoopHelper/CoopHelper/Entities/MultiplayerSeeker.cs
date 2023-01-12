@@ -319,12 +319,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			State.State = StRegenerate;
 			sprite.Scale = new Vector2(1.4f, 0.6f);
 			SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
-			//if (!bouncedRemotely) {
-			//	bouncePosition = entity.Center;
-			//	bounced = true;
-			//	EntityStateTracker.PostUpdate(this);
-			//	bouncedRemotely = false;
-			//}
+			if (!bouncedRemotely) {
+				bouncePosition = entity.Center;
+				bounced = true;
+				EntityStateTracker.PostUpdate(this);
+			}
+			else {
+				bouncedRemotely = false;
+			}
 		}
 
 		public void HitSpring() {
