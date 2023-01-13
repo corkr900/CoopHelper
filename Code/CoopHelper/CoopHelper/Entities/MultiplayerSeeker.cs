@@ -141,13 +141,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private const double RecurringUpdateFrequency = 0.5;
 		private long lastUpdateSent = 0;
-		private int owner = 0;
-		private bool claimingOwnership = false;
 		private Vector2 bouncePosition;
 		private bool applyingRemoteState = false;
 		private string stateChangeIDToSync = "";
+		private int changeIDCounter = 0;
 		private const int statusChangeHistoryDepth = 3;
 		private Queue<string> stateChangeIDHistory = new Queue<string>();
+		private int owner = 0;
+		private int ownershipChanges = 0;
+		private bool claimingOwnership = false;
 
 		public bool IsOwner {
 			get {
@@ -308,7 +310,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				OnAttackPlayer(player);
 			}
 			else {
-				player.Bounce(base.Top);
+				player.Bounce(Top);
+				ClaimOwnership(false);
 				GotBouncedOn(player);
 			}
 			Collider = collider;
@@ -332,12 +335,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (player == null) {
 				return false;
 			}
-			if (State.State != StSpotted && !SceneAs<Level>().InsideCamera(base.Center) && Vector2.DistanceSquared(base.Center, player.Center) > SightDistSq) {
+			if (State.State != StSpotted && !SceneAs<Level>().InsideCamera(Center) && Vector2.DistanceSquared(Center, player.Center) > SightDistSq) {
 				return false;
 			}
-			Vector2 vector = (player.Center - base.Center).Perpendicular().SafeNormalize(2f);
-			if (!base.Scene.CollideCheck<Solid>(base.Center + vector, player.Center + vector)) {
-				return !base.Scene.CollideCheck<Solid>(base.Center - vector, player.Center - vector);
+			Vector2 vector = (player.Center - Center).Perpendicular().SafeNormalize(2f);
+			if (!Scene.CollideCheck<Solid>(Center + vector, player.Center + vector)) {
+				return !Scene.CollideCheck<Solid>(Center - vector, player.Center - vector);
 			}
 			return false;
 		}
@@ -543,6 +546,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (canSeePlayer) {
 				return StSpotted;
 			}
+			if (!IsOwner) {
+				Player player = Scene.Tracker.GetEntity<Player>();
+				if (player != null && CanSeePlayer(player)) {
+					ClaimOwnership(true);
+					return StSpotted;
+				}
+			}
 			Vector2 vector = Vector2.Zero;
 			if (spotted && Vector2.DistanceSquared(Center, FollowTarget) > 64f) {
 				float speedMagnitude = GetSpeedMagnitude(IdleSpeed);
@@ -602,13 +612,20 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (canSeePlayer) {
 				return StSpotted;
 			}
+			if (!IsOwner) {
+				Player player = Scene.Tracker.GetEntity<Player>();
+				if (player != null && CanSeePlayer(player)) {
+					ClaimOwnership(true);
+					return StSpotted;
+				}
+			}
 			if (patrolWaitTimer > 0f) {
 				patrolWaitTimer -= Engine.DeltaTime;
 				if (patrolWaitTimer <= 0f) {
 					return ChoosePatrolTarget();
 				}
 			}
-			else if (Vector2.DistanceSquared(base.Center, lastSpottedAt) < 144f) {
+			else if (Vector2.DistanceSquared(Center, lastSpottedAt) < 144f) {
 				patrolWaitTimer = PatrolWaitTime;
 			}
 			float speedMagnitude = GetSpeedMagnitude(PatrolSpeed);
@@ -880,13 +897,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private void SendStateChangeUpdate(bool requireIsOwner = true) {
 			if ((IsOwner || !requireIsOwner) && !applyingRemoteState) {
 				stateChangeIDToSync = GetNewStateChangeID();
-				Engine.Commands.Log("Generated: " + stateChangeIDToSync);
 				AddChangeToHistory(stateChangeIDToSync);
 				EntityStateTracker.PostUpdate(this);
 			}
 		}
 
-		private int changeIDCounter = 0;
 		private string GetNewStateChangeID() {
 			string addr = (PlayerID.MyID.MacAddressHash ?? 0).ToString(4);
 			changeIDCounter = (changeIDCounter + 1) % 100;
@@ -894,13 +909,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void AddChangeToHistory(string changeID) {
-			Engine.Commands.Log("Logging: " + changeID);
 			stateChangeIDHistory.Enqueue(changeID);
 			while (stateChangeIDHistory.Count > statusChangeHistoryDepth) {
 				stateChangeIDHistory.Dequeue();
 			}
 		}
 
+		private void ClaimOwnership(bool postUpdate) {
+			if (CoopHelperModule.Session?.IsInCoopSession != true) return;
+			int newOwner = CoopHelperModule.Session.SessionRole;
+			if (owner == newOwner) return;
+			owner = CoopHelperModule.Session.SessionRole;
+			ownershipChanges++;
+			claimingOwnership = true;
+			if (postUpdate) EntityStateTracker.PostUpdate(this);
+		}
 
 		public static int GetHeader() => 17;
 
@@ -914,6 +937,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			s.LastPathFound = r.ReadBoolean();
 
 			s.NewOwner = r.ReadInt32();
+			s.OwnershipChanges = r.ReadInt32();
 			s.StateID = r.ReadInt32();
 			s.Facing = r.ReadInt32();
 			s.PathIndex = r.ReadInt32();
@@ -950,6 +974,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			else {
 				w.Write(-1);
 			}
+			w.Write(ownershipChanges);
 			w.Write(State.State);
 			w.Write(facing);
 			w.Write(pathIndex);
@@ -977,6 +1002,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (stateRaw is MultiplayerSeekerState st) {
 				applyingRemoteState = true;
 
+				// Apply ownership change
+				if (st.NewOwner >= 0 && st.NewOwner != owner && st.OwnershipChanges >= ownershipChanges) {
+					if (st.OwnershipChanges == ownershipChanges) {
+						// !!! Conflict occurred !!!
+						// Whoever has the lower role number wins the conflict
+						owner = (int)Calc.Min(st.NewOwner, CoopHelperModule.Session?.SessionRole ?? st.NewOwner);
+						ownershipChanges++;
+					}
+					else {
+						owner = st.NewOwner;
+						ownershipChanges = st.OwnershipChanges;
+					}
+				}
+
+				// Apply misc state
 				spotted = st.Spotted;
 				canSeePlayer = st.CanSeePlayer;
 				lastPathFound = st.LastPathFound;
@@ -988,6 +1028,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				lastPathTo = st.LastPathTo;
 				path = st.Path;
 
+				// Apply statemachine state
 				if (st.Dead && !dead) {
 					SquishCallback(new CollisionData());
 				}
@@ -999,7 +1040,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						if (!string.IsNullOrEmpty(st.stateChangeID)) AddChangeToHistory(st.stateChangeID);
 					}
 				}
-				// TODO switch ownership
 
 				applyingRemoteState = false;
 			}
@@ -1043,6 +1083,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public bool LastPathFound;
 
 		public int NewOwner;
+		public int OwnershipChanges;
 		public int StateID;
 		public int Facing;
 		public int PathIndex;

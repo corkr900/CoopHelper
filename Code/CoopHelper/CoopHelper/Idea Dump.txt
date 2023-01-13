@@ -12,11 +12,11 @@
 	- easy to desync with screen transition
 	- persistent breaker boxes don't take effect until you enter the room they're in
 - seekers
-	- When booped by owner, sometimes boops twice on other clients
 	- idle wobble is desynced
 	- Sometimes animation gets frozen on one frame
 	- Synced entities it interacts with don't have one single source of truth, can lead to weird behavior
 	- Need to implement ownership changes
+	- might need to handle pause?
 
 ===== Utility =====
 
@@ -45,8 +45,6 @@ clutter (this seems pretty tough)
 
 ===== Temple =====
 
-seeker
-	- Would probably have to be only on 1 client at a time and bounce back and forth
 theo crystal
 
 ===== Reflection =====
