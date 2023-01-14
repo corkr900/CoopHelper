@@ -94,6 +94,7 @@
     <Compile Include="Entities\SyncedDashBlock.cs" />
     <Compile Include="Entities\SyncedFallingBlock.cs" />
     <Compile Include="Entities\SyncedDashSwitch.cs" />
+    <Compile Include="Entities\SyncedKevin.cs" />
     <Compile Include="Entities\SyncedKey.cs" />
     <Compile Include="Entities\SyncedLightningBreakerBox.cs" />
     <Compile Include="Entities\SyncedLockBlock.cs" />
@@ -169,6 +170,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedFallingBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedFallingBlock.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedKevin.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedKevin.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedKey.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedKey.lua</Link>

@@ -3,7 +3,9 @@ using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Microsoft.Xna.Framework;
+using Mono.Cecil.Cil;
 using Monocle;
+using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using System;
@@ -47,6 +49,8 @@ namespace Celeste.Mod.CoopHelper {
 
 		private static IDetour hook_Strawberry_orig_OnCollect;
 
+		private static IDetour hook_CrushBlock_AttackSequence;
+
 		public CoopHelperModule() {
 			Instance = this;
 		}
@@ -62,6 +66,10 @@ namespace Celeste.Mod.CoopHelper {
 			hook_Strawberry_orig_OnCollect = new Hook(
 				typeof(Strawberry).GetMethod("orig_OnCollect", BindingFlags.Public | BindingFlags.Instance),
 				typeof(CoopHelperModule).GetMethod("OnStrawberryCollect"));
+
+			// IL Hooks
+			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
+			hook_CrushBlock_AttackSequence = new ILHook(m, (il) => ILKevinCollide(m.DeclaringType.GetField("<>4__this"), il));
 
 			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
@@ -87,6 +95,10 @@ namespace Celeste.Mod.CoopHelper {
 			// Manual Hooks
 			hook_Strawberry_orig_OnCollect?.Dispose();
 			hook_Strawberry_orig_OnCollect = null;
+
+			// IL Hooks
+			hook_CrushBlock_AttackSequence?.Dispose();
+			hook_CrushBlock_AttackSequence = null;
 
 			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
@@ -133,6 +145,36 @@ namespace Celeste.Mod.CoopHelper {
 			Session.SessionMembers = new List<PlayerID>(players);
 
 			NotifySessionChanged();
+		}
+
+		#endregion
+
+		#region IL Hooks
+
+		private void ILKevinCollide(FieldInfo crushBlockLdfldValue, ILContext il) {
+			ILCursor cursor = new ILCursor(il);
+			if (cursor.TryGotoNext(instr => instr.MatchCallvirt(typeof(Entity).GetMethod("RemoveSelf")))
+				&& cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdloc(2)))
+			{
+				cursor.Emit(OpCodes.Ldloc_1);  // load instance
+				cursor.EmitDelegate<Func<bool, CrushBlock, bool>>((bool collided, CrushBlock blk) => {
+					if (blk is SyncedKevin kev) {
+						if (!kev.Attacking && !collided) collided = true;
+						else if (collided) kev.OnReturnBegin();
+					}
+					return collided;
+				});
+			}
+			//if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("event:/game/06_reflection/crushblock_impact")))
+			//{
+			//	cursor.Emit(OpCodes.Ldarg_0);  // load state machine instance
+			//	cursor.Emit(OpCodes.Ldfld, crushBlockLdfldValue);  // load coroutine object instance
+			//	cursor.EmitDelegate<Action<CrushBlock>>((CrushBlock blk) => {
+			//		if (blk is SyncedKevin kevin) {
+			//			kevin.OnReturnBegin();
+			//		}
+			//	});
+			//}
 		}
 
 		#endregion

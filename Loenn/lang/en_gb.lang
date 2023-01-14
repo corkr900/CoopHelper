@@ -107,5 +107,12 @@ entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.fla
 # Multiplayer Seeker
 entities.corkr900CoopHelper/MultiplayerSeeker.placements.name.seeker=Multiplayer Seeker
 
+# Synced Kevin
+entities.corkr900CoopHelper/SyncedKevin.placements.name.both=Synced Kevin (Both)
+entities.corkr900CoopHelper/SyncedKevin.placements.name.vertical=Synced Kevin (Vertical)
+entities.corkr900CoopHelper/SyncedKevin.placements.name.horizontal=Synced Kevin (Horizontal)
+entities.corkr900CoopHelper/SyncedKevin.attributes.description.axes=Determines which sides of the Kevin block are hittable.
+entities.corkr900CoopHelper/SyncedKevin.attributes.description.chillout=Whether the block should have the large face and get tired after being hit.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn

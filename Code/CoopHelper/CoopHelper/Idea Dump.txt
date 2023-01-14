@@ -38,7 +38,7 @@ core blocks
 
 ===== Resort =====
 
-clutter (this seems pretty tough)
+clutter
 
 ===== Ridge =====
 
