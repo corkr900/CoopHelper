@@ -19,6 +19,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private EntityID id;
 		internal bool Attacking;
 		private Vector2 attackDir;
+		private bool boppedRemotely = false;
 
 		public SyncedKevin(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
@@ -28,6 +29,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (result == DashCollisionResults.Rebound) {
 					Attacking = true;
 					attackDir = -direction;
+					boppedRemotely = false;
 					EntityStateTracker.PostUpdate(this);
 				}
 				return result;
@@ -36,7 +38,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		internal void OnReturnBegin() {
 			Attacking = false;
-			EntityStateTracker.PostUpdate(this);
+			if (!boppedRemotely) {
+				EntityStateTracker.PostUpdate(this);
+			}
 		}
 
 		public override void Added(Scene scene) {
@@ -66,6 +70,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				Position = sks.Position;
 				if (sks.Attacking && !Attacking) {
 					attackDir = sks.AttackDirection;
+					boppedRemotely = true;
 					dd.Invoke("Attack", sks.AttackDirection);
 				}
 				Attacking = sks.Attacking;

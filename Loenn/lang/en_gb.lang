@@ -114,5 +114,12 @@ entities.corkr900CoopHelper/SyncedKevin.placements.name.horizontal=Synced Kevin 
 entities.corkr900CoopHelper/SyncedKevin.attributes.description.axes=Determines which sides of the Kevin block are hittable.
 entities.corkr900CoopHelper/SyncedKevin.attributes.description.chillout=Whether the block should have the large face and get tired after being hit.
 
+# Synced Clutter Switch
+entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.yellow=Synced Clutter Switch (Boxes)
+entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.red=Synced Clutter Switch (Laundry)
+entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.green=Synced Clutter Switch (Books)
+entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.lightning=Synced Clutter Switch (Lightning)
+entities.corkr900CoopHelper/SyncedClutterSwitch.attributes.description.type=The color of the switch.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
