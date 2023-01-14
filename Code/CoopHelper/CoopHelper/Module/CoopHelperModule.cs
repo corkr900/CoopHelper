@@ -80,6 +80,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
+			On.Celeste.ClutterAbsorbEffect.Added += OnClutterAbsorbEffectAdded;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
@@ -109,6 +110,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
+			On.Celeste.ClutterAbsorbEffect.Added -= OnClutterAbsorbEffectAdded;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
@@ -165,16 +167,6 @@ namespace Celeste.Mod.CoopHelper {
 					return collided;
 				});
 			}
-			//if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("event:/game/06_reflection/crushblock_impact")))
-			//{
-			//	cursor.Emit(OpCodes.Ldarg_0);  // load state machine instance
-			//	cursor.Emit(OpCodes.Ldfld, crushBlockLdfldValue);  // load coroutine object instance
-			//	cursor.EmitDelegate<Action<CrushBlock>>((CrushBlock blk) => {
-			//		if (blk is SyncedKevin kevin) {
-			//			kevin.OnReturnBegin();
-			//		}
-			//	});
-			//}
 		}
 
 		#endregion
@@ -294,6 +286,33 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, from);
 			if (self is SyncedTempleCrackedBlock synced) {
 				synced.OnBreak(from);
+			}
+		}
+
+		private void OnClutterAbsorbEffectAdded(On.Celeste.ClutterAbsorbEffect.orig_Added orig, ClutterAbsorbEffect self, Scene scene) {
+			orig(self, scene);
+			// I don't want to forever answer questions about why its crashing
+			// So I'm doing this to prevent a crash when there are no
+			// cabinets in the room you're in when clutter is cleared
+			Level level = scene as Level;
+			if (level != null && level.Tracker.GetEntity<ClutterCabinet>() == null) {
+				List<ClutterCabinet> cabinets = new DynamicData(self).Get<List<ClutterCabinet>>("cabinets");
+
+				ClutterCabinet cab = new ClutterCabinet(new Vector2(level.Bounds.Left - 32, level.Bounds.Top - 32));
+				level.Add(cab);
+				cabinets.Add(cab);
+
+				cab = new ClutterCabinet(new Vector2(level.Bounds.Left - 32, level.Bounds.Bottom + 32));
+				level.Add(cab);
+				cabinets.Add(cab);
+
+				cab = new ClutterCabinet(new Vector2(level.Bounds.Right + 32, level.Bounds.Top - 32));
+				level.Add(cab);
+				cabinets.Add(cab);
+
+				cab = new ClutterCabinet(new Vector2(level.Bounds.Right + 32, level.Bounds.Bottom + 32));
+				level.Add(cab);
+				cabinets.Add(cab);
 			}
 		}
 

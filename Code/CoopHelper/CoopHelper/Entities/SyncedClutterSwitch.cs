@@ -120,7 +120,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 18;
+		public static int GetHeader() => 19;
 
 		public static ClutterBlock.Colors ParseState(CelesteNetBinaryReader r) {
 			ClutterBlock.Colors color;
