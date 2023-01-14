@@ -17,6 +17,8 @@
 	- Synced entities it interacts with don't have one single source of truth, can lead to weird behavior
 	- Need to implement ownership changes
 	- might need to handle pause?
+- Kevins
+	- Conflict resolution probably necessary
 
 ===== Utility =====
 
@@ -49,8 +51,6 @@ theo crystal
 
 ===== Reflection =====
 
-kevin
-	- conflict resolution necessary
  badeline boss
 	- Attack target sync would be hard
 

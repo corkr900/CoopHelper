@@ -27,7 +27,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				DashCollisionResults result = orig_DashCollide(player, direction);
 				if (result == DashCollisionResults.Rebound) {
 					Attacking = true;
-					attackDir = direction;
+					attackDir = -direction;
 					EntityStateTracker.PostUpdate(this);
 				}
 				return result;
