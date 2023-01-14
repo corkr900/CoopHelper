@@ -1,6 +1,9 @@
 ﻿
 ===== BUGS =====
 
+- (!!!) crash from invalid header
+	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
+	- very very likely the seeker's fault
 - steerable move blocks keep their offset on respawn
 - Need to have some distinction of important / unimportant / buffered / unbuffered / stackable updates
 - Need to remove frivolous dependencies from everest.yaml

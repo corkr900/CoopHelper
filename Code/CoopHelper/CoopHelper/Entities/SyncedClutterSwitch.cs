@@ -136,7 +136,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is ClutterBlock.Colors color) {
-
+				DoStaticCutscene(color);
 			}
 		}
 

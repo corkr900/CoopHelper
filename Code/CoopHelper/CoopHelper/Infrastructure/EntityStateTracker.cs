@@ -116,6 +116,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					int header = r.ReadInt32();
 					if (header == 0) break;
 					EntityID id = r.ReadEntityID();
+					if (!parsers.ContainsKey(header)) {
+						throw new InvalidOperationException("Co-op Helper: Received header {0} does not have an associated parser");
+					}
 					object parsedState = parsers[header].Invoke(null, new object[] { r });
 					if (isMySession) {
 						incoming.AddLast(new Tuple<int, EntityID, object>(header, id, parsedState));
