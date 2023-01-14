@@ -136,6 +136,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is ClutterBlock.Colors color) {
+				SceneAs<Level>()?.Particles?.Emit(P_Pressed, 20, TopCenter - Vector2.UnitY * 10f, new Vector2(16f, 8f));
+				new DynamicData(this).Invoke("BePressed");
 				DoStaticCutscene(color);
 			}
 		}
