@@ -56,25 +56,67 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static SyncedLightningBreakerBoxState ParseState(CelesteNetBinaryReader r) {
 			return new SyncedLightningBreakerBoxState() {
-				healthLost = r.ReadInt32(),
-				dir = r.ReadVector2(),
+				PersistentBroken = r.ReadBoolean(),
+				HealthLost = r.ReadInt32(),
+				Direction = r.ReadVector2(),
+				MusicStoreInSession = r.ReadBoolean(),
+				Music = r.ReadString(),
+				MusicProgress = r.ReadInt32(),
 			};
+		}
+
+		public static bool StaticHandler(object state) {
+			if (state is SyncedLightningBreakerBoxState slbbs && slbbs.PersistentBroken) {
+				Level level = (Engine.Scene as Level);
+				if (level?.Session == null) return false;
+				Session session = level.Session;
+
+				Audio.Play("event:/new_content/game/10_farewell/fusebox_hit_2");
+				Input.Rumble(RumbleStrength.Strong, RumbleLength.Long);
+				session.SetFlag("disable_lightning");
+				if (slbbs.MusicStoreInSession) {
+					if (!string.IsNullOrEmpty(slbbs.Music)) {
+						session.Audio.Music.Event = SFX.EventnameByHandle(slbbs.Music);
+					}
+					if (slbbs.MusicProgress >= 0) {
+						session.Audio.Music.SetProgress(slbbs.MusicProgress);
+					}
+					session.Audio.Apply(forceSixteenthNoteHack: false);
+				}
+				else {
+					if (!string.IsNullOrEmpty(slbbs.Music)) {
+						Audio.SetMusic(SFX.EventnameByHandle(slbbs.Music), startPlaying: false);
+					}
+					if (slbbs.MusicProgress >= 0) {
+						Audio.SetMusicParam("progress", slbbs.MusicProgress);
+					}
+					if (!string.IsNullOrEmpty(slbbs.Music) && Audio.CurrentMusicEventInstance != null) {
+						Audio.CurrentMusicEventInstance.start();
+					}
+				}
+				Entity coroutineEntity = new Entity() {
+					Tag = Tags.Persistent,
+				};
+				level.Add(coroutineEntity);
+				coroutineEntity.Add(new Coroutine(Lightning.RemoveRoutine(level)));
+			}
+			return false;
 		}
 
 		public void ApplyState(object state) {
 			if (state is SyncedLightningBreakerBoxState st) {
 				// Handle multiple health lost at once
-				if (st.healthLost > 1) {
+				if (st.HealthLost > 1) {
 					DynamicData dd = new DynamicData(this);
 					int health = dd.Get<int>("health");
-					dd.Set("health", health - st.healthLost + 1);
+					dd.Set("health", health - st.HealthLost + 1);
 				}
 				// I don't want to duplicate the Dashed function or IL Hook it...
 				// If I don't give Dashed a Player it crashes, but all it does is restore dashes.
 				// But i don't want it to restore dashes here so i have to undo any changes to the dash count
 				Player player = Scene.Tracker.GetEntity<Player>();
 				int dashCtBefore = player.Dashes;
-				Dashed(player, st.dir);
+				Dashed(player, st.Direction);
 				player.Dashes = dashCtBefore; 
 			}
 		}
@@ -84,16 +126,26 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public bool CheckRecurringUpdate() => false;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
+			DynamicData dd = new DynamicData(this);
 			lock (healthDiffLock) {
+				w.Write(dd.Get<bool>("flag") && dd.Get<int>("health") <= 0);
 				w.Write(healthLost);
 				w.Write(lastDashedDir);
 				healthLost = 0;
+				w.Write(dd.Get<bool>("musicStoreInSession"));
+				w.Write(dd.Get<string>("music") ?? "");
+				w.Write(dd.Get<int>("musicProgress"));
 			}
 		}
 	}
 
 	public class SyncedLightningBreakerBoxState {
-		public int healthLost;
-		public Vector2 dir;
+		public bool PersistentBroken;
+		public int HealthLost;
+		public Vector2 Direction;
+
+		public bool MusicStoreInSession;
+		public string Music;
+		public int MusicProgress;
 	}
 }

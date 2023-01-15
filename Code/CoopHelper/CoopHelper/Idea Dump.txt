@@ -23,6 +23,8 @@
 - Kevins
 	- Impacts should only be sent by the player that last bopped it
 	- Conflict resolution probably necessary
+- Clutter Switch
+	- Lightning version doesn't work
 
 ===== Utility =====
 
@@ -44,7 +46,6 @@ core blocks
 
 ===== Resort =====
 
-clutter
 
 ===== Ridge =====
 

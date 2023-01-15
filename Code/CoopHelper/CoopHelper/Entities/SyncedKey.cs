@@ -53,6 +53,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			return r.ReadBoolean();
 		}
 
+		public static bool StaticHandler(object state) {
+			// TODO
+			return false;
+		}
+
 		public void ApplyState(object state) {
 			if (state is bool newIsUsed) {
 				DynamicData dd = new DynamicData(this);
@@ -65,7 +70,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
-						// TODO setting on key for whether to bubble the player who didn't get it... or maybe to bubble them to a different spot
+						// TODO setting on key for whether to bubble the player who didn't get it
 						if (dd.Get<Follower>("follower")?.HasLeader == false) {
 							Vector2[] nodes = dd.Get<Vector2[]>("nodes");
 							if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
