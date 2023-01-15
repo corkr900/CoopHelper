@@ -22,6 +22,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 
 		private int otherPlayersInTrigger = 0;
 		Player player = null;
+		WaitingForPlayersMessage message = null;
 
 		private int PlayersNeeded {
 			get {
@@ -50,6 +51,9 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 				if (otherPlayersInTrigger + 1 >= PlayersNeeded) {
 					BeginCutscene();
 				}
+				else {
+					Scene.Add(message = new WaitingForPlayersMessage());
+				}
 			}
 		}
 
@@ -58,10 +62,15 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 				return;
 			}
 			triggered = true;
+			message?.RemoveSelf();
+			message = null;
 			Scene.Add(new DialogCutscene(dialogEntry, player, endLevel));
 			if (onlyOnce) {
 				Session session2 = (Scene as Level).Session;
 				session2.SetFlag("DoNotLoad" + id.ToString());
+			}
+			if (onlyOnce) {
+				RemoveSelf();
 			}
 		}
 
@@ -103,5 +112,18 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 			w.Write(player != null);
 		}
 
+	}
+
+	public class WaitingForPlayersMessage : Entity {
+		public WaitingForPlayersMessage() {
+			Tag = Tags.HUD;
+		}
+		public override void Render() {
+			base.Render();
+			string text = "Waiting for all players...";  // TODO tokenize
+			Vector2 position = new Vector2(960, 540);
+			Vector2 anchor = Vector2.One / 2f;
+			ActiveFont.DrawOutline(text, position, anchor, Vector2.One, Color.White, 3, Color.Black);
+		}
 	}
 }
