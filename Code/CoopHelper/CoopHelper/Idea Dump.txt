@@ -1,5 +1,5 @@
 ﻿
-===== BUGS =====
+============== BUGS ==============
 
 - (!!!) crash from invalid header
 	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
@@ -23,51 +23,25 @@
 - Clutter Switch
 	- Lightning version doesn't work
 
-===== Utility =====
+============== Utility ==============
 
 Trigger spikes
 
-===== Basic / Low Utility =====
+============== Basic / Low Utility ==============
 
 Refill
 Green Bubble
 Red Bubble
 core blocks
 
-===== City =====
-
-
-===== Site =====
-
-
-===== Resort =====
-
-
-===== Ridge =====
-
-
-===== Temple =====
+============== Vanilla ==============
 
 theo crystal
-
-===== Reflection =====
-
- badeline boss
+badeline boss
 	- Attack target sync would be hard
-
-===== Summit =====
-
 badeline booster
-
-===== Core =====
-
-
-===== Farewell =====
-
 jelly
 	- conflict resolution necessary
-puffer
-	- conflict resolution necessary?
 fling bird
 
 ===== Totally New =====
@@ -77,11 +51,13 @@ something custom to be hostile toward other players >:)
 
 ============== improvements ===============
 
-manual role picking
+manual role picking / session picker UI improvements
 swap block toggle mode
 horizontal session gates
 custom flags  for lightning breaker boxes
 custom health for lightning breaker boxes
+more customization options on seekers
+more customization options on puffers
 
 ===========================================
 
