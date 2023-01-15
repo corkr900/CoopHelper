@@ -128,6 +128,7 @@
     <Compile Include="Module\CoopHelperModuleSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Triggers\SyncedChangeRespawnTrigger.cs" />
+    <Compile Include="Triggers\SyncedDialogCutscene.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\Dialog\English.txt">
@@ -207,6 +208,9 @@
     </None>
     <None Include="..\..\..\Loenn\triggers\SyncedChangeRespawn.lua">
       <Link>Entity Plugins\Loenn\triggers\SyncedChangeRespawn.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\triggers\SyncedDialogCutscene.lua">
+      <Link>Entity Plugins\Loenn\triggers\SyncedDialogCutscene.lua</Link>
     </None>
   </ItemGroup>
   <ItemGroup />

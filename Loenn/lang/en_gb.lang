@@ -123,3 +123,10 @@ entities.corkr900CoopHelper/SyncedClutterSwitch.attributes.description.type=The 
 
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
+
+# Synced Dialog Cutscene
+triggers.corkr900CoopHelper/SyncedDialogCutscene.placements.name.dialog=Synced Change Respawn
+triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.onlyOnce=Whether the dialogue should only trigger once.
+triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.dialogId=The dialog ID to use for the dialogue.
+triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.endLevel=Whether finishing the dialog triggers the level to end.
+triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.deathCount=Determines the exact amount of deaths required to activate dialog trigger. Will always trigger if set to -1.
