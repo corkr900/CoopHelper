@@ -74,6 +74,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
+			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
 			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
@@ -104,6 +105,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
+			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
 			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
@@ -314,6 +316,15 @@ namespace Celeste.Mod.CoopHelper {
 				level.Add(cab);
 				cabinets.Add(cab);
 			}
+		}
+
+		private void OnSpringCtor(On.Celeste.Spring.orig_ctor_EntityData_Vector2_Orientations orig, Spring self, EntityData data, Vector2 offset, Spring.Orientations orientation) {
+			orig(self, data, offset, orientation);
+			self.Add(new SyncedPufferCollider((SyncedPuffer p) => {
+				if (p.HitSpring(self)) {
+					new DynamicData(self).Invoke("BounceAnimate");
+				}
+			}));
 		}
 
 		#endregion

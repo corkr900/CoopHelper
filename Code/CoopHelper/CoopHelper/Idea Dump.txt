@@ -26,7 +26,6 @@
 ===== Utility =====
 
 Trigger spikes
-Dialog Trigger
 
 ===== Basic / Low Utility =====
 

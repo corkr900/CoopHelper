@@ -121,6 +121,13 @@ entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.green=Synced Clu
 entities.corkr900CoopHelper/SyncedClutterSwitch.placements.name.lightning=Synced Clutter Switch (Lightning)
 entities.corkr900CoopHelper/SyncedClutterSwitch.attributes.description.type=The color of the switch.
 
+# Synced Puffer
+entities.corkr900CoopHelper/SyncedPuffer.placements.name.normal=Synced Puffer
+entities.corkr900CoopHelper/SyncedPuffer.placements.name.static=Synced Puffer (Static)
+entities.corkr900CoopHelper/SyncedPuffer.attributes.description.right=Whether the puffer faces to the right
+entities.corkr900CoopHelper/SyncedPuffer.attributes.description.static=Static puffers do not wiggle around when idle
+entities.corkr900CoopHelper/SyncedPuffer.attributes.description.sprite=Custom sprite to use for the puffer
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
