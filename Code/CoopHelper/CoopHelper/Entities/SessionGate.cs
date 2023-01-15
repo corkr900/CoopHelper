@@ -94,18 +94,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void SetHeight(int height) {
-			if ((float)height < base.Collider.Height) {
-				base.Collider.Height = height;
+			if (height < Collider.Height) {
+				Collider.Height = height;
 				return;
 			}
-			float y = base.Y;
-			int num = (int)base.Collider.Height;
-			if (base.Collider.Height < 64f) {
-				base.Y -= 64f - base.Collider.Height;
-				base.Collider.Height = 64f;
+			float y = Y;
+			int num = (int)Collider.Height;
+			if (Collider.Height < 64f) {
+				Y -= 64f - Collider.Height;
+				Collider.Height = 64f;
 			}
-			MoveVExact(height - num);
-			base.Y = y;
+			try {
+				MoveVExact(height - num);
+			}
+			catch(Exception e) {
+				// IDK why but MoveVExact will randomly crash sometimes????? idk just ignore it i guess
+			}
+			Y = y;
 		}
 	}
 }

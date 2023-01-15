@@ -99,6 +99,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				};
 				level.Add(coroutineEntity);
 				coroutineEntity.Add(new Coroutine(Lightning.RemoveRoutine(level)));
+				return true;
 			}
 			return false;
 		}
