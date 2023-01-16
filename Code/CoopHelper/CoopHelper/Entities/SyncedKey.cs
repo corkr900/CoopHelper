@@ -72,7 +72,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				session.Keys.Add(id);
 				level.Add(new SyncedKey(player, id));
 			}
-			return true;
+			return !sks.Used;
 		}
 
 		public void ApplyState(object state) {
@@ -87,6 +87,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
+						Visible = false;
 
 						if (dd.Get<Follower>("follower")?.HasLeader == false) {
 							Vector2[] nodes = dd.Get<Vector2[]>("nodes");

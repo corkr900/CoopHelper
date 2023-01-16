@@ -54,6 +54,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			emitter.Source.DisposeOnTransition = true;
 			Level level = SceneAs<Level>();
 			if (key != null) {
+				key.Visible = true;
 				usedKeyID = key.ID;
 				Add(new Coroutine(key.UseRoutine(Center + new Vector2(0f, 2f))));
 				if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
