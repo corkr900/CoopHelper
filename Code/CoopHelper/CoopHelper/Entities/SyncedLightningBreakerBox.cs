@@ -52,7 +52,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 16;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 16,
+			Parser = ParseState,
+			StaticHandler = StaticHandler,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
 		public static SyncedLightningBreakerBoxState ParseState(CelesteNetBinaryReader r) {
 			return new SyncedLightningBreakerBoxState() {

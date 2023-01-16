@@ -11,14 +11,23 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Infrastructure {
 	// TODO separate critical and noncritical updates
 	// TODO leave incoming updates buffered during death animation
+
+	public class SyncBehavior {
+		public int Header;
+		public Func<CelesteNetBinaryReader, object> Parser;
+		public Func<EntityID, object, bool> StaticHandler;
+		public bool DiscardIfNoListener;
+		public bool DiscardDuplicates;  // TODO (!!!) respect DiscardDuplicates
+		public bool Critical;
+	}
+
 	public static class EntityStateTracker {
 		private static readonly long MaximumMessageSize = 3200;
 		private static readonly int MaximumBufferRetention = 100;
 
 		private static Queue<ISynchronizable> outgoing = new Queue<ISynchronizable>();
 		private static LinkedList<Tuple<int, EntityID, object>> incoming = new LinkedList<Tuple<int, EntityID, object>>();
-		private static Dictionary<int, MethodInfo> parsers = new Dictionary<int, MethodInfo>();
-		private static Dictionary<int, MethodInfo> staticHandlers = new Dictionary<int, MethodInfo>();
+		private static Dictionary<int, SyncBehavior> behaviors = new Dictionary<int, SyncBehavior>();
 		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
 
 		public static bool HasUpdates { get { lock (outgoing) { return outgoing.Count > 0 && !IgnorePendingUpdatesInUpdateCheck; } } }
@@ -30,26 +39,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				if (!t.IsClass) continue;
 				bool isISync = t.GetInterfaces().Any(itf => itf == typeof(ISynchronizable));
 				if (isISync) {
-					MethodInfo getHeader = t.GetMethod("GetHeader", BindingFlags.Static | BindingFlags.Public);
-					if (getHeader == null || !getHeader.ReturnType.Equals(typeof(int))) {
-						throw new InvalidOperationException("Co-op Helper: Types implementing ISynchronizable must define a static GetHeader method returning an int (" + t.Name + ")");
+					MethodInfo getSyncBehavior = t.GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
+					if (getSyncBehavior == null
+						|| !getSyncBehavior.IsStatic
+						|| !getSyncBehavior.ReturnType.Equals(typeof(SyncBehavior))
+						|| getSyncBehavior.GetParameters().Length > 0)
+					{
+						throw new InvalidOperationException("Co-op Helper: Types implementing ISynchronizable must define a static GetSyncBehavior method returning a SyncBehavior (" + t.Name + ")");
 					}
-					MethodInfo parse = t.GetMethod("ParseState", BindingFlags.Static | BindingFlags.Public);
-					if (parse == null) {
-						throw new InvalidOperationException("Co-op Helper: Types implementing ISynchronizable must define a static ParseState method returning the Generic type of the interface (" + t.Name + ")");
+					SyncBehavior behav = (SyncBehavior)getSyncBehavior.Invoke(null, null);
+					if (behav.Parser == null) {
+						throw new InvalidOperationException("Co-op Helper: SyncBehavior musrt define a parser (" + t.Name + ")");
 					}
-					MethodInfo staticHandler = t.GetMethod("StaticHandler", BindingFlags.Static | BindingFlags.Public);
-					if (staticHandler != null) {
-						ParameterInfo[] paramInfo = staticHandler.GetParameters();
-						if (!staticHandler.ReturnType.Equals(typeof(bool))
-							|| paramInfo.Length != 2
-							|| !paramInfo[0].ParameterType.Equals(typeof(EntityID))
-							|| !paramInfo[1].ParameterType.Equals(typeof(object)))
-						{
-							throw new InvalidOperationException("Co-op Helper: StaticHandler function on ISynchronizable must have EntityID and object parameters and return a bool (" + t.Name + ")");
-						}
-					}
-					RegisterType((int)getHeader.Invoke(null, null), parse, staticHandler);
+					RegisterType(behav);
 				}
 			}
 		}
@@ -65,24 +67,18 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			if (listeners.ContainsKey(id)) listeners.Remove(id);
 		}
 
-		public static void RegisterType(int header, MethodInfo parser, MethodInfo staticHandler) {
-			if (header == 0) throw new InvalidOperationException("Co-op Helper: Types may not use 0 as their header");
-			if (parsers.ContainsKey(header)){
-				if (parsers[header].Equals(parser)) return;
-				throw new InvalidOperationException("Co-op Helper: Multiple typed registered under the same header");
+		public static void RegisterType(SyncBehavior behav) {
+			if (behav.Header == 0) throw new InvalidOperationException("Co-op Helper: Types may not use 0 as their header");
+			if (behaviors.ContainsKey(behav.Header)){
+				if (behaviors[behav.Header].Equals(behav.Header)) return;
+				throw new InvalidOperationException(string.Format("Co-op Helper: Multiple typed registered under the same header ({0})", behav.Header));
 			}
-			parsers.Add(header, parser);
-			if (staticHandler != null) {
-				staticHandlers.Add(header, staticHandler);
-			}
+			behaviors.Add(behav.Header, behav);
 		}
 
 		private static int GetHeader(ISynchronizable isy) {
-			MethodInfo getHeader = isy.GetType().GetMethod("GetHeader", BindingFlags.Static | BindingFlags.Public);
-			if (getHeader == null || !getHeader.ReturnType.Equals(typeof(int))) {
-				throw new InvalidOperationException("Co-op Helper: Types implementing ISynchronizable must define a static GetHeader method returning an int");
-			}
-			return (int)getHeader.Invoke(null, null);
+			MethodInfo info = isy.GetType().GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
+			return ((SyncBehavior)info.Invoke(null, null)).Header;
 		}
 
 		public static void PostUpdate(ISynchronizable entity) {
@@ -117,10 +113,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					int header = r.ReadInt32();
 					if (header == 0) break;
 					EntityID id = r.ReadEntityID();
-					if (!parsers.ContainsKey(header)) {
+					if (!behaviors.ContainsKey(header)) {
 						throw new InvalidOperationException("Co-op Helper: Received header {0} does not have an associated parser");
 					}
-					object parsedState = parsers[header].Invoke(null, new object[] { r });
+					object parsedState = behaviors[header].Parser(r);
 					if (isMySession) {
 						incoming.AddLast(new Tuple<int, EntityID, object>(header, id, parsedState));
 					}
@@ -133,23 +129,36 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				LinkedListNode<Tuple<int, EntityID, object>> node = incoming.First;
 				while (node != null) {
 					LinkedListNode<Tuple<int, EntityID, object>> next = node.Next;
+					SyncBehavior behav = behaviors[node.Value.Item1];
 					// Specific listening entities take priority
 					if (listeners.ContainsKey(node.Value.Item2)) {
 						listeners[node.Value.Item2].ApplyState(node.Value.Item3);
 						incoming.Remove(node);
 					}
 					// If there's no listener but a static handler, use that
-					else if (staticHandlers.ContainsKey(node.Value.Item1)) {
-						if ((bool)staticHandlers[node.Value.Item1].Invoke(null, new object[] { node.Value.Item2, node.Value.Item3 })) {
-							incoming.Remove(node);
-						}
+					else if (behav.StaticHandler?.Invoke(node.Value.Item2, node.Value.Item3) == true) {
+						incoming.Remove(node);
+					}
+					else if (behav.DiscardIfNoListener) {
+						incoming.Remove(node);
 					}
 					// TODO discard updates from rooms that nobody's in
 					node = next;
 				}
+
 				// Prevent the incoming buffer from growing indefinitely with updates noone's listening to
+				node = incoming.First;
 				while (incoming.Count > MaximumBufferRetention) {
-					incoming.RemoveFirst();
+					LinkedListNode<Tuple<int, EntityID, object>> next = node.Next;
+					SyncBehavior behav = behaviors[node.Value.Item1];
+					if (!behav.Critical) {
+						incoming.Remove(node);
+					}
+					node = next;
+					if (node == null) {
+						// TODO log a warning that the buffer is growing
+						break;
+					}
 				}
 			}
 		}

@@ -89,13 +89,20 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 20;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 20,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
 		public EntityID GetID() => id;
 
 		public bool CheckRecurringUpdate() => false;
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			return r.ReadBoolean();
 		}
 

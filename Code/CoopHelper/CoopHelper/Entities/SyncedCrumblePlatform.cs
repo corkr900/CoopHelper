@@ -197,6 +197,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 
 
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 11,
+			Parser = ParseState,
+			StaticHandler = StaticHandler,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
+
 		public static bool StaticHandler(EntityID id, object state) => true;
 
 		public override void SceneEnd(Scene scene) {
@@ -209,9 +218,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 11;
-
-		public static bool ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			return r.ReadBoolean();
 		}
 

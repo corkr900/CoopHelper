@@ -62,7 +62,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public EntityID GetID() => id;
 
-		public static int GetHeader() => 18;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 18,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
 		public void ApplyState(object state) {
 			if (state is SyncedKevinState sks) {

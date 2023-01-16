@@ -116,7 +116,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 14;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 14,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
 		public static GroupButtonState ParseState(CelesteNetBinaryReader r) {
 			GroupButtonState s = new GroupButtonState();

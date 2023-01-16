@@ -102,7 +102,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 10;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 10,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
 		public static SyncedLockBlockStatus ParseState(CelesteNetBinaryReader r) {
 			SyncedLockBlockStatus s = new SyncedLockBlockStatus();

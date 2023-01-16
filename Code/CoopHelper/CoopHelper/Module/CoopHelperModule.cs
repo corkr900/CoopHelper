@@ -75,6 +75,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
+			On.Celeste.Platform.StartShaking += OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
@@ -106,6 +107,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
+			On.Celeste.Platform.StartShaking -= OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
@@ -237,10 +239,18 @@ namespace Celeste.Mod.CoopHelper {
 		private bool OnFallingBlockPlayerCheck(On.Celeste.FallingBlock.orig_PlayerFallCheck orig, FallingBlock self) {
 			bool res = orig(self);
 			if (res && !self.Triggered && self is SyncedFallingBlock sfb) {
-				self.Triggered = true;
+				sfb.Triggered = true;
 				EntityStateTracker.PostUpdate(sfb);
 			}
 			return res;
+		}
+
+		private void OnPlatformStartShaking(On.Celeste.Platform.orig_StartShaking orig, Platform self, float time) {
+			orig(self, time);
+			if (self is SyncedFallingBlock sfb && !sfb.Triggered) {
+				sfb.Triggered = true;
+				EntityStateTracker.PostUpdate(sfb);
+			}
 		}
 
 		private void OnCoreModeTogglePlayer(On.Celeste.CoreModeToggle.orig_OnPlayer orig, CoreModeToggle self, Player player) {

@@ -8,7 +8,6 @@ local variantOptions = {
     Laundry = "red",
     Books = "green",
     Boxes = "yellow",
-    Lightning = "lightning"
 }
 
 syncedClutterSwitch.name = "corkr900CoopHelper/SyncedClutterSwitch"

@@ -120,9 +120,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 19;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 19,
+			Parser = ParseState,
+			StaticHandler = StaticHandler,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
-		public static ClutterBlock.Colors ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			ClutterBlock.Colors color;
 			Enum.TryParse(r.ReadString(), out color);
 			return color;

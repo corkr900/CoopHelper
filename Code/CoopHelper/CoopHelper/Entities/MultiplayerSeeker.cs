@@ -925,7 +925,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (postUpdate) EntityStateTracker.PostUpdate(this);
 		}
 
-		public static int GetHeader() => 17;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 17,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = true,
+			Critical = false,
+		};
 
 		public static MultiplayerSeekerState ParseState(CelesteNetBinaryReader r) {
 			MultiplayerSeekerState s = new MultiplayerSeekerState();

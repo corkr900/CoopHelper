@@ -493,7 +493,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 21;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 21,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
 		public EntityID GetID() => id;
 

@@ -80,7 +80,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		public static int GetHeader() => 1;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 1,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
 		public static SessionSyncState ParseState(CelesteNetBinaryReader r) {
 			SessionSyncState state = new SessionSyncState {

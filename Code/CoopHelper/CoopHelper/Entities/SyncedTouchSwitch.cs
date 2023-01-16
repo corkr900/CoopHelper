@@ -43,9 +43,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		#endregion
 
-		public static int GetHeader() => 6;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 6,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			return r.ReadBoolean();
 		}
 

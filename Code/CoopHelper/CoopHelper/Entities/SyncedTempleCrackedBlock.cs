@@ -44,9 +44,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 15;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 15,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = true,
+		};
 
-		public static Vector2 ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			return r.ReadVector2();
 		}
 

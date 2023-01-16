@@ -25,8 +25,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			return dd.Get<bool>("Usable") && dd.Get<float>("cooldownTimer") <= 0f;
 		}
 
-		#region These 3 overrides MUST be defined for synced entities/triggers
-
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			EntityStateTracker.AddListener(this);
@@ -42,13 +40,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		#endregion
-
-		public static int GetHeader() => 5;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 5,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = true,
+			Critical = false,
+		};
 
 		public bool CheckRecurringUpdate() => false;
 
-		public static Session.CoreModes ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			Session.CoreModes mode;
 			if (!Enum.TryParse(r.ReadString(), out mode)) {
 				mode = Session.CoreModes.None;

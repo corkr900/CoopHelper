@@ -444,9 +444,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public static int GetHeader() => 8;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 8,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = true,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
-		public static State ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			State s;
 			Enum.TryParse(r.ReadString(), out s);
 			return s;

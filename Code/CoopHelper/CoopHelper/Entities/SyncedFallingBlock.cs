@@ -49,13 +49,20 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		#region ISynchronizable implementation
 
-		public static int GetHeader() => 3;
+		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
+			Header = 3,
+			Parser = ParseState,
+			StaticHandler = null,
+			DiscardIfNoListener = false,
+			DiscardDuplicates = false,
+			Critical = false,
+		};
 
 		public EntityID GetID() => id;
 
 		public bool CheckRecurringUpdate() => false;
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNetBinaryReader r) {
 			bool triggered = r.ReadBoolean();
 			return triggered;
 		}

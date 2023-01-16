@@ -4,24 +4,18 @@
 - (!!!) crash from invalid header
 	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
 	- very very likely the seeker's fault
-- steerable move blocks keep their offset on respawn
+- Steerable move blocks keep their offset on respawn
 - Need to have some distinction of important / unimportant / buffered / unbuffered / stackable updates
 - Need to remove frivolous dependencies from everest.yaml
-- Keys used while you're out of the room aren't updated correctly
-- Lock blocks can desync but idk how
 - Persistent core mode should probably be moved to Session-level stuff
-- Falling blocks aren't always synced (depending on how theyre triggered)
 - seekers
 	- idle wobble is desynced
 	- Sometimes animation gets frozen on one frame
 	- Synced entities it interacts with don't have one single source of truth, can lead to weird behavior
 	- Need to implement ownership changes
 	- might need to handle pause?
-- Kevins
-	- Impacts should only be sent by the player that last bopped it
-	- Conflict resolution probably necessary
 - Clutter Switch
-	- Lightning version doesn't work
+	- Lightning version doesn't work (removed from editor)
 
 ============== Utility ==============
 
@@ -44,7 +38,7 @@ jelly
 	- conflict resolution necessary
 fling bird
 
-===== Totally New =====
+============== Totally New ==============
 
 role-specific spawn points
 something custom to be hostile toward other players >:)
@@ -64,7 +58,6 @@ more customization options on puffers
 
 sync other session info
 - flags (!!!)
-- keys
 - core mode
 - collectables
 	- heart
