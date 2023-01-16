@@ -65,7 +65,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			};
 		}
 
-		public static bool StaticHandler(object state) {
+		public static bool StaticHandler(EntityID id, object state) {
 			if (state is SyncedLightningBreakerBoxState slbbs && slbbs.PersistentBroken) {
 				Level level = (Engine.Scene as Level);
 				if (level?.Session == null) return false;

@@ -17,6 +17,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedKey : Key, ISynchronizable {
 		internal bool AnotherPlayerUsed { get; private set; }
 
+		private SyncedKey(Player player, EntityID id) : base(player, id) { }
+
 		public SyncedKey(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			PlayerCollider coll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = coll.OnCollide;
@@ -49,19 +51,34 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static int GetHeader() => 9;
 
-		public static bool ParseState(CelesteNetBinaryReader r) {
-			return r.ReadBoolean();
+		public static SyncedKeyState ParseState(CelesteNetBinaryReader r) {
+			return new SyncedKeyState() {
+				Used = r.ReadBoolean(),
+			};
 		}
 
-		public static bool StaticHandler(object state) {
-			// TODO
-			return false;
+		public static bool StaticHandler(EntityID id, object state) {
+			if (!(state is SyncedKeyState sks)) return false;
+			if (!(Engine.Scene is Level level)) return false;
+			Session session = level.Session;
+			Player player = level.Tracker.GetEntity<Player>();
+			if (session.DoNotLoad.Contains(id)) return false;
+			if (player == null) {
+				session.DoNotLoad.Add(id);
+				session.Keys.Add(id);
+			}
+			else {
+				session.DoNotLoad.Add(id);
+				session.Keys.Add(id);
+				level.Add(new SyncedKey(player, id));
+			}
+			return true;
 		}
 
 		public void ApplyState(object state) {
-			if (state is bool newIsUsed) {
+			if (state is SyncedKeyState sks) {
 				DynamicData dd = new DynamicData(this);
-				if (newIsUsed) {
+				if (sks.Used) {
 					AnotherPlayerUsed = true;
 					if (!IsUsed) {
 						Session session = SceneAs<Level>().Session;
@@ -70,7 +87,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						session.Keys.Add(ID);
 						session.UpdateLevelStartDashes();
 						Depth = -1000000;
-						// TODO setting on key for whether to bubble the player who didn't get it
+
 						if (dd.Get<Follower>("follower")?.HasLeader == false) {
 							Vector2[] nodes = dd.Get<Vector2[]>("nodes");
 							if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
@@ -105,5 +122,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		#endregion
+	}
+
+	public class SyncedKeyState {
+		public bool Used;
 	}
 }

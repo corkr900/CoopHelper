@@ -42,10 +42,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					if (staticHandler != null) {
 						ParameterInfo[] paramInfo = staticHandler.GetParameters();
 						if (!staticHandler.ReturnType.Equals(typeof(bool))
-							|| paramInfo.Length != 1
-							|| !paramInfo[0].ParameterType.Equals(typeof(object)))
+							|| paramInfo.Length != 2
+							|| !paramInfo[0].ParameterType.Equals(typeof(EntityID))
+							|| !paramInfo[1].ParameterType.Equals(typeof(object)))
 						{
-							throw new InvalidOperationException("Co-op Helper: StaticHandler function on ISynchronizable must have a object parameter and return a bool (" + t.Name + ")");
+							throw new InvalidOperationException("Co-op Helper: StaticHandler function on ISynchronizable must have EntityID and object parameters and return a bool (" + t.Name + ")");
 						}
 					}
 					RegisterType((int)getHeader.Invoke(null, null), parse, staticHandler);
@@ -139,7 +140,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					}
 					// If there's no listener but a static handler, use that
 					else if (staticHandlers.ContainsKey(node.Value.Item1)) {
-						if ((bool)staticHandlers[node.Value.Item1].Invoke(null, new object[] { node.Value.Item3 })) {
+						if ((bool)staticHandlers[node.Value.Item1].Invoke(null, new object[] { node.Value.Item2, node.Value.Item3 })) {
 							incoming.Remove(node);
 						}
 					}

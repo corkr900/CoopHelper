@@ -197,7 +197,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 
 
-
+		public static bool StaticHandler(EntityID id, object state) => true;
 
 		public override void SceneEnd(Scene scene) {
 			base.SceneEnd(scene);

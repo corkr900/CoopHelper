@@ -128,7 +128,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			return color;
 		}
 
-		public static bool StaticHandler(object state) {
+		public static bool StaticHandler(EntityID id, object state) {
 			if (!(state is ClutterBlock.Colors color)) return false;
 			DoStaticCutscene(color);
 			return true;
