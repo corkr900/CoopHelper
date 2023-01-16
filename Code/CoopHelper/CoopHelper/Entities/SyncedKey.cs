@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
+using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using Monocle;
 using MonoMod.Utils;
@@ -61,8 +62,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (!(state is SyncedKeyState sks)) return false;
 			if (!(Engine.Scene is Level level)) return false;
 			Session session = level.Session;
+			if (session.DoNotLoad.Contains(id)) {
+				if (sks.Used && session.Keys.Contains(id)) {
+					session.Keys.Remove(id);
+				}
+				return true;
+			}
 			Player player = level.Tracker.GetEntity<Player>();
-			if (session.DoNotLoad.Contains(id)) return false;
 			if (player == null) {
 				session.DoNotLoad.Add(id);
 				session.Keys.Add(id);
@@ -83,19 +89,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					if (!IsUsed) {
 						Session session = SceneAs<Level>().Session;
 						Collidable = false;
-						session.DoNotLoad.Add(ID);
-						session.Keys.Add(ID);
-						session.UpdateLevelStartDashes();
+						if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
 						Depth = -1000000;
-						Visible = false;
-
-						if (dd.Get<Follower>("follower")?.HasLeader == false) {
-							Vector2[] nodes = dd.Get<Vector2[]>("nodes");
-							if (dd.Get<Vector2[]>("nodes") != null && nodes.Length >= 2) {
-								Add(new Coroutine(dd.Invoke<IEnumerator>("NodeRoutine", GetPlayer())));
-							}
+						dd.Get<Sprite>("sprite").Visible = false;
+						Follower follower = dd.Get<Follower>("follower");
+						if (follower?.HasLeader == true) {
+							follower.Leader.LoseFollower(follower);
 						}
 						RegisterUsed();
+						EventInstance evt = Audio.Play("event:/game/03_resort/key_unlock");
+						Alarm.Set(this, 2.7f, () => {
+							RemoveSelf();
+						}, Alarm.AlarmMode.Oneshot);
 					}
 				}
 				else {
