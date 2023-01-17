@@ -98,8 +98,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 				if (canSteer && lastState == MovementState.Moving && mbs.moving) {
 					otherPlayerTotalMovement += mbs.movementDelta;
-					if (MovesVertically) Position.X += mbs.movementDelta;
-					else Position.Y += mbs.movementDelta;
+					if (MovesVertically) MoveHExact((int)mbs.movementDelta);
+					else MoveVExact((int)mbs.movementDelta);
 				}
 			}
 		}
