@@ -4,7 +4,7 @@
 - (!!!) crash from invalid header
 	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
 	- very very likely the seeker's fault
-- Steerable move blocks keep their offset on respawn
+- Steerable move blocks can desync easily when steering around corners
 - Need to remove frivolous dependencies from everest.yaml
 - Persistent core mode should probably be moved to Session-level stuff
 - seekers

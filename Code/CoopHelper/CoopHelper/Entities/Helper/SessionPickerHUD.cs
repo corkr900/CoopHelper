@@ -179,7 +179,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (kvp.Item2 == RequestState.Joined) continue;
 				string display = kvp.Item1.Name;
 				Color color = Color.White;
-				// TODO do better
 				if (hovered == i) {
 					display = "> " + display;
 				}

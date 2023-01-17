@@ -25,7 +25,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (int.TryParse(data.Attr("requiredRole", "-1"), out int parsedRole)) {
 				requireRole = parsedRole;
 			}
-			Add(sprite = GFX.SpriteBank.Create("templegate_" + spriteName));  // TODO do better
+			Add(sprite = GFX.SpriteBank.Create("templegate_" + spriteName));
 			sprite.X = base.Collider.Width / 2f;
 			sprite.Play("idle");
 			Add(shaker = new Shaker(on: false));
