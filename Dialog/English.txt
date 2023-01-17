@@ -11,3 +11,6 @@ corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You
 corkr900_CoopHelper_SessionPickerCurrentTitle= Players in Session
 corkr900_CoopHelper_SessionPickerAvailableTitle= Players Available
+
+corkr900_CoopHelper_Overworld= Overworld
+corkr900_CoopHelper_WaitingForPlayers=  Waiting for all players...

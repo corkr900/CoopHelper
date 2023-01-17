@@ -141,9 +141,6 @@
     <Content Include="Idea Dump.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Ahorn\entities\SessionPicker.jl">
-      <Link>Entity Plugins\Ahorn\SessionPicker.jl</Link>
-    </None>
     <None Include="..\..\..\everest.yaml">
       <Link>everest.yaml</Link>
     </None>

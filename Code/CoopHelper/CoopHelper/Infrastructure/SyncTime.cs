@@ -34,9 +34,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
         }
 
         public static void DoClockSync() {
-            // TODO Make this async so network doesnt affect startup time
-
-            // Not actually using this feature until I have a good reason to do so
+            // Not actually using this feature until I have a good reason to do so.
+            // I should run it on a bg thread if i do ever actually use it
 
             //try {
             //    string server = TimeServer;

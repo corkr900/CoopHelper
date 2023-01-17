@@ -179,8 +179,10 @@ namespace Celeste.Mod.CoopHelper {
 
 		public static void OnStrawberryCollect(Action<Strawberry> orig, Strawberry self) {
 			orig(self);
-			Player player = self.SceneAs<Level>().Tracker.GetEntity<Player>();
-			player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID);
+			if (!self.Golden) {
+				Player player = self.SceneAs<Level>().Tracker.GetEntity<Player>();
+				player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID);
+			}
 		}
 
 		private void OnSpawn(Player pl) {

@@ -62,7 +62,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
             get {
                 string dname = "";
                 if (IsOverworld) {
-                    dname = "Overworld";  // TODO tokenize
+                    dname = Dialog.Clean("corkr900_CoopHelper_Overworld");
                 }
                 else if (ExistsLocal) {
                     dname = Dialog.Get(Data.Name) + GetTranslatedSide(_localKey?.Mode);

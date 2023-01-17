@@ -9,15 +9,35 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Infrastructure {
-	// TODO separate critical and noncritical updates
-	// TODO leave incoming updates buffered during death animation
 
 	public class SyncBehavior {
+		/// <summary>
+		/// REQUIRED: integer header that tells the deserializer how to handle it.
+		/// This may not match the header for any other type and must be the same
+		/// on all computers using the same version of Co-op Helper.
+		/// </summary>
 		public int Header;
+		/// <summary>
+		/// REQUIRED: Function to read the state object from the celestenet stream
+		/// </summary>
 		public Func<CelesteNetBinaryReader, object> Parser;
+		/// <summary>
+		/// Optional: This function will be called to handle an update if there are no matching listeners.
+		/// It should return true if the message can be / is handled, or false to leave it on the incoming queue
+		/// </summary>
 		public Func<EntityID, object, bool> StaticHandler;
+		/// <summary>
+		/// If true, updates of this type will be immediately discarded if there is no listener for it
+		/// </summary>
 		public bool DiscardIfNoListener;
-		public bool DiscardDuplicates;  // TODO (!!!) respect DiscardDuplicates
+		/// <summary>
+		/// If true, if there are multiple updates for the same entity in the incoming queue then the older update will be discarded.
+		/// Use this for classes that may send frequent updates and can recover from not receiving all of them.
+		/// </summary>
+		public bool DiscardDuplicates;
+		/// <summary>
+		/// If true, these updates will not be discarded in the event of the incoming queue becoming too large.
+		/// </summary>
 		public bool Critical;
 	}
 
@@ -126,6 +146,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal static void FlushIncoming() {
 			lock (incoming) {
+				Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>> duplicateDict
+					= new Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>>();
 				LinkedListNode<Tuple<int, EntityID, object>> node = incoming.First;
 				while (node != null) {
 					LinkedListNode<Tuple<int, EntityID, object>> next = node.Next;
@@ -135,30 +157,45 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						listeners[node.Value.Item2].ApplyState(node.Value.Item3);
 						incoming.Remove(node);
 					}
-					// If there's no listener but a static handler, use that
+					// If there's no listener but a static handler, try to use that
 					else if (behav.StaticHandler?.Invoke(node.Value.Item2, node.Value.Item3) == true) {
 						incoming.Remove(node);
 					}
 					else if (behav.DiscardIfNoListener) {
 						incoming.Remove(node);
 					}
+					// Discard oldest duplicates if the type says to
+					else if (behav.DiscardDuplicates) {
+						if (duplicateDict.ContainsKey(node.Value.Item2)) {
+							incoming.Remove(duplicateDict[node.Value.Item2]);
+							duplicateDict[node.Value.Item2] = node;
+						}
+						else {
+							duplicateDict.Add(node.Value.Item2, node);
+						}
+					}
 					// TODO discard updates from rooms that nobody's in
 					node = next;
 				}
 
 				// Prevent the incoming buffer from growing indefinitely with updates noone's listening to
+				// Discard oldest non-critical updates until the incoming buffer is down to the max retention
 				node = incoming.First;
+				if (incoming.Count > MaximumBufferRetention) {
+					Logger.Log(LogLevel.Info, "Co-op Helper", "Incoming message buffer is too big; discarding non-critical updates");
+				}
 				while (incoming.Count > MaximumBufferRetention) {
+					if (node == null) {
+						Logger.Log(LogLevel.Error, "Co-op Helper", "Incoming message queue contains too many critical updates. Purging all incoming updates.");
+						incoming.Clear();
+						break;
+					}
 					LinkedListNode<Tuple<int, EntityID, object>> next = node.Next;
 					SyncBehavior behav = behaviors[node.Value.Item1];
 					if (!behav.Critical) {
 						incoming.Remove(node);
 					}
 					node = next;
-					if (node == null) {
-						// TODO log a warning that the buffer is growing
-						break;
-					}
 				}
 			}
 		}

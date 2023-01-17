@@ -131,7 +131,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					if (dss.collectedStrawbs != null && dss.collectedStrawbs.Count > 0) {
 						foreach (EntityID id in dss.collectedStrawbs) {
 							// register strawb as collected
-							SaveData.Instance.AddStrawberry(id, false);  // TODO handle golden strawbs
+							SaveData.Instance.AddStrawberry(id, false);
 							Session session = level.Session;
 							session.DoNotLoad.Add(id);
 							session.Strawberries.Add(id);

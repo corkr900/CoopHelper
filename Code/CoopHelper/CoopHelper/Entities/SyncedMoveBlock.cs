@@ -14,9 +14,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedMoveBlock")]
 	public class SyncedMoveBlock : MoveBlock, ISynchronizable {
 		private EntityID id;
-		private float otherPlayerTotalMovement;
-		private float myLastMovement;
-		private bool currentlyActive;
+		private bool canSteer;
+		private Vector2 startPosition;
+		private Directions direction;
+
+		private float otherPlayerTotalMovement = 0;
+		private MovementState lastState = MovementState.Idling;
+		private bool triggeredRemotely = false;
+
+		private object syncDeltaLock = new object();
+		private float mySyncedMovement = 0;
+
+		private bool MovesVertically { get { return direction == Directions.Up || direction == Directions.Down; } }
 
 		private enum MovementState {
 			Idling = 0,
@@ -26,47 +35,33 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public SyncedMoveBlock(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			canSteer = data.Bool("canSteer", true);
+			startPosition = data.Position + offset;
+			direction = data.Enum("direction", Directions.Left);
 		}
 
 		public override void Update() {
 			base.Update();
 			DynamicData dd = new DynamicData(this);
 			MovementState state = dd.Get<MovementState>("state");
-
-			switch (state) {
-				case MovementState.Moving:
-					if (!currentlyActive) {
-						EntityStateTracker.PostUpdate(this);
-					}
-					if (dd.Get<bool>("canSteer")) {
-						Vector2 startPos = dd.Get<Vector2>("startPosition");
-						Vector2 curOffset = Position - startPos;
-						Directions dir = dd.Get<Directions>("direction");
-						float MyMovement = ((dir == Directions.Down || dir == Directions.Up) ? curOffset.X : curOffset.Y) - otherPlayerTotalMovement;
-						if (Math.Abs(MyMovement - myLastMovement) > 0.5f) {
-							EntityStateTracker.PostUpdate(this);
-							myLastMovement = MyMovement;
-						}
-					}
-					break;
-
-				case MovementState.Breaking:
-				case MovementState.Idling:
-					currentlyActive = false;
-					myLastMovement = 0;
-					otherPlayerTotalMovement = 0;
-					break;
-
-				default:
-					break;
+			if (state != MovementState.Moving) {
+				otherPlayerTotalMovement = 0;
+				triggeredRemotely = false;
+				lock (syncDeltaLock) {
+					mySyncedMovement = 0;
+				}
+			}
+			if (state != lastState) {
+				lastState = state;
+				EntityStateTracker.PostUpdate(this);
 			}
 		}
-
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			EntityStateTracker.AddListener(this);
 		}
+
 		public override void SceneEnd(Scene scene) {
 			base.SceneEnd(scene);
 			EntityStateTracker.RemoveListener(this);
@@ -89,47 +84,51 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static SyncedMoveBlockState ParseState(CelesteNetBinaryReader r) {
 			SyncedMoveBlockState s = new SyncedMoveBlockState();
 			s.moving = r.ReadBoolean();
-			s.playersMovement = r.ReadSingle();
+			s.movementDelta = r.ReadSingle();
 			return s;
 		}
+
 		public void ApplyState(object state) {
 			if (state is SyncedMoveBlockState mbs) {
 				DynamicData dd = new DynamicData(this);
-				MovementState movingState = dd.Get<MovementState>("state");
-				if (mbs.moving) {
-					if (movingState != MovementState.Moving) {
-						dd.Set("triggered", true);  // TODO this does not buffer at all. Could cause a desync
-						currentlyActive = true;  // Prevents the check in Update from posting an update to the sync tracker
-					}
-					float diff = mbs.playersMovement - otherPlayerTotalMovement;
-					otherPlayerTotalMovement = mbs.playersMovement;  // TODO this paradigm will only work with 2 players, not 3+
-					Directions dir = dd.Get<Directions>("direction");
-					if (dir == Directions.Up || dir == Directions.Down) {
-						MoveHCollideSolids(diff, false);
-					}
-					else {
-						MoveVCollideSolids(diff, false);
-					}
+				if (lastState == MovementState.Idling && mbs.moving) {
+					dd.Set("triggered", true);
+					lastState = MovementState.Moving;
+					triggeredRemotely = true;
 				}
-				else if (movingState == MovementState.Moving) {
-					// TODO break move blocks when the remote says to
+				if (canSteer && lastState == MovementState.Moving && mbs.moving) {
+					otherPlayerTotalMovement += mbs.movementDelta;
+					if (MovesVertically) Position.X += mbs.movementDelta;
+					else Position.Y += mbs.movementDelta;
 				}
 			}
 		}
 
 		public EntityID GetID() => id;
 
-		public bool CheckRecurringUpdate() => false;
+		public bool CheckRecurringUpdate() {
+			return canSteer && lastState == MovementState.Moving;
+		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			MovementState state = new DynamicData(this).Get<MovementState>("state");
-			w.Write(state == MovementState.Moving);
-			w.Write(myLastMovement);
+			w.Write(lastState == MovementState.Moving);
+			if (canSteer) {
+				lock (syncDeltaLock) {
+					Vector2 totalMovement = Position - startPosition;
+					float myMovement = (MovesVertically ? totalMovement.X : totalMovement.Y) - otherPlayerTotalMovement;
+					float deltaMovement = myMovement - mySyncedMovement;
+					w.Write(deltaMovement);
+					mySyncedMovement = myMovement;
+				}
+			}
+			else {
+				w.Write(0f);
+			}
 		}
 	}
 
 	public class SyncedMoveBlockState {
 		public bool moving;
-		public float playersMovement;
+		public float movementDelta;
 	}
 }

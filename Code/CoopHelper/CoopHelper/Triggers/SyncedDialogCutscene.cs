@@ -127,7 +127,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 		}
 		public override void Render() {
 			base.Render();
-			string text = "Waiting for all players...";  // TODO tokenize
+			string text = Dialog.Clean("corkr900_CoopHelper_WaitingForPlayers");
 			Vector2 position = new Vector2(960, 540);
 			Vector2 anchor = Vector2.One / 2f;
 			ActiveFont.DrawOutline(text, position, anchor, Vector2.One, Color.White, 3, Color.Black);
