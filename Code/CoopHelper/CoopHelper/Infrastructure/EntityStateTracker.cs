@@ -57,6 +57,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			Assembly assembly = Assembly.GetExecutingAssembly();
 			foreach(Type t in assembly.DefinedTypes) {
 				if (!t.IsClass) continue;
+				if (t.Equals(typeof(ExternalSyncedEntity))) continue;
 				bool isISync = t.GetInterfaces().Any(itf => itf == typeof(ISynchronizable));
 				if (isISync) {
 					MethodInfo getSyncBehavior = t.GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
@@ -87,6 +88,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			if (listeners.ContainsKey(id)) listeners.Remove(id);
 		}
 
+		public static void RemoveListener(EntityID id) {
+			if (listeners.ContainsKey(id)) listeners.Remove(id);
+		}
+
 		public static void RegisterType(SyncBehavior behav) {
 			if (behav.Header == 0) throw new InvalidOperationException("Co-op Helper: Types may not use 0 as their header");
 			if (behaviors.ContainsKey(behav.Header)){
@@ -97,8 +102,15 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		private static int GetHeader(ISynchronizable isy) {
+			if (isy is ExternalSyncedEntity ese) return ese.Header;
 			MethodInfo info = isy.GetType().GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
 			return ((SyncBehavior)info.Invoke(null, null)).Header;
+		}
+
+		public static void PostUpdate(EntityID id) {
+			if (listeners.ContainsKey(id)) {
+				PostUpdate(listeners[id]);
+			}
 		}
 
 		public static void PostUpdate(ISynchronizable entity) {

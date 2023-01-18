@@ -39,7 +39,9 @@ namespace Celeste.Mod.CoopHelper.Data {
 			bool isMySession = !PlayerState.Mine.CurrentMap.IsOverworld
 				&& CoopHelperModule.Session.IsInCoopSession
 				&& CoopHelperModule.Session.SessionID == SessionID;
-			EntityStateTracker.ReceiveUpdates(reader, isMySession);
+			if (isMySession) {
+				EntityStateTracker.ReceiveUpdates(reader, isMySession);
+			}
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {

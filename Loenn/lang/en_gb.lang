@@ -24,7 +24,7 @@ entities.corkr900CoopHelper/SyncedDashSwitch.placements.name.default=Synced Dash
 entities.corkr900CoopHelper/SyncedFallingBlock.placements.name.default=Synced Falling Block
 entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.tiletype=Select the tileset to use for this block
 entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.climbFall=If true, grabbing the side will cause the block to fall
-entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.behind=Changes the visual appearance of the gate.
+entities.corkr900CoopHelper/SyncedFallingBlock.attributes.description.behind=Whether to render behind other entities
 
 # Synced Core Mode Toggle
 entities.corkr900CoopHelper/SyncedCoreModeToggle.placements.name.both=Synced Core Mode Toggle (Both)
@@ -132,7 +132,7 @@ entities.corkr900CoopHelper/SyncedPuffer.attributes.description.sprite=Custom sp
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
 # Synced Dialog Cutscene
-triggers.corkr900CoopHelper/SyncedDialogCutscene.placements.name.dialog=Synced Change Respawn
+triggers.corkr900CoopHelper/SyncedDialogCutscene.placements.name.dialog=Synced Dialog Cutscene
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.onlyOnce=Whether the dialogue should only trigger once.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.dialogId=The dialog ID to use for the dialogue.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.endLevel=Whether finishing the dialog triggers the level to end.

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
+using MonoMod.ModInterop;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using System;
@@ -89,6 +90,8 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Player.OnDie += OnDie;
 			Everest.Events.Level.OnExit += onLevelExit;
 			Everest.Events.Level.OnEnter += OnLevelEnter;
+
+			typeof(ModInterop).ModInterop();
 		}
 
 		public override void Unload() {

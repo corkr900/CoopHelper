@@ -106,10 +106,12 @@
     <Compile Include="Entities\SyncedTouchSwitch.cs" />
     <Compile Include="Entities\SyncedZipMover.cs" />
     <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
+    <Compile Include="Infrastructure\ExternalSyncedEntity.cs" />
     <Compile Include="Infrastructure\SessionSynchronizer.cs" />
     <Compile Include="Infrastructure\EntityStateTracker.cs" />
     <Compile Include="Infrastructure\PlayerState.cs" />
     <Compile Include="IO\Commands.cs" />
+    <Compile Include="IO\ModInterop.cs" />
     <Compile Include="Module\CoopHelperModule.cs" />
     <Compile Include="Data\DataSessionJoinFinalize.cs" />
     <Compile Include="Data\DataSessionJoinRequest.cs" />
