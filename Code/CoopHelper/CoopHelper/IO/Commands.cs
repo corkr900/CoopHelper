@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.IO {
 	public class Commands {
 
-		[Command("coop_ses", "make a co-op session for debugging")]
+		[Command("coopses", "make a co-op session")]
 		public static void MakeSession(string arg) {
 			int role = 0;
 			int.TryParse(arg, out role);
@@ -27,8 +27,25 @@ namespace Celeste.Mod.CoopHelper.IO {
 					session.SetFlag("CoopHelper_SessionRole_" + i, i == role);
 				}
 				CoopHelperModule.NotifySessionChanged();
+				Engine.Commands.Log("Session created.");
 			}
+			else {
+				Engine.Commands.Log("Could not create coop session (no session available)");
+			}
+		}
 
+		[Command("coopdebug", "set the co-op helper debug flag")]
+		public static void SetDebugFlag(string arg) {
+			bool val;
+			bool.TryParse(arg, out val);
+			Session session = (Engine.Scene as Level)?.Session;
+			if (session != null) {
+				session.SetFlag("CoopHelper_Debug", val);
+				Engine.Commands.Log("Falg se to " + val.ToString());
+			}
+			else {
+				Engine.Commands.Log("Could not set flag (no session available)");
+			}
 		}
 	}
 }

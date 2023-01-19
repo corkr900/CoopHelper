@@ -19,6 +19,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 		private bool onlyOnce;
 		private bool endLevel;
 		private int deathCount;
+		private bool miniTextbox;
 
 		private int otherPlayersInTrigger = 0;
 		Player player = null;
@@ -38,6 +39,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 			onlyOnce = data.Bool("onlyOnce", defaultValue: true);
 			endLevel = data.Bool("endLevel");
 			deathCount = data.Int("deathCount", -1);
+			miniTextbox = data.Bool("miniTextBox", false);
 			triggered = false;
 			id = entId;
 		}
@@ -48,7 +50,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 				this.player = player;
 				player.StateMachine.State = Player.StDummy;
 				EntityStateTracker.PostUpdate(this);
-				if (otherPlayersInTrigger + 1 >= PlayersNeeded) {
+				if (otherPlayersInTrigger + 1 >= PlayersNeeded || session.GetFlag("CoopHelper_Debug")) {
 					BeginCutscene();
 				}
 				else {
@@ -64,12 +66,15 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 			triggered = true;
 			message?.RemoveSelf();
 			message = null;
-			Scene.Add(new DialogCutscene(dialogEntry, player, endLevel));
-			if (onlyOnce) {
-				Session session2 = (Scene as Level).Session;
-				session2.SetFlag("DoNotLoad" + id.ToString());
+			if (miniTextbox) {
+				player.StateMachine.State = Player.StNormal;
+				Scene.Add(new MiniTextbox(Calc.Random.Choose(dialogEntry)));
+			}
+			else {
+				Scene.Add(new DialogCutscene(dialogEntry, player, endLevel));
 			}
 			if (onlyOnce) {
+				SceneAs<Level>().Session.SetFlag("DoNotLoad" + id.ToString());
 				RemoveSelf();
 			}
 		}

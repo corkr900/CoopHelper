@@ -12,7 +12,8 @@ syncedDialogTrigger.placements = {
         endLevel = false,
         onlyOnce = true,
         dialogId = "",
-        deathCount = -1
+        deathCount = -1,
+        miniTextBox = false,
     }
 }
 

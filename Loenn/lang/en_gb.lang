@@ -137,3 +137,4 @@ triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.onlyOnce
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.dialogId=The dialog ID to use for the dialogue.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.endLevel=Whether finishing the dialog triggers the level to end.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.deathCount=Determines the exact amount of deaths required to activate dialog trigger. Will always trigger if set to -1.
+triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.miniTextBox=Whether to use a mini textbox & allow the players to keep moving instead of a normal cutscene
