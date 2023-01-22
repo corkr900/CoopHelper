@@ -41,7 +41,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			Session session = (Engine.Scene as Level)?.Session;
 			if (session != null) {
 				session.SetFlag("CoopHelper_Debug", val);
-				Engine.Commands.Log("Falg se to " + val.ToString());
+				Engine.Commands.Log("Flag set to " + val.ToString());
 			}
 			else {
 				Engine.Commands.Log("Could not set flag (no session available)");

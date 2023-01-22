@@ -128,6 +128,12 @@ entities.corkr900CoopHelper/SyncedPuffer.attributes.description.right=Whether th
 entities.corkr900CoopHelper/SyncedPuffer.attributes.description.static=Static puffers do not wiggle around when idle
 entities.corkr900CoopHelper/SyncedPuffer.attributes.description.sprite=Custom sprite to use for the puffer
 
+# Synced Summit Background Manager
+entities.corkr900CoopHelper/SyncedSummitBackgroundManager.placements.name.manager=Synced Summit Background Manager
+entities.corkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description.dark=Whether the background is dark or not.
+entities.corkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description.cutscene=Dialog ID of cutscene to display. Leave empty for no cutscene.
+entities.corkr900CoopHelper/SyncedSummitBackgroundManagercorkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description.ambience=Ambience background music.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 

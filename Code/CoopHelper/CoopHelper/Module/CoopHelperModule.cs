@@ -81,6 +81,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
+			On.Celeste.AscendManager.Routine += OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added += OnClutterAbsorbEffectAdded;
@@ -115,6 +116,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
+			On.Celeste.AscendManager.Routine -= OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added -= OnClutterAbsorbEffectAdded;
@@ -340,6 +342,15 @@ namespace Celeste.Mod.CoopHelper {
 					new DynamicData(self).Invoke("BounceAnimate");
 				}
 			}));
+		}
+
+		private IEnumerator OnAscendManagerRoutine(On.Celeste.AscendManager.orig_Routine orig, AscendManager self) {
+			if (self is SyncedSummitBackgroundManager synced) {
+				yield return new SwapImmediately(synced.RoutineOverride());
+			}
+			else {
+				yield return new SwapImmediately(orig(self));
+			}
 		}
 
 		#endregion
