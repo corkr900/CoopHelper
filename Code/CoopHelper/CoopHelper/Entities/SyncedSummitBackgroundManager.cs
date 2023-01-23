@@ -36,7 +36,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 
 		public EntityID id;
-		private int index;
 		private string cutscene;
 		private bool dark;
 		private string ambience;
@@ -52,7 +51,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public SyncedSummitBackgroundManager(EntityData data, Vector2 offset) : base (data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
-			index = data.Int("index");
 			cutscene = data.Attr("cutscene");
 			dark = data.Bool("dark");
 			ambience = data.Attr("ambience");
@@ -60,7 +58,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		internal IEnumerator RoutineOverride() {
 			Level level = SceneAs<Level>();
-			Player player;
 
 			// idle until the player reaches the place
 			do {
