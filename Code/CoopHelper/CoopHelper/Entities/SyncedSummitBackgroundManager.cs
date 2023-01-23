@@ -107,6 +107,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				while (cs.Running) {
 					yield return null;
 				}
+				player.Dashes = 0;  // The cutscene is hardcoded to give 2 dashes :(
 			}
 			else {
 				yield return 0.5f;
