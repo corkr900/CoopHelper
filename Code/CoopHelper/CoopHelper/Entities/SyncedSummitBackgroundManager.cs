@@ -89,6 +89,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 			}
 			yield return new DynamicData(this).Invoke<IEnumerator>("FadeTo", 1f, Dark ? 2f : 0.8f);
+			EntityStateTracker.PostUpdate(this);
 
 			// Wait for all players
 			if (!level.Session.GetFlag("CoopHelper_Debug") && otherPlayersInTrigger + 1 < PlayersNeeded) {
