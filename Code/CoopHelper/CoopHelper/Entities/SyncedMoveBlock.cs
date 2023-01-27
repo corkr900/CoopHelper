@@ -100,6 +100,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 				if (canSteer && lastState == MovementState.Moving && mbs.Moving) {
 					if (LastMoveCheckResult && PositionIsFartherMovement(mbs.Position)) {
+						otherPlayerTotalMovement += MovesVertically ? (mbs.Position - Position).X : (mbs.Position - Position).Y;
 						Position = mbs.Position;
 					}
 					otherPlayerTotalMovement += mbs.MovementDelta;
