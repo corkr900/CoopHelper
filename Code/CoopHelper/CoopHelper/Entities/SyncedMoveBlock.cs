@@ -84,8 +84,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static SyncedMoveBlockState ParseState(CelesteNetBinaryReader r) {
 			SyncedMoveBlockState s = new SyncedMoveBlockState();
 			s.Moving = r.ReadBoolean();
-			s.MovementDelta = r.ReadSingle();
 			s.Position = r.ReadVector2();
+			s.MovementDelta = r.ReadSingle();
 			return s;
 		}
 
