@@ -200,7 +200,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		private void CloseSelf() {
+		public void CloseSelf() {
 			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
 				newAvailability = false,
 			}, false);

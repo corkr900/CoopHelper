@@ -78,6 +78,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
 			On.Celeste.Platform.StartShaking += OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
+			On.Celeste.MoveBlock.MoveCheck += OnMoveBlockMoveCheck;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
@@ -113,6 +114,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
 			On.Celeste.Platform.StartShaking -= OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
+			On.Celeste.MoveBlock.MoveCheck -= OnMoveBlockMoveCheck;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
@@ -351,6 +353,14 @@ namespace Celeste.Mod.CoopHelper {
 			else {
 				yield return new SwapImmediately(orig(self));
 			}
+		}
+
+		private bool OnMoveBlockMoveCheck(On.Celeste.MoveBlock.orig_MoveCheck orig, MoveBlock self, Vector2 speed) {
+			bool result = orig(self, speed);
+			if (self is SyncedMoveBlock smb) {
+				smb.LastMoveCheckResult = result;
+			}
+			return result;
 		}
 
 		#endregion

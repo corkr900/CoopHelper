@@ -14,22 +14,59 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SessionPickerEntity : Entity {
 		private Sprite sprite;
 		private int PlayersNeeded = 2;
-
+		private bool removeIfSessionExists;
 		private SessionPickerHUD hud;
 		private Player player;
-
+		private TalkComponent talkComponent;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
+			removeIfSessionExists = data.Bool("removeIfSessionExists", true);
 			Add(sprite = GFX.SpriteBank.Create("corkr900_CoopHelper_SessionPicker"));
 			sprite.Play("idle");
 			sprite.Position = new Vector2(-8, -16);
-			Add(new TalkComponent(
+			Add(talkComponent = new TalkComponent(
 				new Rectangle(-16, -16, 32, 32),
 				new Vector2(0, -16),
 				Open
 			) { PlayerMustBeFacing = false });
+		}
 
+		public override void Added(Scene scene) {
+			base.Added(scene);
+			if (!CheckRemove()) {
+				CoopHelperModule.OnSessionInfoChanged += SessionInfoChanged;
+			}
+		}
+
+		public override void Removed(Scene scene) {
+			base.Removed(scene);
+			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
+		}
+
+		public override void SceneEnd(Scene scene) {
+			base.SceneEnd(scene);
+			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
+		}
+
+		private void SessionInfoChanged() {
+			CheckRemove();
+		}
+
+		private bool CheckRemove() {
+			if (removeIfSessionExists && CoopHelperModule.Session?.IsInCoopSession == true) {
+				if (talkComponent != null) {
+					talkComponent.Enabled = false;
+				}
+				if (hud != null) {
+					hud.CloseSelf();
+					hud.RemoveSelf();
+					hud = null;
+				}
+				RemoveSelf();
+				return true;
+			}
+			return false;
 		}
 
 		public void Open(Player player) {
@@ -62,6 +99,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
 				}
 			}
+			CheckRemove();
 		}
 	}
 }

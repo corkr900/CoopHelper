@@ -21,6 +21,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private float otherPlayerTotalMovement = 0;
 		private MovementState lastState = MovementState.Idling;
 		private bool triggeredRemotely = false;
+		internal bool LastMoveCheckResult = false;
 
 		private object syncDeltaLock = new object();
 		private float mySyncedMovement = 0;
@@ -83,24 +84,43 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public static SyncedMoveBlockState ParseState(CelesteNetBinaryReader r) {
 			SyncedMoveBlockState s = new SyncedMoveBlockState();
-			s.moving = r.ReadBoolean();
-			s.movementDelta = r.ReadSingle();
+			s.Moving = r.ReadBoolean();
+			s.MovementDelta = r.ReadSingle();
+			s.Position = r.ReadVector2();
 			return s;
 		}
 
 		public void ApplyState(object state) {
 			if (state is SyncedMoveBlockState mbs) {
 				DynamicData dd = new DynamicData(this);
-				if (lastState == MovementState.Idling && mbs.moving) {
+				if (lastState == MovementState.Idling && mbs.Moving) {
 					dd.Set("triggered", true);
 					lastState = MovementState.Moving;
 					triggeredRemotely = true;
 				}
-				if (canSteer && lastState == MovementState.Moving && mbs.moving) {
-					otherPlayerTotalMovement += mbs.movementDelta;
-					if (MovesVertically) MoveHExact((int)mbs.movementDelta);
-					else MoveVExact((int)mbs.movementDelta);
+				if (canSteer && lastState == MovementState.Moving && mbs.Moving) {
+					if (LastMoveCheckResult && PositionIsFartherMovement(mbs.Position)) {
+						Position = mbs.Position;
+					}
+					otherPlayerTotalMovement += mbs.MovementDelta;
+					if (MovesVertically) MoveHExact((int)mbs.MovementDelta);
+					else MoveVExact((int)mbs.MovementDelta);
 				}
+			}
+		}
+
+		private bool PositionIsFartherMovement(Vector2 pos) {
+			switch (direction) {
+				case Directions.Left:
+					return pos.X < Position.X;
+				case Directions.Right:
+					return pos.X > Position.X;
+				case Directions.Up:
+					return pos.Y < Position.Y;
+				case Directions.Down:
+					return pos.Y > Position.Y;
+				default:
+					return false;
 			}
 		}
 
@@ -111,8 +131,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(lastState == MovementState.Moving);
 			if (canSteer) {
+				w.Write(lastState == MovementState.Moving);
+				w.Write(Position);
 				lock (syncDeltaLock) {
 					Vector2 totalMovement = Position - startPosition;
 					float myMovement = (MovesVertically ? totalMovement.X : totalMovement.Y) - otherPlayerTotalMovement;
@@ -122,13 +143,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 			}
 			else {
+				w.Write(lastState == MovementState.Moving);
+				w.Write(Position);
 				w.Write(0f);
 			}
 		}
 	}
 
 	public class SyncedMoveBlockState {
-		public bool moving;
-		public float movementDelta;
+		public bool Moving;
+		public Vector2 Position;
+		public float MovementDelta;
 	}
 }

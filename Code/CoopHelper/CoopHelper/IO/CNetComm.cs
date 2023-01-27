@@ -162,7 +162,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 			EntityStateTracker.FlushIncoming();
 			// Some things don't need to happen very often, so only do them every X ticks
-			if (counter % 10 == 5) {
+			if (counter % 2 == 1) {
 				EntityStateTracker.CheckRecurringUpdates();
 			}
 			if (counter % 30 == 0) {
