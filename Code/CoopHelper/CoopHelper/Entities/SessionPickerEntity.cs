@@ -60,7 +60,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 				if (hud != null) {
 					hud.CloseSelf();
-					hud.RemoveSelf();
 					hud = null;
 				}
 				RemoveSelf();
