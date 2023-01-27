@@ -20,7 +20,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private float otherPlayerTotalMovement = 0;
 		private MovementState lastState = MovementState.Idling;
-		private bool triggeredRemotely = false;
 		internal bool LastMoveCheckResult = false;
 
 		private object syncDeltaLock = new object();
@@ -47,7 +46,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			MovementState state = dd.Get<MovementState>("state");
 			if (state != MovementState.Moving) {
 				otherPlayerTotalMovement = 0;
-				triggeredRemotely = false;
+				mySyncedMovement = 0f;
 				lock (syncDeltaLock) {
 					mySyncedMovement = 0;
 				}
@@ -96,7 +95,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (lastState == MovementState.Idling && mbs.Moving) {
 					dd.Set("triggered", true);
 					lastState = MovementState.Moving;
-					triggeredRemotely = true;
 				}
 				if (canSteer && lastState == MovementState.Moving && mbs.Moving) {
 					if (LastMoveCheckResult && PositionIsFartherMovement(mbs.Position)) {
@@ -136,11 +134,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				w.Write(lastState == MovementState.Moving);
 				w.Write(Position);
 				lock (syncDeltaLock) {
-					Vector2 totalMovement = Position - startPosition;
-					float myMovement = (MovesVertically ? totalMovement.X : totalMovement.Y) - otherPlayerTotalMovement;
-					float deltaMovement = myMovement - mySyncedMovement;
+					float deltaMovement = 0f;
+					if (lastState == MovementState.Moving) {
+						Vector2 totalMovement = Position - startPosition;
+						float myMovement = (MovesVertically ? totalMovement.X : totalMovement.Y) - otherPlayerTotalMovement;
+						deltaMovement = myMovement - mySyncedMovement;
+						mySyncedMovement = myMovement;
+					}
 					w.Write(deltaMovement);
-					mySyncedMovement = myMovement;
 				}
 			}
 			else {
