@@ -45,16 +45,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Add(button = GFX.SpriteBank.Create("corkr900_CoopHelper_GroupSwitch"));
 			button.Position = new Vector2(-16f, -8f);
 			Depth = (Depths.FGTerrain + Depths.FGDecals) / 2;
-			int count = CoopHelperModule.Session?.SessionMembers?.Count ?? 0;
-			for (int i = 0; i < count; i++) {
-				PlayerID playerID = CoopHelperModule.Session.SessionMembers[i];
-				if (!indicators.ContainsKey(playerID)) {
-					Sprite indicator = GFX.SpriteBank.Create("corkr900_CoopHelper_GroupSwitchIndicator");
-					indicator.Position = new Vector2(8f * i - 4f * count, 0f);
-					Add(indicator);
-					indicators.Add(playerID, indicator);
-				}
-			}
 		}
 
 		private void UpdateSprites() {
@@ -67,7 +57,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			else {
 				foreach (PlayerID p in CoopHelperModule.Session?.SessionMembers) {
 					bool isOn = complete || (p.Equals(PlayerID.MyID) ? player != null : otherPlayerStanding.Contains(p));
-					indicators[p]?.Play(isOn ? "on" : "off");
+					if (indicators.ContainsKey(p)) {
+						indicators[p]?.Play(isOn ? "on" : "off");
+					}
 				}
 			}
 		}
@@ -77,7 +69,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (player == null) return;
 			if (CoopHelperModule.Session?.IsInCoopSession == true
 				&& CoopHelperModule.Session?.SessionMembers != null
-				&& otherPlayerStanding.Count >= CoopHelperModule.Session.SessionMembers.Count - 1) {
+				&& (otherPlayerStanding.Count >= CoopHelperModule.Session.SessionMembers.Count - 1
+					|| SceneAs<Level>()?.Session?.GetFlag("CoopHelper_Debug") == true)) {
 				MarkComplete();
 			}
 		}
@@ -97,7 +90,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
+
+			// Indicators
+			int count = CoopHelperModule.Session?.SessionMembers?.Count ?? 0;
+			for (int i = 0; i < count; i++) {
+				PlayerID playerID = CoopHelperModule.Session.SessionMembers[i];
+				if (!indicators.ContainsKey(playerID)) {
+					Sprite indicator = GFX.SpriteBank.Create("corkr900_CoopHelper_GroupSwitchIndicator");
+					indicator.Position = new Vector2(8f * i - 4f * count, 0f);
+					Add(indicator);
+					indicators.Add(playerID, indicator);
+				}
+			}
+
+			// Detection trigger
 			scene.Add(trigger);
+
+			// Misc
 			EntityStateTracker.AddListener(this);
 			if ((scene as Level)?.Session?.GetFlag(flagToSet) == true) {
 				complete = true;
