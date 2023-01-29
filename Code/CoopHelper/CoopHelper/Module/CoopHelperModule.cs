@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.CoopHelper.Entities;
+﻿using Celeste.Mod.CelesteNet.Client;
+using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
@@ -49,7 +50,7 @@ namespace Celeste.Mod.CoopHelper {
 		private CNetComm Comm;
 
 		private static IDetour hook_Strawberry_orig_OnCollect;
-
+		private static IDetour hook_CelesteNetClientSettings_Interactions_get;
 		private static IDetour hook_CrushBlock_AttackSequence;
 
 		public CoopHelperModule() {
@@ -67,6 +68,9 @@ namespace Celeste.Mod.CoopHelper {
 			hook_Strawberry_orig_OnCollect = new Hook(
 				typeof(Strawberry).GetMethod("orig_OnCollect", BindingFlags.Public | BindingFlags.Instance),
 				typeof(CoopHelperModule).GetMethod("OnStrawberryCollect"));
+			hook_CelesteNetClientSettings_Interactions_get = new Hook(
+				typeof(CelesteNetClientSettings).GetProperty("Interactions").GetMethod,
+				typeof(CoopHelperModule).GetMethod("OnCelesteNetClientSettingsInteractionsGet"));
 
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
@@ -103,6 +107,8 @@ namespace Celeste.Mod.CoopHelper {
 			// Manual Hooks
 			hook_Strawberry_orig_OnCollect?.Dispose();
 			hook_Strawberry_orig_OnCollect = null;
+			hook_CelesteNetClientSettings_Interactions_get?.Dispose();
+			hook_CelesteNetClientSettings_Interactions_get = null;
 
 			// IL Hooks
 			hook_CrushBlock_AttackSequence?.Dispose();
@@ -190,6 +196,13 @@ namespace Celeste.Mod.CoopHelper {
 				Player player = self.SceneAs<Level>().Tracker.GetEntity<Player>();
 				player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID);
 			}
+		}
+
+		public static bool OnCelesteNetClientSettingsInteractionsGet(Func<CelesteNetClientSettings, bool> orig, CelesteNetClientSettings self) {
+			if (Session?.ForceCNetInteractions != null) {
+				return Session.ForceCNetInteractions ?? false;
+			}
+			return orig(self);
 		}
 
 		private void OnSpawn(Player pl) {

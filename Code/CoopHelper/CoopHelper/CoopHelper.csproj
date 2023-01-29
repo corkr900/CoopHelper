@@ -85,6 +85,7 @@
     <Compile Include="Data\DataBundledEntityUpdate.cs" />
     <Compile Include="Data\DataPlayerState.cs" />
     <Compile Include="Data\DataSessionJoinAvailable.cs" />
+    <Compile Include="Entities\ForceCelesteNetInteractionsController.cs" />
     <Compile Include="Entities\GroupGate.cs" />
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\MultiplayerSeeker.cs" />

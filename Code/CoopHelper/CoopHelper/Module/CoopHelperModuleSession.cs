@@ -11,5 +11,6 @@ namespace Celeste.Mod.CoopHelper.Module {
 		public CoopSessionID SessionID;
 		public int SessionRole = -1;
 		public List<PlayerID> SessionMembers = new List<PlayerID>();
+		public bool? ForceCNetInteractions { get; internal set; } = null;
 	}
 }
