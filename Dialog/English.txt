@@ -1,5 +1,6 @@
 corkr900= Cork's test stuff
-corkr900_01_BarrenCity= Barren City
+corkr900_00_CoopHelperTestMap= Co-op Helper Test Map
+poem_corkr900_00_CoopHelperTestMap_A= POOOOEEEEMMM I Guess
 
 corkr900_CoopHelper_Setting_TimeServer= Time Server
 #corkr900_CoopHelper_Setting_TimeServer_Subtext= 

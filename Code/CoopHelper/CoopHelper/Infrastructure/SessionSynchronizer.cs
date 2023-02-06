@@ -91,9 +91,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		internal void HeartCollected() {
+		internal void HeartCollected(string poemID) {
 			lock (basicFlagsLock) {
 				heartPending = true;
+				heartPoem = poemID;
 				EntityStateTracker.PostUpdate(this);
 			}
 		}
@@ -214,6 +215,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						e.Tag = Tags.FrozenUpdate;
 						e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem)));
 						level.Add(e);
+
+						foreach (Entity heart in level.Tracker.GetEntities<HeartGem>()) {
+							heart.RemoveSelf();
+						}
 					}
 				}
 			}
@@ -278,6 +283,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				w.Write(heartPending);
 				heartPending = false;
 				w.Write(heartPoem ?? "");
+				heartPoem = "";
 			}
 			w.Write(PlayerID.MyID);
 			w.Write(lastTriggeredDeathLocal);

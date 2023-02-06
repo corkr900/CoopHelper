@@ -323,7 +323,7 @@ namespace Celeste.Mod.CoopHelper {
 			AreaKey area = level.Session.Area;
 			bool isCompleteArea = new DynamicData(self).Invoke<bool>("IsCompleteArea", area.Mode != 0 || area.ID == 9);
 			if (!isCompleteArea) {
-				level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected();
+				level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected(AreaData.Get(level).Mode[(int)area.Mode].PoemID);
 			}
 		}
 
