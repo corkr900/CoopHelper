@@ -18,6 +18,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public bool dead;
 		public List<EntityID> collectedStrawbs;
 		public bool cassette;
+		public bool heart;
+		public string heartPoem;
 	}
 
 	public class SessionSynchronizer : Component, ISynchronizable {
@@ -25,9 +27,13 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static DateTime lastTriggeredDeathRemote = DateTime.MinValue;
 		private static bool CurrentDeathIsSecondary = false;
 
+		public static string IDString = "%SESSIONSYNC%";
+
 		private object basicFlagsLock = new object();
 		private bool deathPending = false;
 		private bool cassettePending = false;
+		private bool heartPending = false;
+		private string heartPoem;
 		public List<EntityID> newlyCollectedStrawbs = new List<EntityID>();
 
 		public Player playerEntity { get; private set; }
@@ -41,18 +47,23 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			EntityStateTracker.AddListener(this);
 		}
 
+		public override void EntityRemoved(Scene scene) {
+			base.EntityRemoved(scene);
+			EntityStateTracker.RemoveListener(this);
+		}
+
 		public override void Added(Entity entity) {
 			base.Added(entity);
 			EntityStateTracker.AddListener(this);
 		}
 
-		public override void SceneEnd(Scene scene) {
-			base.SceneEnd(scene);
+		public override void Removed(Entity entity) {
+			base.Removed(entity);
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		public override void EntityRemoved(Scene scene) {
-			base.EntityRemoved(scene);
+		public override void SceneEnd(Scene scene) {
+			base.SceneEnd(scene);
 			EntityStateTracker.RemoveListener(this);
 		}
 
@@ -80,6 +91,13 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
+		internal void HeartCollected() {
+			lock (basicFlagsLock) {
+				heartPending = true;
+				EntityStateTracker.PostUpdate(this);
+			}
+		}
+
 		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
 			Header = 1,
 			Parser = ParseState,
@@ -93,6 +111,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			SessionSyncState state = new SessionSyncState {
 				dead = r.ReadBoolean(),
 				cassette = r.ReadBoolean(),
+				heart = r.ReadBoolean(),
+				heartPoem = r.ReadString(),
 				player = r.ReadPlayerID(),
 				instant = r.ReadDateTime(),
 				room = r.ReadString(),
@@ -175,14 +195,77 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						}
 					}
 
-					// TODO heart sync
+					// heart sync
+					if (dss.heart && !level.Session.HeartGem) {
+						// This is basically just copied from HeartGem.RegisterAsCollected
+						level.Session.HeartGem = true;
+						int unlockedModes = SaveData.Instance.UnlockedModes;
+						SaveData.Instance.RegisterHeartGem(level.Session.Area);
+						if (!string.IsNullOrEmpty(dss.heartPoem)) {
+							SaveData.Instance.RegisterPoemEntry(dss.heartPoem);
+						}
+						if (unlockedModes < 3 && SaveData.Instance.UnlockedModes >= 3) {
+							level.Session.UnlockedCSide = true;
+						}
+						if (SaveData.Instance.TotalHeartGemsInVanilla >= 24) {
+							Achievements.Register(Achievement.CSIDES);
+						}
+						Entity e = new Entity();
+						e.Tag = Tags.FrozenUpdate;
+						e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem)));
+						level.Add(e);
+					}
 				}
 			}
 		}
 
-		public EntityID GetID() {
-			return new EntityID("%SESSIONSYNC%", 99999);
+		private IEnumerator RemoteHeartCollectionRoutine(Level level, Entity coroutineEnity, Player player, AreaKey area, string poemID) {
+			while (level.Transitioning) {
+				yield return null;
+			}
+
+			// Setup
+			player.Depth = Depths.FormationSequences;
+			level.Frozen = true;
+			level.CanRetry = false;
+			level.FormationBackdrop.Display = true;
+
+			// Animation
+			string poemText = null;
+			if (!string.IsNullOrEmpty(poemID)) {
+				poemText = Dialog.Clean("poem_" + poemID);
+			}
+			Poem poem = new Poem(poemText, (int)area.Mode, string.IsNullOrEmpty(poemText) ? 1f : 0.6f);
+			poem.Alpha = 0f;
+			Scene.Add(poem);
+			for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime) {
+				poem.Alpha = Ease.CubeOut(t3);
+				yield return null;
+			}
+			while (!Input.MenuConfirm.Pressed && !Input.MenuCancel.Pressed) {
+				yield return null;
+			}
+			//sfx.Source.Param("end", 1f);
+			level.FormationBackdrop.Display = false;
+			for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime * 2f) {
+				poem.Alpha = Ease.CubeIn(1f - t3);
+				yield return null;
+			}
+
+			// Cleanup
+			player.Depth = Depths.Player;
+			level.Frozen = false;
+			level.CanRetry = true;
+			level.FormationBackdrop.Display = false;
+			if (poem != null) {
+				poem.RemoveSelf();
+			}
+			coroutineEnity.RemoveSelf();
 		}
+
+		public EntityID GetID() => GetIDStatic();
+
+		public static EntityID GetIDStatic() => new EntityID(IDString, 99999);
 
 		public bool CheckRecurringUpdate() => false;
 
@@ -192,6 +275,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				deathPending = false;
 				w.Write(cassettePending);
 				cassettePending = false;
+				w.Write(heartPending);
+				heartPending = false;
+				w.Write(heartPoem ?? "");
 			}
 			w.Write(PlayerID.MyID);
 			w.Write(lastTriggeredDeathLocal);

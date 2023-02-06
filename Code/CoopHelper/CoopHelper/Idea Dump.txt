@@ -3,7 +3,7 @@
 
 - (!!!) crash from invalid header
 	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
-	- very very likely the seeker's fault
+	- very likely the seeker's fault
 - Steerable move blocks can desync easily when steering around corners
 - Persistent core mode should probably be moved to Session-level stuff
 - seekers
@@ -58,7 +58,6 @@ sync other session info
 - flags (!!!)
 - core mode
 - collectables
-	- heart
 	- Custom?
 
 co-op mode everywhere?

@@ -80,6 +80,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
+			On.Celeste.HeartGem.RegisterAsCollected += OnHeartCollected;
 			On.Celeste.Platform.StartShaking += OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
 			On.Celeste.MoveBlock.MoveCheck += OnMoveBlockMoveCheck;
@@ -118,6 +119,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
+			On.Celeste.HeartGem.RegisterAsCollected -= OnHeartCollected;
 			On.Celeste.Platform.StartShaking -= OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
 			On.Celeste.MoveBlock.MoveCheck -= OnMoveBlockMoveCheck;
@@ -313,6 +315,15 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, player);
 			if (!alreadyCollected) {
 				player.Get<SessionSynchronizer>()?.CassetteCollected();
+			}
+		}
+
+		private void OnHeartCollected(On.Celeste.HeartGem.orig_RegisterAsCollected orig, HeartGem self, Level level, string poem) {
+			orig(self, level, poem);
+			AreaKey area = level.Session.Area;
+			bool isCompleteArea = new DynamicData(self).Invoke<bool>("IsCompleteArea", area.Mode != 0 || area.ID == 9);
+			if (!isCompleteArea) {
+				level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected();
 			}
 		}
 

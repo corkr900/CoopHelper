@@ -48,11 +48,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			string unlockSfxName = dd.Get<string>("unlockSfxName");
 			bool stepMusicProgress = dd.Get<bool>("stepMusicProgress");
 			Sprite sprite = dd.Get<Sprite>("sprite");
+			Level level = SceneAs<Level>();
 
+			// Register as opened immediately so deaths don't result in
+			// the update getting seemingly discarded
+			RegisterOpened(level, key);
+			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
 
 			SoundEmitter emitter = SoundEmitter.Play(unlockSfxName, this);
 			emitter.Source.DisposeOnTransition = true;
-			Level level = SceneAs<Level>();
 			if (key != null) {
 				key.Visible = true;
 				usedKeyID = key.ID;
@@ -65,12 +69,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				level.Session.Audio.Music.Progress++;
 				level.Session.Audio.Apply(forceSixteenthNoteHack: false);
 			}
-			level.Session.DoNotLoad.Add(ID);
-			if (key == null) {
-				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
-			}
-			else key.RegisterUsed();
-			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
+
+			// Vanilla doors would register as opened at his point
 
 			while (key?.Turning ?? false) {
 				yield return null;
@@ -83,6 +83,24 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
 			yield return sprite.PlayRoutine("burst");
 			RemoveSelf();
+		}
+
+		private void RegisterOpened(Level level, Key key) {
+			if (!level.Session.DoNotLoad.Contains(ID)) {
+				level.Session.DoNotLoad.Add(ID);
+			}
+			// this is based on key.RegiserUsed except safe to call twice
+			// and will still do the necessary flagging without the key
+			if (key != null) {
+				key.IsUsed = true;
+				Follower follower = new DynamicData(key).Get<Follower>("follower");
+				if (follower?.Leader != null) {
+					follower.Leader.LoseFollower(follower);
+				}
+			}
+			if (SceneAs<Level>().Session.Keys.Contains(usedKeyID)) {
+				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
+			}
 		}
 
 		#region ISync implementation
