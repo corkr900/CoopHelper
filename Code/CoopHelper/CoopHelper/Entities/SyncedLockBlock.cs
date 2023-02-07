@@ -98,6 +98,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					follower.Leader.LoseFollower(follower);
 				}
 			}
+			if (key != null) usedKeyID = key.ID;
 			if (SceneAs<Level>().Session.Keys.Contains(usedKeyID)) {
 				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
 			}
