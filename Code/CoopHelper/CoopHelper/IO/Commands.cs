@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Entities;
+using Celeste.Mod.CoopHelper.Infrastructure;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -34,14 +35,27 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 		}
 
-		[Command("coopdebug", "set the co-op helper debug flag")]
-		public static void SetDebugFlag(string arg) {
-			bool val;
-			bool.TryParse(arg, out val);
+		[Command("coopdebugui", "toggle the co-op helper debug UI")]
+		public static void ShowDebugUI() {
+			Scene scene = Engine.Scene;
+			SessionDebugHUD hud = scene.Tracker.GetEntity<SessionDebugHUD>();
+			if (hud == null) {
+				scene.Add(new SessionDebugHUD());
+				Engine.Commands.Log("Added Debug UI.");
+			}
+			else {
+				hud.RemoveSelf();
+				Engine.Commands.Log("Removed Debug UI.");
+			}
+		}
+
+		[Command("coopdebugflag", "set the co-op helper debug flag")]
+		public static void SetDebugFlag(string argSetTo) {
+			bool.TryParse(argSetTo, out bool setFlagTo);
 			Session session = (Engine.Scene as Level)?.Session;
 			if (session != null) {
-				session.SetFlag("CoopHelper_Debug", val);
-				Engine.Commands.Log("Flag set to " + val.ToString());
+				session.SetFlag("CoopHelper_Debug", setFlagTo);
+				Engine.Commands.Log("Flag set to " + setFlagTo.ToString());
 			}
 			else {
 				Engine.Commands.Log("Could not set flag (no session available)");

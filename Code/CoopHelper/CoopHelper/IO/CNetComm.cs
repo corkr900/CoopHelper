@@ -83,7 +83,8 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		private ConcurrentQueue<Action> updateQueue = new ConcurrentQueue<Action>();
 
-		public static ulong msgCount { get; private set; } = 0;
+		public static ulong SentMsgs { get; private set; } = 0;
+		public static ulong ReceivedMsgs { get; private set; } = 0;
 
 		#endregion
 
@@ -125,8 +126,10 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public override void Update(GameTime gameTime) {
 			ConcurrentQueue<Action> queue = updateQueue;
 			updateQueue = new ConcurrentQueue<Action>();
-			foreach (Action act in queue) act();
-
+			foreach (Action act in queue) {
+				act();
+				++ReceivedMsgs;
+			}
 			base.Update(gameTime);
 		}
 
@@ -147,7 +150,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			try {
 				if (sendToSelf) CnetClient.SendAndHandle(data);
 				else CnetClient.Send(data);
-				++msgCount;
+				++SentMsgs;
 			}
 			catch(Exception e) {
 				// a well-timed connection blorp might theoretically get us here
@@ -161,10 +164,13 @@ namespace Celeste.Mod.CoopHelper.IO {
 				Send(new DataBundledEntityUpdate(), false);
 			}
 			EntityStateTracker.FlushIncoming();
-			// Some things don't need to happen very often, so only do them every X ticks
-			if (counter % 2 == 1) {
+			// Don't bother checking recurring updates during screen transitions;
+			// They're either just created or about to be destroyed
+			bool currentlyScreenTransitioning = (Engine.Scene as Level)?.Transitioning ?? false;
+			if (!currentlyScreenTransitioning) {
 				EntityStateTracker.CheckRecurringUpdates();
 			}
+			// Some things don't need to happen very often, so only do them every X ticks
 			if (counter % 30 == 0) {
 				PlayerState.PurgeStale();
 				PlayerState.Mine.CheckSendUpdate();

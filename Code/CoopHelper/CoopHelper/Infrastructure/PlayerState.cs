@@ -43,9 +43,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		/// </summary>
 		/// <param name="id">ID of the player</param>
 		/// <returns>Player's state if known, otherwise null</returns>
-		public PlayerState GetPlayerState(PlayerID id) {
+		public static PlayerState GetPlayerState(PlayerID id) {
 			return _playerStates.ContainsKey(id) ? _playerStates[id] : null;
 		}
+
+		internal static IEnumerator<PlayerState> AllPlayerStates() => _playerStates.Values.GetEnumerator();
 
 		internal static void OnPlayerStateReceived(Data.DataPlayerState data) {
 			PlayerID id = data.senderID;

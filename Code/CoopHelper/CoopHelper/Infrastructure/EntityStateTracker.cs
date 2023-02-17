@@ -44,6 +44,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public static class EntityStateTracker {
 		private static readonly long MaximumMessageSize = 3200;
 		private static readonly int MaximumBufferRetention = 100;
+		private static readonly int EndOfTransmissionHeader = 0;
 
 		private static Queue<ISynchronizable> outgoing = new Queue<ISynchronizable>();
 		private static LinkedList<Tuple<int, EntityID, object>> incoming = new LinkedList<Tuple<int, EntityID, object>>();
@@ -52,6 +53,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		public static bool HasUpdates { get { lock (outgoing) { return outgoing.Count > 0 && !IgnorePendingUpdatesInUpdateCheck; } } }
 		private static volatile bool IgnorePendingUpdatesInUpdateCheck = false;
+
+		public static int CurrentListeners { get { return listeners.Count; } }
+		public static int ProcessedUpdates { get; set; } = 0;
+		public static int DiscardedUpdates { get; set; } = 0;
+		public static int SentUpdates { get; set; } = 0;
 
 		static EntityStateTracker() {
 			Assembly assembly = Assembly.GetExecutingAssembly();
@@ -70,7 +76,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					}
 					SyncBehavior behav = (SyncBehavior)getSyncBehavior.Invoke(null, null);
 					if (behav.Parser == null) {
-						throw new InvalidOperationException("Co-op Helper: SyncBehavior musrt define a parser (" + t.Name + ")");
+						throw new InvalidOperationException("Co-op Helper: SyncBehavior must define a parser (" + t.Name + ")");
 					}
 					RegisterType(behav);
 				}
@@ -93,7 +99,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public static void RegisterType(SyncBehavior behav) {
-			if (behav.Header == 0) throw new InvalidOperationException("Co-op Helper: Types may not use 0 as their header");
+			if (behav.Header == EndOfTransmissionHeader) throw new InvalidOperationException(string.Format("Co-op Helper: Types may not use {0} as their header", EndOfTransmissionHeader));
 			if (behaviors.ContainsKey(behav.Header)){
 				if (behaviors[behav.Header].Equals(behav.Header)) return;
 				throw new InvalidOperationException(string.Format("Co-op Helper: Multiple typed registered under the same header ({0})", behav.Header));
@@ -128,13 +134,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal static void FlushOutgoing(CelesteNetBinaryWriter w) {
 			lock (outgoing) {
+				int before = outgoing.Count;
 				while (outgoing.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
 					ISynchronizable ob = outgoing.Dequeue();
 					w.Write(GetHeader(ob));
 					w.Write(ob.GetID());
 					ob.WriteState(w);
 				}
-				w.Write(0);
+				int after = outgoing.Count;
+				SentUpdates += before - after;
+				if (after > 0) {
+					Logger.Log(LogLevel.Info, "Co-op Helper", string.Format("Outgoing update buffer exceeds packet size limit; deferring {0} updates", after));
+				}
+				w.Write(EndOfTransmissionHeader);
 				IgnorePendingUpdatesInUpdateCheck = false;
 			}
 		}
@@ -157,6 +169,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void FlushIncoming() {
+			if ((Engine.Scene as Level)?.Transitioning ?? false) return;  // don't process incoming updates during screen transition
 			lock (incoming) {
 				Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>> duplicateDict
 					= new Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>>();
@@ -168,25 +181,30 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					if (listeners.ContainsKey(node.Value.Item2)) {
 						listeners[node.Value.Item2].ApplyState(node.Value.Item3);
 						incoming.Remove(node);
+						++ProcessedUpdates;
 					}
 					// If there's no listener but a static handler, try to use that
 					else if (behav.StaticHandler?.Invoke(node.Value.Item2, node.Value.Item3) == true) {
 						incoming.Remove(node);
+						++ProcessedUpdates;
 					}
+					// Discard unlistened updates if the behavior says to
 					else if (behav.DiscardIfNoListener) {
 						incoming.Remove(node);
+						++DiscardedUpdates;
 					}
 					// Discard oldest duplicates if the type says to
 					else if (behav.DiscardDuplicates) {
 						if (duplicateDict.ContainsKey(node.Value.Item2)) {
 							incoming.Remove(duplicateDict[node.Value.Item2]);
 							duplicateDict[node.Value.Item2] = node;
+							++DiscardedUpdates;
 						}
 						else {
 							duplicateDict.Add(node.Value.Item2, node);
 						}
 					}
-					// TODO discard updates from rooms that nobody's in
+					// TODO discard updates from rooms that nobody's in (could be performance bad)
 					node = next;
 				}
 
@@ -199,6 +217,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				while (incoming.Count > MaximumBufferRetention) {
 					if (node == null) {
 						Logger.Log(LogLevel.Error, "Co-op Helper", "Incoming message queue contains too many critical updates. Purging all incoming updates.");
+						Engine.Commands.Log("Co-op Helper: Incoming message queue contains too many critical updates. Purging all incoming updates.");
+						DiscardedUpdates += incoming.Count;
 						incoming.Clear();
 						break;
 					}
@@ -206,6 +226,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					SyncBehavior behav = behaviors[node.Value.Item1];
 					if (!behav.Critical) {
 						incoming.Remove(node);
+						++DiscardedUpdates;
 					}
 					node = next;
 				}
