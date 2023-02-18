@@ -102,6 +102,7 @@
     <Compile Include="Entities\SyncedLockBlock.cs" />
     <Compile Include="Entities\SyncedMoveBlock.cs" />
     <Compile Include="Entities\SyncedPuffer.cs" />
+    <Compile Include="Entities\SyncedRefill.cs" />
     <Compile Include="Entities\SyncedSummitBackgroundManager.cs" />
     <Compile Include="Entities\SyncedSwapBlock.cs" />
     <Compile Include="Entities\SyncedTempleCrackedBlock.cs" />

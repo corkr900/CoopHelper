@@ -13,7 +13,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[Tracked]
 	public class SessionDebugHUD : Entity {
 		public SessionDebugHUD() {
-			Tag = Tags.HUD | Tags.Global;
+			Tag = Tags.HUD | Tags.Global | Tags.Persistent;
 		}
 
 		public override void Render() {

@@ -240,6 +240,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void CheckRecurringUpdates() {
+			// TODO only iterate on listeners that might actually want a periodic update
 			foreach (ISynchronizable listener in listeners.Values) {
 				if (listener.CheckRecurringUpdate()) PostUpdate(listener);
 			}

@@ -13,7 +13,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedTouchSwitch")]
 	[TrackedAs(typeof(TouchSwitch))]
 	public class SyncedTouchSwitch : TouchSwitch, ISynchronizable {
-		EntityID id;
+		private EntityID id;
 
 		public SyncedTouchSwitch(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
