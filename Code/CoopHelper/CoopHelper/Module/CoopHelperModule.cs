@@ -80,6 +80,8 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
+			On.Celeste.Booster.PlayerReleased += OnBoosterPlayerReleased;
+			On.Celeste.Booster.PlayerBoosted += OnBoosterPlayerBoosted;
 			On.Celeste.HeartGem.RegisterAsCollected += OnHeartCollected;
 			On.Celeste.Platform.StartShaking += OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer += OnCasetteOnPlayer;
@@ -119,6 +121,8 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
+			On.Celeste.Booster.PlayerReleased -= OnBoosterPlayerReleased;
+			On.Celeste.Booster.PlayerBoosted -= OnBoosterPlayerBoosted;
 			On.Celeste.HeartGem.RegisterAsCollected -= OnHeartCollected;
 			On.Celeste.Platform.StartShaking -= OnPlatformStartShaking;
 			On.Celeste.Cassette.OnPlayer -= OnCasetteOnPlayer;
@@ -385,6 +389,20 @@ namespace Celeste.Mod.CoopHelper {
 				smb.LastMoveCheckResult = result;
 			}
 			return result;
+		}
+
+		private void OnBoosterPlayerReleased(On.Celeste.Booster.orig_PlayerReleased orig, Booster self) {
+			orig(self);
+			if (self is SyncedBooster sb) {
+				sb.OnPlayerReleased();
+			}
+		}
+
+		private void OnBoosterPlayerBoosted(On.Celeste.Booster.orig_PlayerBoosted orig, Booster self, Player player, Vector2 direction) {
+			orig(self, player, direction);
+			if (self is SyncedBooster sb) {
+				sb.OnPlayerBoosted();
+			}
 		}
 
 		#endregion

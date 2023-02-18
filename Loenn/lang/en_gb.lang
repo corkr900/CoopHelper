@@ -5,6 +5,9 @@ mods.corkr900CoopHelper.name=Co-op Helper
 # Session Picker
 entities.corkr900CoopHelper/SessionPicker.placements.name.default=Session Picker
 
+# Force Interactions Controller
+entities.corkr900CoopHelper/ForceInteractionsController.placements.name.default=Force CelesteNet Interactions Controller
+
 # Session Gate
 entities.corkr900CoopHelper/SessionGate.placements.name.default=Session Gate
 entities.corkr900CoopHelper/SessionGate.attributes.description.sprite=Changes the visual appearance of the gate.
@@ -22,7 +25,7 @@ entities.corkr900CoopHelper/SyncedDashSwitch.placements.name.default=Synced Dash
 
 # Synced Refill
 entities.corkr900CoopHelper/SyncedRefill.placements.name.one_dash=Synced Refill
-entities.corkr900CoopHelper/SyncedRefill.placements.name.two_dash=Synced Refill (Two Dashes)
+entities.corkr900CoopHelper/SyncedRefill.placements.name.two_dashes=Synced Refill (Two Dashes)
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.oneUse=If set, refill will not respawn after use.
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.twoDash=If set, refill will grant the player 2 dashes.
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.respawnTime=The time it takes for the refill to reappear after use
@@ -79,6 +82,12 @@ entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.shakeTime
 entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.respawnDelay=How long the platform waits after breaking to reappear
 entities.corkr900CoopHelper/SyncedCrumbleBlocks.attributes.description.breakOnJump=If set, the platform will break immediately if triggered on top and then the player jumps off. Using this mirrors vanilla behavior but may cause minor desync issues.
 
+# Synced Booster
+entities.corkr900CoopHelper/SyncedBooster.placements.name.green=Synced Booster (Green)
+entities.corkr900CoopHelper/SyncedBooster.placements.name.red=Synced Booster (Red)
+entities.corkr900CoopHelper/SyncedBooster.attributes.description.red=Determines whether the booster is green and short distance, or red and infinite distance.
+entities.corkr900CoopHelper/SyncedBooster.attributes.description.ch9_hub_booster=If set to true, the player is unable to dash out of the booster.
+
 # Synced Move Block
 entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.up_nosteer=Synced Move Block (Up)
 entities.corkr900CoopHelper/SyncedMoveBlock.placements.name.down_nosteer=Synced Move Block (Down)
@@ -111,8 +120,8 @@ entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.mus
 entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.music=Change the currently playing music to this when box is broken.\nLeave empty to not change song.
 entities.corkr900CoopHelper/SyncedLightningBreakerBox.attributes.description.flag=Whether the breaker box should disable all lightning entities without the perLevel attribute set when loading a new room.
 
-# Multiplayer Seeker
-entities.corkr900CoopHelper/MultiplayerSeeker.placements.name.seeker=Multiplayer Seeker
+# Synced Seeker
+entities.corkr900CoopHelper/SyncedSeeker.placements.name.seeker=Synced Seeker
 
 # Synced Kevin
 entities.corkr900CoopHelper/SyncedKevin.placements.name.both=Synced Kevin (Both)

@@ -88,7 +88,7 @@
     <Compile Include="Entities\ForceCelesteNetInteractionsController.cs" />
     <Compile Include="Entities\GroupGate.cs" />
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
-    <Compile Include="Entities\MultiplayerSeeker.cs" />
+    <Compile Include="Entities\SyncedSeeker.cs" />
     <Compile Include="Entities\SessionGate.cs" />
     <Compile Include="Entities\SyncedBooster.cs" />
     <Compile Include="Entities\SyncedClutterSwitch.cs" />
@@ -153,14 +153,17 @@
     <None Include="..\..\..\Loenn\entities\GroupSwitch.lua">
       <Link>Entity Plugins\Loenn\entities\GroupSwitch.lua</Link>
     </None>
-    <None Include="..\..\..\Loenn\entities\MultiplayerSeeker.lua">
-      <Link>Entity Plugins\Loenn\entities\MultiplayerSeeker.lua</Link>
+    <None Include="..\..\..\Loenn\entities\InteractionsController.lua">
+      <Link>Entity Plugins\Loenn\entities\InteractionsController.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionGate.lua">
       <Link>Entity Plugins\Loenn\entities\SessionGate.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SessionPicker.lua">
       <Link>Entity Plugins\Loenn\entities\SessionPicker.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedBooster.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedBooster.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedClutterSwitch.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedClutterSwitch.lua</Link>
@@ -197,6 +200,12 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedPuffer.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedPuffer.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedRefill.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedRefill.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedSeeker.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedSeeker.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedSummitBackgroundManager.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedSummitBackgroundManager.lua</Link>

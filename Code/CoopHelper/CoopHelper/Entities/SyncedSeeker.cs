@@ -11,9 +11,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	[CustomEntity("corkr900CoopHelper/MultiplayerSeeker")]
+	[CustomEntity("corkr900CoopHelper/SyncedSeeker")]
 	[Tracked]
-	public class MultiplayerSeeker : Actor, ISynchronizable {
+	public class SyncedSeeker : Actor, ISynchronizable {
 		private struct PatrolPoint {
 			public Vector2 Point;
 
@@ -174,7 +174,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private Vector2 FollowTarget => lastSpottedAt - Vector2.UnitY * 2f;
 
-		public MultiplayerSeeker(Vector2 position, Vector2[] patrolPoints)
+		public SyncedSeeker(Vector2 position, Vector2[] patrolPoints)
 			: base(position) {
 			Depth = -200;
 			this.patrolPoints = patrolPoints;
@@ -246,7 +246,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Add(reviveSfx = new SoundSource());
 		}
 
-		public MultiplayerSeeker(EntityData data, Vector2 offset)
+		public SyncedSeeker(EntityData data, Vector2 offset)
 			: this(data.Position + offset, data.NodesOffset(offset)) {
 			id = new EntityID(data.Level.Name, data.ID);
 		}
@@ -1061,7 +1061,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	}
 
 	public static class MultiplayerSeekerExtensions {
-		public static void Check(this SeekerCollider self, MultiplayerSeeker seeker) {
+		public static void Check(this SeekerCollider self, SyncedSeeker seeker) {
 			if (self.OnCollide != null) {
 				Collider collider = self.Entity.Collider;
 				if (self.Collider != null) {
@@ -1074,7 +1074,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		public static void HitSeeker(this Holdable self, MultiplayerSeeker seeker) {
+		public static void HitSeeker(this Holdable self, SyncedSeeker seeker) {
 			if (self.OnHitSeeker != null) {
 				self.OnHitSeeker(new Seeker(seeker.Position, seeker.patrolPoints));
 			}

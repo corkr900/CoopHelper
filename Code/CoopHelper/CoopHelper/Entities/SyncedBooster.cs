@@ -3,6 +3,7 @@ using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,14 +16,54 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 	[CustomEntity("corkr900CoopHelper/SyncedBooster")]
 	public class SyncedBooster : Booster, ISynchronizable {
+		private EntityID id;
+		internal bool SuppressUpdate = false;
+		private bool red;
+		private bool pendingUseByMe = false;
+		private bool inUseByOtherPlayer = false;
+
+		public bool InUseByMe { get { return pendingUseByMe || BoostingPlayer; } }
+		public bool InUse { get { return pendingUseByMe || BoostingPlayer || inUseByOtherPlayer; } }
 
 		public SyncedBooster(EntityData data, Vector2 offset) : base(data, offset) {
+			id = new EntityID(data.Level.Name, data.ID);
+			red = data.Bool("red");
+
 			PlayerCollider coll = Get<PlayerCollider>();
-			var orig_OnPlayer = coll.OnCollide;
+			Action<Player> orig_OnPlayer = coll.OnCollide;
 			coll.OnCollide = (Player p) => {
-				orig_OnPlayer(p);
-				EntityStateTracker.PostUpdate(this);
+				DynamicData dd = DynamicData.For(this);
+				float respawnTimer = dd.Get<float>("respawnTimer");
+				float cannotUseTimer = dd.Get<float>("cannotUseTimer");
+
+				if (respawnTimer <= 0f && cannotUseTimer <= 0f && !InUse) {
+					orig_OnPlayer(p);
+					pendingUseByMe = true;
+					EntityStateTracker.PostUpdate(this);
+				}
 			};
+		}
+
+		internal void OnPlayerBoosted() {
+			pendingUseByMe = false;
+		}
+
+		internal void OnPlayerReleased() {
+			if (!SuppressUpdate) {
+				EntityStateTracker.PostUpdate(this);
+			}
+		}
+
+		private void UsedByOtherPlayer() {
+			DynamicData dd = DynamicData.For(this);
+			Wiggler wiggler = dd.Get<Wiggler>("wiggler");
+			Sprite sprite = dd.Get<Sprite>("sprite");
+
+			inUseByOtherPlayer = true;
+			Audio.Play(red ? "event:/game/05_mirror_temple/redbooster_enter" : "event:/game/04_cliffside/greenbooster_enter", Position);
+			wiggler.Start();
+			sprite.Play("pop");
+			Collidable = false;
 		}
 
 		public override void Added(Scene scene) {
@@ -41,7 +82,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
-			Header = 6,
+			Header = 24,
 			Parser = ParseState,
 			StaticHandler = null,
 			DiscardIfNoListener = false,
@@ -50,27 +91,36 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		};
 
 		public static SyncedBoosterState ParseState(CelesteNetBinaryReader r) {
-			throw new NotImplementedException();
+			return new SyncedBoosterState() {
+				BeingUsed = r.ReadBoolean(),
+			};
 		}
 
 		public void ApplyState(object state) {
-			throw new NotImplementedException();
+			if (state is SyncedBoosterState sbs) {
+				SuppressUpdate = true;
+				if (sbs.BeingUsed) {
+					if (BoostingPlayer) PlayerReleased();
+					else UsedByOtherPlayer();
+				}
+				else {
+					PlayerReleased();
+				}
+				SuppressUpdate = false;
+			}
 		}
 
-		public bool CheckRecurringUpdate() {
-			throw new NotImplementedException();
-		}
+		public bool CheckRecurringUpdate() => false;
 
-		public EntityID GetID() {
-			throw new NotImplementedException();
-		}
+		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			throw new NotImplementedException();
+			w.Write(InUseByMe);
 		}
+
 	}
 
 	public class SyncedBoosterState {
-
+		public bool BeingUsed;
 	}
 }
