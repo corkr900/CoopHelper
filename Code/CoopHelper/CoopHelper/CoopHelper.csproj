@@ -90,6 +90,7 @@
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\MultiplayerSeeker.cs" />
     <Compile Include="Entities\SessionGate.cs" />
+    <Compile Include="Entities\SyncedBooster.cs" />
     <Compile Include="Entities\SyncedClutterSwitch.cs" />
     <Compile Include="Entities\SyncedCoreModeToggle.cs" />
     <Compile Include="Entities\SyncedCrumblePlatform.cs" />
