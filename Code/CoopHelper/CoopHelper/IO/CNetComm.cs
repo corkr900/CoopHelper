@@ -85,6 +85,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		public static ulong SentMsgs { get; private set; } = 0;
 		public static ulong ReceivedMsgs { get; private set; } = 0;
+		private static object ReceivedMessagesCounterLock = new object();
 
 		#endregion
 
@@ -128,7 +129,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 			updateQueue = new ConcurrentQueue<Action>();
 			foreach (Action act in queue) {
 				act();
-				++ReceivedMsgs;
 			}
 			base.Update(gameTime);
 		}
@@ -150,7 +150,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			try {
 				if (sendToSelf) CnetClient.SendAndHandle(data);
 				else CnetClient.Send(data);
-				++SentMsgs;
+				if (!(data is Data.DataPlayerState)) ++SentMsgs;
 			}
 			catch(Exception e) {
 				// a well-timed connection blorp might theoretically get us here
@@ -194,21 +194,37 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinAvailable?.Invoke(data));
+
+			lock (ReceivedMessagesCounterLock) {
+				++ReceivedMsgs;
+			}
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinRequest data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinRequest?.Invoke(data));
+
+			lock (ReceivedMessagesCounterLock) {
+				++ReceivedMsgs;
+			}
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinResponse data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinResponse?.Invoke(data));
+
+			lock (ReceivedMessagesCounterLock) {
+				++ReceivedMsgs;
+			}
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinFinalize data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinFinalize?.Invoke(data));
+
+			lock (ReceivedMessagesCounterLock) {
+				++ReceivedMsgs;
+			}
 		}
 
 		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
@@ -216,6 +232,10 @@ namespace Celeste.Mod.CoopHelper.IO {
 			if (!CoopHelperModule.Session.IsInCoopSession) return;
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
+
+			lock (ReceivedMessagesCounterLock) {
+				++ReceivedMsgs;
+			}
 		}
 
 		#endregion
