@@ -17,13 +17,10 @@
 
 ============== Utility ==============
 
-Trigger spikes
+[Grouped] Trigger spikes
 
-============== Basic / Low Utility ==============
+============== Low Utility ==============
 
-Refill
-Green Bubble
-Red Bubble
 core blocks
 
 ============== Vanilla ==============
