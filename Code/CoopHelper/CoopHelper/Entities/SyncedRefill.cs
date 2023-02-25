@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	// TODO test this
 	[CustomEntity("corkr900CoopHelper/SyncedRefill")]
 	public class SyncedRefill : Refill, ISynchronizable {
 		private EntityID id;

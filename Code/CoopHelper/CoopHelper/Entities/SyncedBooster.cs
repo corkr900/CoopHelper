@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
-	// TODO finish and test this
 
 	[CustomEntity("corkr900CoopHelper/SyncedBooster")]
 	public class SyncedBooster : Booster, ISynchronizable {
@@ -87,7 +86,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Header = 24,
 			Parser = ParseState,
 			StaticHandler = null,
-			DiscardIfNoListener = false,
+			DiscardIfNoListener = true,
 			DiscardDuplicates = false,
 			Critical = false,
 		};
