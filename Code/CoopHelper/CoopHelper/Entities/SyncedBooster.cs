@@ -63,7 +63,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play(red ? "event:/game/05_mirror_temple/redbooster_enter" : "event:/game/04_cliffside/greenbooster_enter", Position);
 			wiggler.Start();
 			sprite.Play("pop");
-			Collidable = false;
+			dd.Set("cannotUseTimer", 0.45f);
+			dd.Set("respawnTimer", 99999999f);
 		}
 
 		public override void Added(Scene scene) {

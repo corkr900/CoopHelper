@@ -17,9 +17,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedRefill : Refill, ISynchronizable {
 		private EntityID id;
 		private float respawnTime = 2.5f;
+		private bool twoDashes = false;
 
 		public SyncedRefill(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			twoDashes = data.Bool("twoDash", false);
 			PlayerCollider pcoll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = pcoll.OnCollide;
 			respawnTime = data.Float("respawnTime", 2.5f);
@@ -35,6 +37,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Collidable = false;
 			Add(new Coroutine(RemoteRefillRoutine()));
 			dd.Set("respawnTimer", respawnTime);
+			FMOD.Studio.EventInstance instance = Audio.Play(twoDashes ? "event:/new_content/game/10_farewell/pinkdiamond_touch" : "event:/game/general/diamond_touch", Position);
+			instance.setPitch(0.8f);
+			instance.setVolume(0.6f);
 		}
 
 		private IEnumerator RemoteRefillRoutine() {
