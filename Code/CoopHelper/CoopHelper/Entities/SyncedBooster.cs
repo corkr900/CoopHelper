@@ -49,6 +49,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal void OnPlayerReleased() {
+			inUseByOtherPlayer = false;
 			if (!SuppressUpdate) {
 				EntityStateTracker.PostUpdate(this);
 			}
