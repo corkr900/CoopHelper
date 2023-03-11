@@ -6,7 +6,10 @@ SessionPicker.depth = 0
 SessionPicker.placements = {
     {
         name = "default",
-        data = { }
+        data = {
+            removeIfSessionExists = true,
+            skins = "",
+        }
     }
 }
 

@@ -6,6 +6,7 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private SessionPickerHUD hud;
 		private Player player;
 		private TalkComponent talkComponent;
+		private string[] forceSkin = null;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
@@ -30,6 +32,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				new Vector2(0, -16),
 				Open
 			) { PlayerMustBeFacing = false });
+			string skinArg = data.Attr("skins", null);
+			if (!string.IsNullOrEmpty(skinArg)) {
+				forceSkin = skinArg.Split(',');
+				for (int i = 0; i < forceSkin.Length; i++) {
+					forceSkin[i] = forceSkin[i].Trim();
+				}
+			}
 		}
 
 		public override void Added(Scene scene) {
@@ -90,6 +99,24 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				currentSession.SetFlag("CoopHelper_InSession", true);
 				for (int i = 0; i < PlayersNeeded; i++) {
 					currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
+				}
+				if (forceSkin != null && forceSkin.Length > 0) {
+					string newSkin = forceSkin[role % forceSkin.Length];
+					// TODO replace this with a ModInterop call when it's available
+					Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
+					if (t_SkinModHelperModule != null) {
+						MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
+						try {
+							m_UpdateSkin?.Invoke(null, new object[] { newSkin });
+						}
+						catch(Exception e) {
+							Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + newSkin + "\" is not defined.");
+							m_UpdateSkin?.Invoke(null, new object[] { "Default" });
+						}
+					}
+					else {
+						Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
+					}
 				}
 			}
 			else {
