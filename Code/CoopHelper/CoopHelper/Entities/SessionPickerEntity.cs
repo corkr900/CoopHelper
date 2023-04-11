@@ -20,6 +20,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private Player player;
 		private TalkComponent talkComponent;
 		private string[] forceSkin = null;
+		private int[] dashes = null;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
@@ -32,11 +33,29 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				new Vector2(0, -16),
 				Open
 			) { PlayerMustBeFacing = false });
+
+			// Role-skin attr
 			string skinArg = data.Attr("skins", null);
 			if (!string.IsNullOrEmpty(skinArg)) {
 				forceSkin = skinArg.Split(',');
 				for (int i = 0; i < forceSkin.Length; i++) {
 					forceSkin[i] = forceSkin[i].Trim();
+				}
+			}
+			// Role-dashes attr
+			string dashesarg = data.Attr("dashes", null);
+			if (!string.IsNullOrEmpty(dashesarg)) {
+				string[] split = dashesarg.Split(',');
+				dashes = new int[split.Length];
+				for (int i = 0; i < split.Length; i++) {
+					if (int.TryParse(split[i].Trim(), out int numdash)) {
+						dashes[i] = numdash;
+					}
+					else {
+						Logger.Log("Co-op Helper", "Invalid dash count attribute in session picker. Room " + data.Level.Name);
+						dashes = null;
+						break;
+					}
 				}
 			}
 		}
@@ -95,11 +114,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CoopHelperModuleSession coopSes = CoopHelperModule.Session;
 			Session currentSession = SceneAs<Level>()?.Session;
 			if (coopSes?.IsInCoopSession == true && currentSession != null) {
+
+				// Set up basic session data and flags
 				int role = coopSes.SessionRole;
 				currentSession.SetFlag("CoopHelper_InSession", true);
 				for (int i = 0; i < PlayersNeeded; i++) {
 					currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
 				}
+
+				// Apply role-specific skins
 				if (forceSkin != null && forceSkin.Length > 0) {
 					string newSkin = forceSkin[role % forceSkin.Length];
 					// TODO replace this with a ModInterop call when it's available
@@ -109,7 +132,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						try {
 							m_UpdateSkin?.Invoke(null, new object[] { newSkin });
 						}
-						catch(Exception e) {
+						catch(Exception) {
 							Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + newSkin + "\" is not defined.");
 							m_UpdateSkin?.Invoke(null, new object[] { "Default" });
 						}
@@ -117,6 +140,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					else {
 						Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
 					}
+				}
+
+				// Apply role-specific dash count
+				if (dashes != null && dashes.Length > 0) {
+					Session session = SceneAs<Level>()?.Session;
+					if (session != null) session.Inventory.Dashes = dashes[role % dashes.Length];
+					else Logger.Log(LogLevel.Warn, "Co-op Helper", "Could not change dash count: no session avilable");
 				}
 			}
 			else {

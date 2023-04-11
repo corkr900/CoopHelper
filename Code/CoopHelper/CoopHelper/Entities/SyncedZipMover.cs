@@ -165,7 +165,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			scene.Add(pathRenderer = new SyncedZipMoverPathRenderer(this));
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 		}
 
 		public override void Removed(Scene scene) {

@@ -94,7 +94,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}));
 			Add(occluder = new LightOcclude(0.2f));
 			areaData.CrumbleBlock = crumbleBlock;
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 		}
 
 		private IEnumerator Sequence() {

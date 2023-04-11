@@ -6,6 +6,7 @@ mods.corkr900CoopHelper.name=Co-op Helper
 entities.corkr900CoopHelper/SessionPicker.placements.name.default=Session Picker
 entities.corkr900CoopHelper/SessionPicker.attributes.description.removeIfSessionExists=Remove the picker once a session has been created. Prevents changing sessions after one has been created.
 entities.corkr900CoopHelper/SessionPicker.attributes.description.skins=Requires SkinModHelper to work. Comma-separated list of skin IDs to apply based on role. use "Default" for madeline.
+entities.corkr900CoopHelper/SessionPicker.attributes.description.dashes=Comma-separated list of numbers to use as max dash count applied per role.
 
 # Force Interactions Controller
 entities.corkr900CoopHelper/ForceInteractionsController.placements.name.default=Force CelesteNet Interactions Controller

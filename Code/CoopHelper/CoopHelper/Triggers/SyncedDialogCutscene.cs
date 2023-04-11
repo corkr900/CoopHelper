@@ -81,7 +81,7 @@ namespace Celeste.Mod.CoopHelper.Triggers {
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 		}
 
 		public override void SceneEnd(Scene scene) {

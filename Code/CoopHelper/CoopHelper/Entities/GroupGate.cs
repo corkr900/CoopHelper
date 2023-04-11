@@ -107,7 +107,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			scene.Add(trigger);
 
 			// Misc
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 			if ((scene as Level)?.Session?.GetFlag(flagToSet) == true) {
 				complete = true;
 				UpdateSprites();

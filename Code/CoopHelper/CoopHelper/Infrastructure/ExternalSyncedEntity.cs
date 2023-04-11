@@ -12,15 +12,15 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private object targetObject;
 		private EntityID id;
 		private DynamicData dd;
+		internal bool DoRecurringUpdate;
 
 		internal int Header { get; private set; }
 
-		public ExternalSyncedEntity(object target, EntityID ID, int header) {
+		public ExternalSyncedEntity(object target, EntityID ID, int header, bool doRecurringUpdate) {
 			Header = header;
 			targetObject = target;
 			id = ID;
-			dd = new DynamicData(target);
-			Dictionary<string, Func<object, object[], object>> methods = dd.Methods;
+			DoRecurringUpdate = doRecurringUpdate;
 		}
 
 		public void ApplyState(object state) {
@@ -28,6 +28,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public bool CheckRecurringUpdate() {
+			if (!DoRecurringUpdate) return false;
 			return ((bool?)targetObject.GetType().GetMethod("CheckRecurringUpdate")?.Invoke(targetObject, null)) ?? false;
 		}
 

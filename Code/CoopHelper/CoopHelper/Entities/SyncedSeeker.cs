@@ -258,7 +258,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			random = new Random(SceneAs<Level>().Session.LevelData.LoadSeed);
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, true);
 		}
 
 		public override void SceneEnd(Scene scene) {

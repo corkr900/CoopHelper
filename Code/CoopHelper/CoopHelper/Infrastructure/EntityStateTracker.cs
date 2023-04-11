@@ -50,6 +50,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static LinkedList<Tuple<int, EntityID, object>> incoming = new LinkedList<Tuple<int, EntityID, object>>();
 		private static Dictionary<int, SyncBehavior> behaviors = new Dictionary<int, SyncBehavior>();
 		private static Dictionary<EntityID, ISynchronizable> listeners = new Dictionary<EntityID, ISynchronizable>();
+		private static Dictionary<EntityID, ISynchronizable> listenersWithRecurringUpdate = new Dictionary<EntityID, ISynchronizable>();
 
 		public static bool HasUpdates { get { lock (outgoing) { return outgoing.Count > 0 && !IgnorePendingUpdatesInUpdateCheck; } } }
 		private static volatile bool IgnorePendingUpdatesInUpdateCheck = false;
@@ -83,19 +84,25 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		public static void AddListener(ISynchronizable ent) {
+		public static void AddListener(ISynchronizable ent, bool doRecurringUpdate) {
 			EntityID id = ent.GetID();
 			if (listeners.ContainsKey(id)) listeners[id] = ent;
 			else listeners.Add(id, ent);
+			if (doRecurringUpdate) {
+				if (listenersWithRecurringUpdate.ContainsKey(id)) listeners[id] = ent;
+				else listenersWithRecurringUpdate.Add(id, ent);
+			}
 		}
 
 		public static void RemoveListener(ISynchronizable ent) {
 			EntityID id = ent.GetID();
 			if (listeners.ContainsKey(id)) listeners.Remove(id);
+			if (listenersWithRecurringUpdate.ContainsKey(id)) listenersWithRecurringUpdate.Remove(id);
 		}
 
 		public static void RemoveListener(EntityID id) {
 			if (listeners.ContainsKey(id)) listeners.Remove(id);
+			if (listenersWithRecurringUpdate.ContainsKey(id)) listenersWithRecurringUpdate.Remove(id);
 		}
 
 		public static void RegisterType(SyncBehavior behav) {
@@ -107,10 +114,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			behaviors.Add(behav.Header, behav);
 		}
 
-		private static int GetHeader(ISynchronizable isy) {
-			if (isy is ExternalSyncedEntity ese) return ese.Header;
+		private static SyncBehavior GetBehavior(ISynchronizable isy) {
+			if (isy is ExternalSyncedEntity ese) return null;
 			MethodInfo info = isy.GetType().GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
-			return ((SyncBehavior)info.Invoke(null, null)).Header;
+			return info?.Invoke(null, null) as SyncBehavior;
+		}
+
+		private static int GetHeader(ISynchronizable isy) {
+			return isy is ExternalSyncedEntity ese ? ese.Header : GetBehavior(isy).Header;
 		}
 
 		public static void PostUpdate(EntityID id) {
@@ -204,7 +215,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 							duplicateDict.Add(node.Value.Item2, node);
 						}
 					}
-					// TODO discard updates from rooms that nobody's in (could be performance bad)
 					node = next;
 				}
 
@@ -237,11 +247,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			outgoing?.Clear();
 			incoming?.Clear();
 			listeners?.Clear();
+			listenersWithRecurringUpdate?.Clear();
 		}
 
 		internal static void CheckRecurringUpdates() {
-			// TODO only iterate on listeners that might actually want a periodic update
-			foreach (ISynchronizable listener in listeners.Values) {
+			foreach (ISynchronizable listener in listenersWithRecurringUpdate.Values) {
 				if (listener.CheckRecurringUpdate()) PostUpdate(listener);
 			}
 		}

@@ -44,7 +44,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		public override void EntityAdded(Scene scene) {
 			base.EntityAdded(scene);
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 		}
 
 		public override void EntityRemoved(Scene scene) {
@@ -54,7 +54,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		public override void Added(Entity entity) {
 			base.Added(entity);
-			EntityStateTracker.AddListener(this);
+			EntityStateTracker.AddListener(this, false);
 		}
 
 		public override void Removed(Entity entity) {

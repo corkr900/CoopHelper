@@ -9,6 +9,7 @@ SessionPicker.placements = {
         data = {
             removeIfSessionExists = true,
             skins = "",
+            dashes = "",
         }
     }
 }
