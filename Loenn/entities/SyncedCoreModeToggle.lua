@@ -24,7 +24,7 @@ syncedCoreToggle.placements = {
         data = {
             onlyIce = false,
             onlyFire = false,
-            persistent = false
+            persistent = false,
         },
     },
     {
@@ -32,7 +32,7 @@ syncedCoreToggle.placements = {
         data = {
             onlyIce = false,
             onlyFire = true,
-            persistent = false
+            persistent = false,
         },
     },
     {
@@ -40,7 +40,7 @@ syncedCoreToggle.placements = {
         data = {
             onlyIce = true,
             onlyFire = false,
-            persistent = false
+            persistent = false,
         },
     }
 }

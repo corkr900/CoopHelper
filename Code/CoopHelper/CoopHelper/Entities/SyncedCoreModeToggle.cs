@@ -15,9 +15,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedCoreModeToggle")]
 	public class SyncedCoreModeToggle : CoreModeToggle, ISynchronizable {
 		private EntityID id;
+		private bool persistent;
 
 		public SyncedCoreModeToggle(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			persistent = data.Bool("persistent");
 		}
 
 		internal bool UsableAndOffCooldown() {
@@ -49,31 +51,58 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Critical = false,
 		};
 
+		public EntityID GetID() => id;
+
 		public bool CheckRecurringUpdate() => false;
+
+		public bool StaticHandler(EntityID id, object s) {
+			if (s is SyncedCoreModeToggleState state && state.Persistent && Engine.Scene is Level level) {
+				ApplyStateInternal(state, level);
+				return true;
+			}
+			return false;
+		}
+
+		public void ApplyState(object state) {
+			Level level = SceneAs<Level>();
+			if (state is SyncedCoreModeToggleState newMode && level.CoreMode != newMode.Mode && newMode.Mode != Session.CoreModes.None) {
+				ApplyStateInternal(newMode, level);
+				DynamicData dd = DynamicData.For(this);
+				dd.Set("cooldownTimer", 1f);
+			}
+		}
+
+		private static void ApplyStateInternal(SyncedCoreModeToggleState state, Level level) {
+			if (level.CoreMode != state.Mode) {
+				level.Flash(Color.White * 0.15f, drawPlayerOver: true);
+				level.CoreMode = state.Mode;
+			}
+			if (state.Persistent) {
+				level.Session.CoreMode = level.CoreMode;
+			}
+		}
+
+		public void WriteState(CelesteNetBinaryWriter w) {
+			w.Write(SceneAs<Level>()?.CoreMode.ToString() ?? "");
+			w.Write(persistent);
+		}
 
 		public static object ParseState(CelesteNetBinaryReader r) {
 			Session.CoreModes mode;
 			if (!Enum.TryParse(r.ReadString(), out mode)) {
 				mode = Session.CoreModes.None;
 			}
-			return mode;
+			bool persistent = r.ReadBoolean();
+			return new SyncedCoreModeToggleState() {
+				Mode = mode,
+				Persistent = persistent,
+			};
 		}
 
-		public void ApplyState(object state) {
-			Level level = SceneAs<Level>();
-			if (state is Session.CoreModes newMode && level.CoreMode != newMode && newMode != Session.CoreModes.None) {
-				level.CoreMode = newMode;
-				DynamicData dd = new DynamicData(this);
-				if (dd.Get<bool>("persistent")) level.Session.CoreMode = level.CoreMode;
-				level.Flash(Color.White * 0.15f, drawPlayerOver: true);
-				dd.Set("cooldownTimer", 1f);
-			}
-		}
+	}
 
-		public EntityID GetID() => id;
-
-		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(SceneAs<Level>()?.CoreMode.ToString() ?? "");
-		}
+	public class SyncedCoreModeToggleState {
+		public Session.CoreModes Mode;
+		public bool Persistent;
 	}
 }
