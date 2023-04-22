@@ -45,7 +45,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
 			Header = 5,
 			Parser = ParseState,
-			StaticHandler = null,
+			StaticHandler = StaticHandler,
 			DiscardIfNoListener = false,
 			DiscardDuplicates = true,
 			Critical = false,
@@ -55,7 +55,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public bool CheckRecurringUpdate() => false;
 
-		public bool StaticHandler(EntityID id, object s) {
+		public static bool StaticHandler(EntityID id, object s) {
 			if (s is SyncedCoreModeToggleState state && state.Persistent && Engine.Scene is Level level) {
 				ApplyStateInternal(state, level);
 				return true;

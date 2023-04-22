@@ -164,18 +164,25 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal static void ReceiveUpdates(CelesteNetBinaryReader r, bool isMySession) {
 			lock (incoming) {
-				do {
-					int header = r.ReadInt32();
-					if (header == 0) break;
-					EntityID id = r.ReadEntityID();
-					if (!behaviors.ContainsKey(header)) {
-						throw new InvalidOperationException("Co-op Helper: Received header {0} does not have an associated parser");
-					}
-					object parsedState = behaviors[header].Parser(r);
-					if (isMySession) {
-						incoming.AddLast(new Tuple<int, EntityID, object>(header, id, parsedState));
-					}
-				} while (true);
+				try {
+					do {
+						int header = r.ReadInt32();
+						if (header == EndOfTransmissionHeader) break;
+						EntityID id = r.ReadEntityID();
+						if (!behaviors.ContainsKey(header)) {
+							throw new InvalidOperationException("Co-op Helper: Received header {0} does not have an associated parser");
+						}
+						object parsedState = behaviors[header].Parser(r);
+						if (isMySession) {
+							incoming.AddLast(new Tuple<int, EntityID, object>(header, id, parsedState));
+						}
+					} while (true);
+				}
+				catch(Exception e) {
+					Logger.Log(LogLevel.Error, "Co-op Helper", "Error occurred deserializing entity update packet:");
+					Logger.Log(LogLevel.Error, "Co-op Helper", e.Message);
+					Logger.Log(LogLevel.Error, "Co-op Helper", e.StackTrace);
+				}
 			}
 		}
 
