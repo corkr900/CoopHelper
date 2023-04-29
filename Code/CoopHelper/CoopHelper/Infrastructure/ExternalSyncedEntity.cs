@@ -21,6 +21,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			targetObject = target;
 			id = ID;
 			DoRecurringUpdate = doRecurringUpdate;
+			dd = DynamicData.For(target);
 		}
 
 		public void ApplyState(object state) {
