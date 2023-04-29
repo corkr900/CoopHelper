@@ -22,7 +22,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			id = new EntityID(data.Level.Name, data.ID);
 			DashCollision orig_OnDashed = OnDashCollide;
 			OnDashCollide = (Player player, Vector2 dir) => {
-				DynamicData dd = new DynamicData(this);
+				DynamicData dd = DynamicData.For(this);
 				int healthBefore = dd.Get<int>("health");
 				DashCollisionResults result = orig_OnDashed(player, dir);
 				int healthAfter = dd.Get<int>("health");
@@ -115,7 +115,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (state is SyncedLightningBreakerBoxState st) {
 				// Handle multiple health lost at once
 				if (st.HealthLost > 1) {
-					DynamicData dd = new DynamicData(this);
+					DynamicData dd = DynamicData.For(this);
 					int health = dd.Get<int>("health");
 					dd.Set("health", health - st.HealthLost + 1);
 				}
@@ -134,7 +134,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public bool CheckRecurringUpdate() => false;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			DynamicData dd = new DynamicData(this);
+			DynamicData dd = DynamicData.For(this);
 			lock (healthDiffLock) {
 				w.Write(dd.Get<bool>("flag") && dd.Get<int>("health") <= 0);
 				w.Write(healthLost);

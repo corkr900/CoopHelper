@@ -65,7 +65,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is Vector2 dir) {
-				DynamicData dd = new DynamicData(this);
+				DynamicData dd = DynamicData.For(this);
 				dd.Invoke("OnDash", dir);
 			}
 		}

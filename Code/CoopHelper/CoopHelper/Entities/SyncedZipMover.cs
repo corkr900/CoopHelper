@@ -290,7 +290,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void PlaySound(State st) {
-			DynamicData dd = new DynamicData(sfx);
+			DynamicData dd = DynamicData.For(sfx);
 			string baseAudio = theme == ZipMover.Themes.Normal ?
 				"event:/game/01_forsaken_city/zip_mover" : "event:/new_content/game/10_farewell/zip_mover";
 			bool isAttack = st == State.MovingForward || (toggleMode && st == State.MovingBack);

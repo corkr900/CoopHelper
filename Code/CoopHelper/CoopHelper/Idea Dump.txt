@@ -1,11 +1,8 @@
 ﻿
 ============== BUGS ==============
 
-- (!!!) crash from invalid header
-	- Only synced stuff in the room were a seeker, temple block, clutter switch, and player
-	- very likely the seeker's fault
+- (!!!) keys can desync somehow
 - Steerable move blocks can desync easily when steering around corners
-- Persistent core mode should probably be moved to Session-level stuff
 - seekers
 	- idle wobble is desynced
 	- Sometimes animation gets frozen on one frame

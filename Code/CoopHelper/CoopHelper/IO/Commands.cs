@@ -15,17 +15,22 @@ namespace Celeste.Mod.CoopHelper.IO {
 			int role = 0;
 			int.TryParse(arg, out role);
 
-			Session session = (Engine.Scene as Level)?.Session;
-			if (session != null) {
+			Level level = Engine.Scene as Level;
+			Session session = level?.Session;
+			SessionPickerEntity picker = level?.Entities?.FindFirst<SessionPickerEntity>();
+			if (picker != null && session != null) {
+				picker.MakeSession(role, session);
+			}
+			else if (level?.Session != null && CoopHelperModule.Session != null) {
 				int sessionSize = (int)Calc.Max(2, role + 1);
 				CoopHelperModule.Session.IsInCoopSession = true;
 				CoopHelperModule.Session.SessionID = CoopSessionID.GetNewID();
 				CoopHelperModule.Session.SessionRole = role;
 				CoopHelperModule.Session.SessionMembers = new List<PlayerID>(new PlayerID[sessionSize]);
 				CoopHelperModule.Session.SessionMembers[role] = PlayerID.MyID;
-				session.SetFlag("CoopHelper_InSession", true);
+				level.Session.SetFlag("CoopHelper_InSession", true);
 				for (int i = 0; i < sessionSize; i++) {
-					session.SetFlag("CoopHelper_SessionRole_" + i, i == role);
+					level.Session.SetFlag("CoopHelper_SessionRole_" + i, i == role);
 				}
 				CoopHelperModule.NotifySessionChanged();
 				Engine.Commands.Log("Session created.");

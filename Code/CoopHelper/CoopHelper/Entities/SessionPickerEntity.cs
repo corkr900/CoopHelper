@@ -3,6 +3,7 @@ using Celeste.Mod.CoopHelper.Module;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private TalkComponent talkComponent;
 		private string[] forceSkin = null;
 		private int[] dashes = null;
+		private string[] abilities = null;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
@@ -57,6 +59,31 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						break;
 					}
 				}
+			}
+			// Role-abilities attr
+			string abilitiesarg = data.Attr("abilities", null);
+			if (!string.IsNullOrEmpty(abilitiesarg)) {
+				string[] split = dashesarg.Split(',');
+				abilities = new string[split.Length];
+				for (int i = 0; i < split.Length; i++) {
+					abilities[i] = split[i].Trim().ToLower();
+					if (!IsValidAbility(abilities[i])) {
+						Logger.Log(LogLevel.Warn, "Co-op Helper", "Session picker has invalid ability: " + abilities[i]);
+						abilities[i] = "none";
+					}
+				}
+			}
+		}
+
+		private bool IsValidAbility(string v) {
+			switch (v) {
+				default:
+					return false;
+				case "none":
+				case "grapple":
+				case "":
+				case null:
+					return true;
 			}
 		}
 
@@ -114,48 +141,67 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CoopHelperModuleSession coopSes = CoopHelperModule.Session;
 			Session currentSession = SceneAs<Level>()?.Session;
 			if (coopSes?.IsInCoopSession == true && currentSession != null) {
-
-				// Set up basic session data and flags
-				int role = coopSes.SessionRole;
-				currentSession.SetFlag("CoopHelper_InSession", true);
-				for (int i = 0; i < PlayersNeeded; i++) {
-					currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
-				}
-
-				// Apply role-specific skins
-				if (forceSkin != null && forceSkin.Length > 0) {
-					string newSkin = forceSkin[role % forceSkin.Length];
-					// TODO replace this with a ModInterop call when it's available
-					Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
-					if (t_SkinModHelperModule != null) {
-						MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
-						try {
-							m_UpdateSkin?.Invoke(null, new object[] { newSkin });
-						}
-						catch(Exception) {
-							Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + newSkin + "\" is not defined.");
-							m_UpdateSkin?.Invoke(null, new object[] { "Default" });
-						}
-					}
-					else {
-						Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
-					}
-				}
-
-				// Apply role-specific dash count
-				if (dashes != null && dashes.Length > 0) {
-					Session session = SceneAs<Level>()?.Session;
-					if (session != null) session.Inventory.Dashes = dashes[role % dashes.Length];
-					else Logger.Log(LogLevel.Warn, "Co-op Helper", "Could not change dash count: no session avilable");
-				}
+				MakeSession(coopSes.SessionRole, currentSession);
 			}
 			else {
-				currentSession.SetFlag("CoopHelper_InSession", false);
-				for (int i = 0; i < PlayersNeeded; i++) {
-					currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
-				}
+				LeaveSession(currentSession);
 			}
 			CheckRemove();
+		}
+
+		internal void LeaveSession(Session currentSession) {
+			currentSession.SetFlag("CoopHelper_InSession", false);
+			for (int i = 0; i < PlayersNeeded; i++) {
+				currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
+			}
+		}
+
+		internal void MakeSession(int role, Session currentSession) {
+			// Set up basic session data and flags
+			currentSession.SetFlag("CoopHelper_InSession", true);
+			for (int i = 0; i < PlayersNeeded; i++) {
+				currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
+			}
+
+			// Apply role-specific skins
+			if (forceSkin != null && forceSkin.Length > 0) {
+				string newSkin = forceSkin[role % forceSkin.Length];
+				Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
+				if (t_SkinModHelperModule != null) {
+					MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
+					try {
+						m_UpdateSkin?.Invoke(null, new object[] { newSkin });
+					}
+					catch (Exception) {
+						Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + newSkin + "\" is not defined.");
+						m_UpdateSkin?.Invoke(null, new object[] { "Default" });
+					}
+				}
+				else {
+					Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
+				}
+			}
+
+			// Apply role-specific dash count
+			if (dashes != null && dashes.Length > 0) {
+				Session session = SceneAs<Level>()?.Session;
+				if (session != null) session.Inventory.Dashes = dashes[role % dashes.Length];
+				else Logger.Log(LogLevel.Warn, "Co-op Helper", "Could not change dash count: no session avilable");
+			}
+
+			// Apply role-specific abilities
+			if (abilities != null && abilities.Length > 0) {
+				string ability = abilities[role % abilities.Length];
+				if (ability == "grapple") {
+					Type t_JackalModule = Type.GetType("Celeste.Mod.JackalHelper.JackalModule,JackalHelper");
+					if (t_JackalModule != null) {
+						PropertyInfo p_Session = t_JackalModule.GetProperty("Session");
+						EverestModuleSession JackalSession = p_Session?.GetValue(null) as EverestModuleSession;
+						DynamicData dd = DynamicData.For(JackalSession);
+						dd.Set("hasGrapple", true);
+					}
+				}
+			}
 		}
 	}
 }

@@ -10,6 +10,7 @@ SessionPicker.placements = {
             removeIfSessionExists = true,
             skins = "",
             dashes = "",
+            abilities = "",
         }
     }
 }

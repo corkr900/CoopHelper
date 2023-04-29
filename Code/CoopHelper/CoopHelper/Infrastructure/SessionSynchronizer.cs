@@ -158,12 +158,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 							session.Strawberries.Add(id);
 							// handle if the strawb is in the current room
 							foreach (Entity e in Scene.Entities) {
-								// TODO handle strawberries that don't inherit Strawberry
 								if (e is Strawberry strawb && strawb.ID.Equals(id)) {
 									if (strawb.Follower.HasLeader) {
 										strawb.Follower.Leader.LoseFollower(strawb.Follower);
 									}
-									DynamicData dd = new DynamicData(strawb);
+									DynamicData dd = DynamicData.For(strawb);
 									if (!dd.Get<bool>("collected")) {
 										dd.Set("collected", true);
 										Player player = EntityAs<Player>();
@@ -181,7 +180,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						bool cassetteFound = false;
 						foreach (Entity e in Scene.Entities) {
 							if (e is Cassette cass) {
-								DynamicData dd = new DynamicData(cass);
+								DynamicData dd = DynamicData.For(cass);
 								dd.Invoke("OnPlayer", EntityAs<Player>());
 								cassetteFound = true;
 								break;

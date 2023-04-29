@@ -21,7 +21,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			id = new EntityID(data.Level.Name, data.ID);
 			DashCollision orig_OnDashCollide = OnDashCollide;
 			OnDashCollide = (Player player, Vector2 direction) => {
-				if (!new DynamicData(this).Get<bool>("pressed") && direction == Vector2.UnitY) {
+				if (!DynamicData.For(this).Get<bool>("pressed") && direction == Vector2.UnitY) {
 					EntityStateTracker.PostUpdate(this);
 				}
 				return orig_OnDashCollide(player, direction);
@@ -144,7 +144,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void ApplyState(object state) {
 			if (state is ClutterBlock.Colors color) {
 				SceneAs<Level>()?.Particles?.Emit(P_Pressed, 20, TopCenter - Vector2.UnitY * 10f, new Vector2(16f, 8f));
-				new DynamicData(this).Invoke("BePressed");
+				DynamicData.For(this).Invoke("BePressed");
 				DoStaticCutscene(color);
 			}
 		}
@@ -154,7 +154,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			w.Write(new DynamicData(this).Get<ClutterBlock.Colors>("color").ToString() ?? "");
+			w.Write(DynamicData.For(this).Get<ClutterBlock.Colors>("color").ToString() ?? "");
 		}
 	}
 }

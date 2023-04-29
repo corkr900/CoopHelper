@@ -85,7 +85,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					Audio.SetAmbience(SFX.EventnameByHandle(ambience));
 				}
 			}
-			yield return new DynamicData(this).Invoke<IEnumerator>("FadeTo", 1f, Dark ? 2f : 0.8f);
+			yield return DynamicData.For(this).Invoke<IEnumerator>("FadeTo", 1f, Dark ? 2f : 0.8f);
 			EntityStateTracker.PostUpdate(this);
 
 			// Wait for all players

@@ -90,7 +90,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedKeyState sks) {
-				DynamicData dd = new DynamicData(this);
+				DynamicData dd = DynamicData.For(this);
 				if (sks.Used) {
 					AnotherPlayerUsed = true;
 					if (!IsUsed) {

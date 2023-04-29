@@ -52,7 +52,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Update() {
 			base.Update();
-			DynamicData dd = new DynamicData(this);
+			DynamicData dd = DynamicData.For(this);
 			MovementState state = dd.Get<MovementState>("state");
 			if (state != MovementState.Moving) {
 				otherPlayerTotalMovement = 0;
@@ -105,7 +105,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedMoveBlockState mbs) {
-				DynamicData dd = new DynamicData(this);
+				DynamicData dd = DynamicData.For(this);
 				// Handle other player triggering the block
 				if (lastState == MovementState.Idling && mbs.Moving) {
 					dd.Set("triggered", true);

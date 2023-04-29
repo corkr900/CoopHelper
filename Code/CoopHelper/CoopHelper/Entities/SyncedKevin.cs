@@ -73,7 +73,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedKevinState sks) {
-				DynamicData dd = new DynamicData(this);
+				DynamicData dd = DynamicData.For(this);
 				Position = sks.Position;
 				if (sks.Attacking && !Attacking) {
 					attackDir = sks.AttackDirection;
@@ -118,11 +118,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			w.Write(Position);
 			w.Write(Attacking);
 			w.Write(attackDir);
-			DynamicData dd = new DynamicData(this);
+			DynamicData dd = DynamicData.For(this);
 			IList returnStack = dd.Get<IList>("returnStack");
 			w.Write(returnStack.Count);
 			foreach (object moveState in returnStack) {
-				DynamicData msdd = new DynamicData(moveState);
+				DynamicData msdd = DynamicData.For(moveState);
 				w.Write(msdd.Get<Vector2>("From"));
 				w.Write(msdd.Get<Vector2>("Direction"));
 			}

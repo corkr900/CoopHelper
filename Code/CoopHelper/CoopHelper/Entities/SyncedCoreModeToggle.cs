@@ -23,7 +23,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal bool UsableAndOffCooldown() {
-			DynamicData dd = new DynamicData(this);
+			DynamicData dd = DynamicData.For(this);
 			return dd.Get<bool>("Usable") && dd.Get<float>("cooldownTimer") <= 0f;
 		}
 
