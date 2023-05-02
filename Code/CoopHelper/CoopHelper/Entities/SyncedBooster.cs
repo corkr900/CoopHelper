@@ -20,6 +20,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private bool red;
 		private bool pendingUseByMe = false;
 		private bool inUseByOtherPlayer = false;
+		private Entity outline;
 
 		public bool InUseByMe { get { return pendingUseByMe || BoostingPlayer; } }
 		public bool InUse { get { return pendingUseByMe || BoostingPlayer || inUseByOtherPlayer; } }
@@ -48,6 +49,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal void OnPlayerReleased() {
+			outline.Visible = false;
 			inUseByOtherPlayer = false;
 			if (!SuppressUpdate) {
 				EntityStateTracker.PostUpdate(this);
@@ -65,10 +67,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			sprite.Play("pop");
 			dd.Set("cannotUseTimer", 0.45f);
 			dd.Set("respawnTimer", 99999999f);
+			outline.Visible = true;
 		}
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
+			DynamicData dd = DynamicData.For(this);
+			outline = dd.Get<Entity>("outline");
 			EntityStateTracker.AddListener(this, false);
 		}
 

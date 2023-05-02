@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Infrastructure {
+	/// <summary>
+	/// Wrapper object for a synced entity added by another mod via the ModInterop API
+	/// </summary>
 	public class ExternalSyncedEntity : ISynchronizable {
 		private object targetObject;
 		private EntityID id;
