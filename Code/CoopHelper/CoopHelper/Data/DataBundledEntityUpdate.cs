@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Data {
 	public class DataBundledEntityUpdate : DataType<DataBundledEntityUpdate> {
 		public DataPlayerInfo player;
-
 		public PlayerID senderID;
 		public CoopSessionID SessionID;
 
@@ -27,6 +26,8 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public override void FixupMeta(DataContext ctx) {
 			player = Get<MetaPlayerPrivateState>(ctx);
+			SessionID = CoopHelperModule.Session.SessionID;
+			senderID = PlayerID.MyID;
 		}
 
 		public override MetaType[] GenerateMeta(DataContext ctx) {
@@ -34,19 +35,17 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
-			senderID = reader.ReadPlayerID();
-			SessionID = reader.ReadSessionID();
 			bool isMySession = !PlayerState.Mine.CurrentMap.IsOverworld
 				&& CoopHelperModule.Session.IsInCoopSession
 				&& CoopHelperModule.Session.SessionID == SessionID;
 			if (isMySession) {
 				EntityStateTracker.ReceiveUpdates(reader, isMySession);
 			}
+			// seek to the end so celestenet doesn't think a serialization error occurred
+			reader.BaseStream.Seek(0, System.IO.SeekOrigin.End);
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
-			writer.Write(senderID);
-			writer.Write(SessionID);
 			EntityStateTracker.FlushOutgoing(writer);
 		}
 	}
