@@ -152,7 +152,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 				else CnetClient.Send(data);
 				if (!(data is Data.DataPlayerState)) ++SentMsgs;
 			}
-			catch(Exception) {
+			catch(Exception e) {
 				// a well-timed connection blorp might theoretically get us here
 				// but we can ignore it because the connection already blorped
 			}

@@ -17,8 +17,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedBooster : Booster, ISynchronizable {
 		private EntityID id;
 		internal bool SuppressUpdate = false;
+		private bool red;
 		private bool pendingUseByMe = false;
 		private bool inUseByOtherPlayer = false;
+		private Entity boosterOutline;
 
 		public bool InUseByMe { get { return pendingUseByMe || BoostingPlayer; } }
 		public bool InUse { get { return pendingUseByMe || BoostingPlayer || inUseByOtherPlayer; } }
@@ -30,7 +32,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			PlayerCollider coll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = coll.OnCollide;
 			coll.OnCollide = (Player p) => {
-				float respawnTimer = base.respawnTimer;
+				DynamicData dd = DynamicData.For(this);
+				float respawnTimer = dd.Get<float>("respawnTimer");
+				float cannotUseTimer = dd.Get<float>("cannotUseTimer");
 
 				if (respawnTimer <= 0f && cannotUseTimer <= 0f && !InUse) {
 					orig_OnPlayer(p);
@@ -52,17 +56,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void UsedByOtherPlayer() {
+			DynamicData dd = DynamicData.For(this);
+			Wiggler wiggler = dd.Get<Wiggler>("wiggler");
+			Sprite sprite = dd.Get<Sprite>("sprite");
+
 			inUseByOtherPlayer = true;
 			Audio.Play(red ? "event:/game/05_mirror_temple/redbooster_enter" : "event:/game/04_cliffside/greenbooster_enter", Position);
 			wiggler.Start();
 			sprite.Play("pop");
-			cannotUseTimer = 0.45f;
-			respawnTimer = 99999999f;
-			outline.Visible = true;
+			dd.Set("cannotUseTimer", 0.45f);
+			dd.Set("respawnTimer", 99999999f);
+			boosterOutline.Visible = true;
 		}
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
+			DynamicData dd = DynamicData.For(this);
+			boosterOutline = dd.Get<Entity>("outline");
 			EntityStateTracker.AddListener(this, false);
 		}
 

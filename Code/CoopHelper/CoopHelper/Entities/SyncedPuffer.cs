@@ -106,7 +106,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			return false;
 		}
 
-		public override void OnSquish(CollisionData data) {
+		protected override void OnSquish(CollisionData data) {
 			Explode();
 			GotoGone();
 		}

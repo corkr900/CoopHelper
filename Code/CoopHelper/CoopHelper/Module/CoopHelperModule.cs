@@ -315,7 +315,7 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		private void OnCasetteOnPlayer(On.Celeste.Cassette.orig_OnPlayer orig, Cassette self, Player player) {
-			bool alreadyCollected = self.collected;
+			bool alreadyCollected = DynamicData.For(self).Get<bool>("collected");
 			orig(self, player);
 			if (!alreadyCollected) {
 				player.Get<SessionSynchronizer>()?.CassetteCollected();
@@ -325,7 +325,7 @@ namespace Celeste.Mod.CoopHelper {
 		private void OnHeartCollected(On.Celeste.HeartGem.orig_RegisterAsCollected orig, HeartGem self, Level level, string poem) {
 			orig(self, level, poem);
 			AreaKey area = level.Session.Area;
-			bool isCompleteArea = self.IsCompleteArea(area.Mode != 0 || area.ID == 9);
+			bool isCompleteArea = DynamicData.For(self).Invoke<bool>("IsCompleteArea", area.Mode != 0 || area.ID == 9);
 			if (!isCompleteArea) {
 				level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected(AreaData.Get(level).Mode[(int)area.Mode].PoemID);
 			}
@@ -345,7 +345,7 @@ namespace Celeste.Mod.CoopHelper {
 			// cabinets in the room you're in when clutter is cleared
 			Level level = scene as Level;
 			if (level != null && level.Tracker.GetEntity<ClutterCabinet>() == null) {
-				List<ClutterCabinet> cabinets = self.cabinets;
+				List<ClutterCabinet> cabinets = DynamicData.For(self).Get<List<ClutterCabinet>>("cabinets");
 
 				ClutterCabinet cab = new ClutterCabinet(new Vector2(level.Bounds.Left - 32, level.Bounds.Top - 32));
 				level.Add(cab);
@@ -369,7 +369,7 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, data, offset, orientation);
 			self.Add(new SyncedPufferCollider((SyncedPuffer p) => {
 				if (p.HitSpring(self)) {
-					self.BounceAnimate();
+					DynamicData.For(self).Invoke("BounceAnimate");
 				}
 			}));
 		}

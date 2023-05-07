@@ -15,13 +15,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedCoreModeToggle")]
 	public class SyncedCoreModeToggle : CoreModeToggle, ISynchronizable {
 		private EntityID id;
+		private bool persistent;
 
 		public SyncedCoreModeToggle(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			persistent = data.Bool("persistent");
 		}
 
 		internal bool UsableAndOffCooldown() {
-			return Usable && cooldownTimer <= 0f;
+			DynamicData dd = DynamicData.For(this);
+			return dd.Get<bool>("Usable") && dd.Get<float>("cooldownTimer") <= 0f;
 		}
 
 		public override void Added(Scene scene) {
@@ -64,7 +67,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Level level = SceneAs<Level>();
 			if (state is SyncedCoreModeToggleState newMode && level.CoreMode != newMode.Mode && newMode.Mode != Session.CoreModes.None) {
 				ApplyStateInternal(newMode, level);
-				cooldownTimer = 1f;
+				DynamicData dd = DynamicData.For(this);
+				dd.Set("cooldownTimer", 1f);
 			}
 		}
 

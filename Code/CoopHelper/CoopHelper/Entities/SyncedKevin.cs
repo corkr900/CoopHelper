@@ -73,20 +73,22 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedKevinState sks) {
+				DynamicData dd = DynamicData.For(this);
 				Position = sks.Position;
 				if (sks.Attacking && !Attacking) {
 					attackDir = sks.AttackDirection;
 					boppedRemotely = true;
-					Attack(sks.AttackDirection);
+					dd.Invoke("Attack", sks.AttackDirection);
 				}
 				Attacking = sks.Attacking;
+				IList returnStack = dd.Get<IList>("returnStack");
 				returnStack.Clear();
 				if (sks.ReturnStack?.Count > 0) {
 					Type moveStateType = typeof(CrushBlock).GetNestedType("MoveState", System.Reflection.BindingFlags.NonPublic);
 					FieldInfo from = moveStateType.GetField("From");
 					FieldInfo direction = moveStateType.GetField("Direction");
 					foreach (Tuple<Vector2, Vector2> moveStateTup in sks.ReturnStack) {
-						MoveState moveState = (MoveState)Activator.CreateInstance(moveStateType);
+						object moveState = Activator.CreateInstance(moveStateType);
 						from.SetValue(moveState, moveStateTup.Item1);
 						direction.SetValue(moveState, moveStateTup.Item2);
 						returnStack.Add(moveState);
@@ -116,10 +118,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			w.Write(Position);
 			w.Write(Attacking);
 			w.Write(attackDir);
+			DynamicData dd = DynamicData.For(this);
+			IList returnStack = dd.Get<IList>("returnStack");
 			w.Write(returnStack.Count);
-			foreach (MoveState moveState in returnStack) {
-				w.Write(moveState.From);
-				w.Write(moveState.Direction);
+			foreach (object moveState in returnStack) {
+				DynamicData msdd = DynamicData.For(moveState);
+				w.Write(msdd.Get<Vector2>("From"));
+				w.Write(msdd.Get<Vector2>("Direction"));
 			}
 		}
 	}

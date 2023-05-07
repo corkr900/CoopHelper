@@ -16,8 +16,29 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedSummitBackgroundManager")]
 	public class SyncedSummitBackgroundManager : AscendManager, ISynchronizable {
 
+		private class Fader : Entity {
+			public float Fade;
+
+			private AscendManager manager;
+
+			public Fader(AscendManager manager) {
+				this.manager = manager;
+				base.Depth = -1000010;
+			}
+
+			public override void Render() {
+				if (Fade > 0f) {
+					Vector2 position = (base.Scene as Level).Camera.Position;
+					Draw.Rect(position.X - 10f, position.Y - 10f, 340f, 200f, (manager.Dark ? Color.Black : Color.White) * Fade);
+				}
+			}
+		}
+
+
 		public EntityID id;
+		private string cutscene;
 		private bool dark;
+		private string ambience;
 		private Player player;
 		private int otherPlayersInTrigger;
 
@@ -64,7 +85,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					Audio.SetAmbience(SFX.EventnameByHandle(ambience));
 				}
 			}
-			yield return FadeTo(1f, Dark ? 2f : 0.8f);
+			yield return DynamicData.For(this).Invoke<IEnumerator>("FadeTo", 1f, Dark ? 2f : 0.8f);
 			EntityStateTracker.PostUpdate(this);
 
 			// Wait for all players

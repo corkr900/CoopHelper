@@ -90,6 +90,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedKeyState sks) {
+				DynamicData dd = DynamicData.For(this);
 				if (sks.Used) {
 					AnotherPlayerUsed = true;
 					if (!IsUsed) {
@@ -97,7 +98,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						Collidable = false;
 						if (!session.DoNotLoad.Contains(ID)) session.DoNotLoad.Add(ID);
 						Depth = -1000000;
-						sprite.Visible = false;
+						dd.Get<Sprite>("sprite").Visible = false;
+						Follower follower = dd.Get<Follower>("follower");
 						if (follower?.HasLeader == true) {
 							follower.Leader.LoseFollower(follower);
 						}
@@ -109,7 +111,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					}
 				}
 				else {
-					OnPlayer(GetPlayer());
+					dd.Invoke("OnPlayer", GetPlayer());
 				}
 			}
 		}

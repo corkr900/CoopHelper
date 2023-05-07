@@ -13,6 +13,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedDashBlock")]
 	[TrackedAs(typeof(DashBlock))]
 	public class SyncedDashBlock : DashBlock, ISynchronizable {
+		private EntityID id;
 
 		public SyncedDashBlock(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			id = new EntityID(data.Level.Name, data.ID);
@@ -20,7 +21,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		internal void OnBreak() {
 			EntityStateTracker.PostUpdate(this);
-			DestroyStaticMovers();
 		}
 
 		public override void Added(Scene scene) {
@@ -35,7 +35,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Removed(Scene scene) {
 			base.Removed(scene);
-			DestroyStaticMovers();
 			EntityStateTracker.RemoveListener(this);
 		}
 

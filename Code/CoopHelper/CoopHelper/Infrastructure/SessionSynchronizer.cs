@@ -162,10 +162,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 									if (strawb.Follower.HasLeader) {
 										strawb.Follower.Leader.LoseFollower(strawb.Follower);
 									}
-									if (!strawb.collected) {
-										strawb.collected = true;
+									DynamicData dd = DynamicData.For(strawb);
+									if (!dd.Get<bool>("collected")) {
+										dd.Set("collected", true);
 										Player player = EntityAs<Player>();
-										strawb.Add(new Coroutine(strawb.CollectRoutine(player.StrawberryCollectIndex++)));
+										strawb.Add(new Coroutine(dd.Invoke<IEnumerator>("CollectRoutine", player.StrawberryCollectIndex++)));
 										player.StrawberryCollectResetTimer = 2.5f;
 									}
 									break;
@@ -179,7 +180,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						bool cassetteFound = false;
 						foreach (Entity e in Scene.Entities) {
 							if (e is Cassette cass) {
-								cass.OnPlayer(EntityAs<Player>());
+								DynamicData dd = DynamicData.For(cass);
+								dd.Invoke("OnPlayer", EntityAs<Player>());
 								cassetteFound = true;
 								break;
 							}

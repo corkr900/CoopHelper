@@ -44,6 +44,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal IEnumerator UnlockRoutineOverride(Key key) {
+			DynamicData dd = DynamicData.For(this);
+			string unlockSfxName = dd.Get<string>("unlockSfxName");
+			bool stepMusicProgress = dd.Get<bool>("stepMusicProgress");
+			Sprite sprite = dd.Get<Sprite>("sprite");
 			Level level = SceneAs<Level>();
 
 			// Register as opened immediately so deaths don't result in
@@ -89,7 +93,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// and will still do the necessary flagging without the key
 			if (key != null) {
 				key.IsUsed = true;
-				Follower follower = key.follower;
+				Follower follower = DynamicData.For(key).Get<Follower>("follower");
 				if (follower?.Leader != null) {
 					follower.Leader.LoseFollower(follower);
 				}
