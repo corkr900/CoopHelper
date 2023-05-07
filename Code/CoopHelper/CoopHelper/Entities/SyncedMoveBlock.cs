@@ -14,10 +14,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedMoveBlock")]
 	public class SyncedMoveBlock : MoveBlock, ISynchronizable {
 		private EntityID id;
-		private bool canSteer;
-		private Vector2 startPosition;
-		private Directions direction;
-
 		private float otherPlayerTotalMovement = 0;
 		private MovementState lastState = MovementState.Idling;
 		internal bool LastMoveCheckResult = false;
@@ -28,12 +24,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private float mySyncedMovement = 0;
 
 		private bool MovesVertically { get { return direction == Directions.Up || direction == Directions.Down; } }
-
-		private enum MovementState {
-			Idling = 0,
-			Moving = 1,
-			Breaking = 2,
-		}
 
 		private enum MovementTriggeredBy
 		{
@@ -52,8 +42,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Update() {
 			base.Update();
-			DynamicData dd = DynamicData.For(this);
-			MovementState state = dd.Get<MovementState>("state");
 			if (state != MovementState.Moving) {
 				otherPlayerTotalMovement = 0;
 				triggeredBy = MovementTriggeredBy.None;
@@ -105,10 +93,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is SyncedMoveBlockState mbs) {
-				DynamicData dd = DynamicData.For(this);
 				// Handle other player triggering the block
 				if (lastState == MovementState.Idling && mbs.Moving) {
-					dd.Set("triggered", true);
+					triggered = true;
 					lastState = MovementState.Moving;
 					triggeredBy = MovementTriggeredBy.SomeoneElse;
 				}

@@ -290,7 +290,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void PlaySound(State st) {
-			DynamicData dd = DynamicData.For(sfx);
 			string baseAudio = theme == ZipMover.Themes.Normal ?
 				"event:/game/01_forsaken_city/zip_mover" : "event:/new_content/game/10_farewell/zip_mover";
 			bool isAttack = st == State.MovingForward || (toggleMode && st == State.MovingBack);
@@ -299,7 +298,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			float end = isAttack ? 1f : isReturn ? 3f : 4.3f;
 			// if not attack or end, assume it's the stop at start position
 			sfx.Play(baseAudio);
-			EventInstance ei = dd.Get<EventInstance>("instance");
+			EventInstance ei = sfx.instance;
 			if (ei == null) return;
 			ei.setTimelinePosition((int)(start * 1000));
 			Add(new Coroutine(EndSoundAtTime(ei, end)));

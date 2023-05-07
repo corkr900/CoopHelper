@@ -58,7 +58,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void ApplyState(object state) {
-			if (state is Vector2 from && !DynamicData.For(this).Get<bool>("broken")) {
+			if (state is Vector2 from && !broken) {
 				brokenRemotely = true;
 				Break(from);
 			}

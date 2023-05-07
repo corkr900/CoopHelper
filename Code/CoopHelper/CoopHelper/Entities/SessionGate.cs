@@ -107,7 +107,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			try {
 				MoveVExact(height - num);
 			}
-			catch(Exception e) {
+			catch(Exception) {
 				// IDK why but MoveVExact will randomly crash sometimes????? idk just ignore it i guess
 			}
 			Y = y;
