@@ -25,7 +25,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public SyncedBooster(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
-			red = data.Bool("red");
 
 			PlayerCollider coll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = coll.OnCollide;
