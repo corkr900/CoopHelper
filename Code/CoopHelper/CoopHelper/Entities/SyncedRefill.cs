@@ -16,11 +16,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedRefill : Refill, ISynchronizable {
 		private EntityID id;
 		private float respawnTime = 2.5f;
-		private bool twoDashes = false;
 
 		public SyncedRefill(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
-			twoDashes = data.Bool("twoDash", false);
 			PlayerCollider pcoll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = pcoll.OnCollide;
 			respawnTime = data.Float("respawnTime", 2.5f);
@@ -32,10 +30,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void UsedByOtherPlayer() {
-			DynamicData dd = DynamicData.For(this);
 			Collidable = false;
 			Add(new Coroutine(RemoteRefillRoutine()));
-			dd.Set("respawnTimer", respawnTime);
+			respawnTimer = respawnTime;
 			FMOD.Studio.EventInstance instance = Audio.Play(twoDashes ? "event:/new_content/game/10_farewell/pinkdiamond_touch" : "event:/game/general/diamond_touch", Position);
 			instance.setPitch(0.8f);
 			instance.setVolume(0.6f);
@@ -43,14 +40,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private IEnumerator RemoteRefillRoutine() {
 			Level level = SceneAs<Level>();
-			DynamicData dd = DynamicData.For(this);
 			yield return null;
-			dd.Get<Sprite>("sprite").Visible = false;
-			dd.Get<Sprite>("flash").Visible = false;
-			bool oneUse = dd.Get<bool>("oneUse");
-			ParticleType p_shatter = dd.Get<ParticleType>("p_shatter");
+			sprite.Visible = false;
+			flash.Visible = false;
 			if (!oneUse) {
-				dd.Get<Image>("outline").Visible = true;
+				outline.Visible = true;
 			}
 			Depth = 8999;
 			yield return 0.05f;

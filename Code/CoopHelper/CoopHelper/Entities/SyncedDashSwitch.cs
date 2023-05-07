@@ -34,11 +34,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			OnDashCollide = OnDashedOverride;
 		}
 
-		EntityID id;
-
 		public DashCollisionResults OnDashedOverride(Player player, Vector2 direction) {
-			DynamicData dd = DynamicData.For(this);
-			if (!dd.Get<bool>("pressed") && direction == dd.Get<Vector2>("pressDirection")) {
+			if (!pressed && direction == pressDirection) {
 				EntityStateTracker.PostUpdate(this);
 			}
 			return OnDashed(player, direction);
@@ -84,14 +81,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void ApplyState(object state) {
-			DynamicData dd = DynamicData.For(this);
-			Vector2 dir = dd.Get<Vector2>("pressDirection");
-			OnDashed(null, dir);
+			OnDashed(null, pressDirection);
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
-			DynamicData dd = DynamicData.For(this);
-			bool pressed = dd.Get<bool>("pressed");
 			w.Write(pressed);
 		}
 
