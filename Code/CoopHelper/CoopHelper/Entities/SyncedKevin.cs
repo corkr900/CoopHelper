@@ -82,13 +82,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				Attacking = sks.Attacking;
 				returnStack.Clear();
 				if (sks.ReturnStack?.Count > 0) {
-					Type moveStateType = typeof(CrushBlock).GetNestedType("MoveState", System.Reflection.BindingFlags.NonPublic);
-					FieldInfo from = moveStateType.GetField("From");
-					FieldInfo direction = moveStateType.GetField("Direction");
-					foreach (Tuple<Vector2, Vector2> moveStateTup in sks.ReturnStack) {
-						MoveState moveState = (MoveState)Activator.CreateInstance(moveStateType);
-						from.SetValue(moveState, moveStateTup.Item1);
-						direction.SetValue(moveState, moveStateTup.Item2);
+					foreach (MoveState moveState in sks.ReturnStack) {
 						returnStack.Add(moveState);
 					}
 				}
@@ -100,14 +94,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				Position = r.ReadVector2(),
 				Attacking = r.ReadBoolean(),
 				AttackDirection = r.ReadVector2(),
-				ReturnStack = new List<Tuple<Vector2, Vector2>>(),
+				ReturnStack = new List<MoveState>(),
 			};
 			int count = r.ReadInt32();
 			for (int i = 0; i < count; i++) {
-				s.ReturnStack.Add(new Tuple<Vector2, Vector2>(
-					r.ReadVector2(),
-					r.ReadVector2()
-				));
+				s.ReturnStack.Add(new MoveState() {
+					From = r.ReadVector2(),
+					Direction = r.ReadVector2(),
+				});
 			}
 			return s;
 		}
@@ -128,6 +122,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public Vector2 Position;
 		public bool Attacking;
 		public Vector2 AttackDirection;
-		public List<Tuple<Vector2, Vector2>> ReturnStack;
+		public List<CrushBlock.MoveState> ReturnStack;
 	}
 }
