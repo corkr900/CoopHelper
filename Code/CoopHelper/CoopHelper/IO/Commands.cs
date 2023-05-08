@@ -18,11 +18,13 @@ namespace Celeste.Mod.CoopHelper.IO {
 			Level level = Engine.Scene as Level;
 			Session session = level?.Session;
 			SessionPickerEntity picker = level?.Entities?.FindFirst<SessionPickerEntity>();
+			int sessionSize = (int)Calc.Max(2, role + 1);
 			if (picker != null && session != null) {
-				picker.MakeSession(role, session);
+				PlayerID[] players = new PlayerID[sessionSize];
+				players[role] = PlayerID.MyID;
+				picker.MakeSession(role, session, players);
 			}
 			else if (level?.Session != null && CoopHelperModule.Session != null) {
-				int sessionSize = (int)Calc.Max(2, role + 1);
 				CoopHelperModule.Session.IsInCoopSession = true;
 				CoopHelperModule.Session.SessionID = CoopSessionID.GetNewID();
 				CoopHelperModule.Session.SessionRole = role;

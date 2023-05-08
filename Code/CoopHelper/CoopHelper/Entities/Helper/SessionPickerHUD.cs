@@ -144,8 +144,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void DoFinalize(CoopSessionID id, PlayerID[] players) {
-			CoopHelperModule.Instance.ChangeSessionInfo(id, players);
-			onClose?.Invoke(new SessionPickerHUDCloseArgs());
+			onClose?.Invoke(new SessionPickerHUDCloseArgs() {
+				CreateNewSession = true,
+				ID = id,
+				Players = players,
+			});
 		}
 
 		public override void Render() {
@@ -204,7 +207,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
 				newAvailability = false,
 			}, false);
-			onClose?.Invoke(new SessionPickerHUDCloseArgs());
+			onClose?.Invoke(new SessionPickerHUDCloseArgs() {
+				CreateNewSession = false,
+			});
 		}
 
 		public override void Update() {
@@ -260,6 +265,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	}
 
 	public class SessionPickerHUDCloseArgs {
-
+		internal CoopSessionID ID;
+		internal PlayerID[] Players;
+		internal bool CreateNewSession;
 	}
 }
