@@ -153,7 +153,7 @@ namespace Celeste.Mod.CoopHelper {
 			OnSessionInfoChanged?.Invoke();
 		}
 
-		public void ChangeSessionInfo(CoopSessionID id, PlayerID[] players) {
+		public void ChangeSessionInfo(CoopSessionID id, PlayerID[] players, DeathSyncMode deathMode) {
 			if (Session == null) return;
 
 			int myRole = -1;
@@ -168,6 +168,7 @@ namespace Celeste.Mod.CoopHelper {
 			Session.SessionID = id;
 			Session.SessionRole = myRole;
 			Session.SessionMembers = new List<PlayerID>(players);
+			Session.DeathSync = deathMode;
 
 			NotifySessionChanged();
 		}

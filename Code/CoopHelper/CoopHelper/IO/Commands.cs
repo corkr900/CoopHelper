@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,31 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 			else {
 				Engine.Commands.Log("Could not set flag (no session available)");
+			}
+		}
+
+		// Example: coop_spawnsessionpicker deathSyncMode:everywhere
+
+		[Command("coop_spawnsessionpicker", "Spawn a Co-op Helper Session Picker")]
+		public static void SpawnSessionPicker(string arg) {
+			Level level = Engine.Scene as Level;
+			Player player = level?.Tracker?.GetEntity<Player>();
+			if (player != null) {
+				Vector2 roomPos = level.Bounds.Location.ToVector2();
+				EntityData ed = new EntityData();
+				ed.Position = player.Position - roomPos - Vector2.UnitY * 16f;
+				ed.ID = -1;
+				ed.Values = new Dictionary<string, object>();
+				ed.Values.Add("removeIfSessionExists", true);
+				string[] subArgs = arg?.Split(',');
+				if (subArgs != null) {
+					foreach (string subarg in subArgs) {
+						string[] split = subarg?.Split(':');
+						if (split?.Length != 2 || string.IsNullOrEmpty(split[0]) || string.IsNullOrEmpty(split[1])) continue;
+						ed.Values.Add(split[0], split[1]);
+					}
+				}
+				level.Add(new SessionPickerEntity(ed, roomPos));
 			}
 		}
 	}

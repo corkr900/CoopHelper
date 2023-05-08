@@ -24,6 +24,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private string[] forceSkin = null;
 		private int[] dashes = null;
 		private string[] abilities = null;
+		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			Position = data.Position + offset;
@@ -73,6 +74,20 @@ namespace Celeste.Mod.CoopHelper.Entities {
 						abilities[i] = "none";
 					}
 				}
+			}
+			// Misc sync behavior
+			string deathMode = data.Attr("deathSyncMode", "SameRoomOnly");
+			switch (deathMode?.ToLower()) {
+				default:
+				case "sameroomonly":
+					DeathMode = DeathSyncMode.SameRoomOnly;
+					break;
+				case "none":
+					DeathMode = DeathSyncMode.None;
+					break;
+				case "everywhere":
+					DeathMode = DeathSyncMode.Everywhere;
+					break;
 			}
 		}
 
@@ -159,7 +174,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		internal void MakeSession(Session currentSession, PlayerID[] players, CoopSessionID? id = null) {
 			// Set up basic session data and flags
 			if (id == null) id = CoopSessionID.GetNewID();
-			CoopHelperModule.Instance.ChangeSessionInfo(id.Value, players);
+			CoopHelperModule.Instance.ChangeSessionInfo(id.Value, players, DeathMode);
 			int role = CoopHelperModule.Session.SessionRole;
 			currentSession.SetFlag("CoopHelper_InSession", true);
 			for (int i = 0; i < PlayersNeeded; i++) {

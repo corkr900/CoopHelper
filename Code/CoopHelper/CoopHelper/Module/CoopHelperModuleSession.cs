@@ -12,5 +12,12 @@ namespace Celeste.Mod.CoopHelper.Module {
 		public int SessionRole = -1;
 		public List<PlayerID> SessionMembers = new List<PlayerID>();
 		public bool? ForceCNetInteractions { get; internal set; } = null;
+		public DeathSyncMode DeathSync = DeathSyncMode.None;
+	}
+
+	public enum DeathSyncMode {
+		None,
+		SameRoomOnly,
+		Everywhere,
 	}
 }

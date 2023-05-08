@@ -71,7 +71,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal void PlayerDied() {
-			if (!CurrentDeathIsSecondary) {
+			if (!CurrentDeathIsSecondary && CoopHelperModule.Session?.DeathSync != Module.DeathSyncMode.None) {
 				lock (basicFlagsLock) {
 					deathPending = true;
 					lastTriggeredDeathLocal = SyncTime.Now;
@@ -142,8 +142,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 					// death sync
 					if (dss.dead
+						&& CoopHelperModule.Session?.DeathSync != Module.DeathSyncMode.None
 						&& PlayerState.Mine?.CurrentRoom != null
-						&& dss.room == PlayerState.Mine.CurrentRoom
+						&& (CoopHelperModule.Session?.DeathSync == Module.DeathSyncMode.Everywhere || dss.room == PlayerState.Mine.CurrentRoom)
 						&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000
 						&& level?.Transitioning == false)
 					{
