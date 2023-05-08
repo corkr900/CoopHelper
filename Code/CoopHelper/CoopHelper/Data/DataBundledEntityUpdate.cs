@@ -35,6 +35,8 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
+			senderID = reader.ReadPlayerID();
+			SessionID = reader.ReadSessionID();
 			bool isMySession = !PlayerState.Mine.CurrentMap.IsOverworld
 				&& CoopHelperModule.Session.IsInCoopSession
 				&& CoopHelperModule.Session.SessionID == SessionID;
@@ -46,6 +48,8 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
+			writer.Write(senderID);
+			writer.Write(SessionID);
 			EntityStateTracker.FlushOutgoing(writer);
 		}
 	}
