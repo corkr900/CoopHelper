@@ -326,9 +326,8 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, level, poem);
 			AreaKey area = level.Session.Area;
 			bool isCompleteArea = self.IsCompleteArea(area.Mode != 0 || area.ID == 9);
-			if (!isCompleteArea) {
-				level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected(AreaData.Get(level).Mode[(int)area.Mode].PoemID);
-			}
+			string poemID = AreaData.Get(level).Mode[(int)area.Mode].PoemID;
+			level.Tracker.GetEntity<Player>()?.Get<SessionSynchronizer>()?.HeartCollected(isCompleteArea, poemID);
 		}
 
 		private void OnTempleCrackedBlockBreak(On.Celeste.TempleCrackedBlock.orig_Break orig, TempleCrackedBlock self, Vector2 from) {

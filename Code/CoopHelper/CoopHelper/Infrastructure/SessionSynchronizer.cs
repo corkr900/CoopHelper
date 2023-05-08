@@ -20,6 +20,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public bool cassette;
 		public bool heart;
 		public string heartPoem;
+		internal bool heartEndsLevel;
 	}
 
 	public class SessionSynchronizer : Component, ISynchronizable {
@@ -34,7 +35,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private bool cassettePending = false;
 		private bool heartPending = false;
 		private string heartPoem;
+		private bool heartEndsLevel;
 		public List<EntityID> newlyCollectedStrawbs = new List<EntityID>();
+		private bool levelEndTriggeredRemotely = false;
 
 		public Player playerEntity { get; private set; }
 
@@ -91,10 +94,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		internal void HeartCollected(string poemID) {
+		internal void HeartCollected(bool endLevel, string poemID) {
 			lock (basicFlagsLock) {
 				heartPending = true;
 				heartPoem = poemID;
+				heartEndsLevel = endLevel;
 				EntityStateTracker.PostUpdate(this);
 			}
 		}
@@ -113,6 +117,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				dead = r.ReadBoolean(),
 				cassette = r.ReadBoolean(),
 				heart = r.ReadBoolean(),
+				heartEndsLevel = r.ReadBoolean(),
 				heartPoem = r.ReadString(),
 				player = r.ReadPlayerID(),
 				instant = r.ReadDateTime(),
@@ -194,8 +199,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					}
 
 					// heart sync
-					if (dss.heart && !level.Session.HeartGem) {
+					if (dss.heart && !level.Session.HeartGem && !levelEndTriggeredRemotely) {
 						// This is basically just copied from HeartGem.RegisterAsCollected
+						levelEndTriggeredRemotely = true;
 						level.Session.HeartGem = true;
 						int unlockedModes = SaveData.Instance.UnlockedModes;
 						SaveData.Instance.RegisterHeartGem(level.Session.Area);
@@ -210,7 +216,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						}
 						Entity e = new Entity();
 						e.Tag = Tags.FrozenUpdate;
-						e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem)));
+						e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem, dss.heartEndsLevel)));
 						level.Add(e);
 
 						foreach (Entity heart in level.Tracker.GetEntities<HeartGem>()) {
@@ -221,7 +227,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		private IEnumerator RemoteHeartCollectionRoutine(Level level, Entity coroutineEnity, Player player, AreaKey area, string poemID) {
+		private IEnumerator RemoteHeartCollectionRoutine(Level level, Entity coroutineEnity, Player player, AreaKey area, string poemID, bool completeArea) {
 			while (level.Transitioning) {
 				yield return null;
 			}
@@ -231,6 +237,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			level.Frozen = true;
 			level.CanRetry = false;
 			level.FormationBackdrop.Display = true;
+
+			// Immediate actions
+			if (completeArea) {
+				List<Strawberry> list = new List<Strawberry>();
+				foreach (Follower follower in player.Leader.Followers) {
+					if (follower.Entity is Strawberry) {
+						list.Add(follower.Entity as Strawberry);
+					}
+				}
+				foreach (Strawberry item in list) {
+					item.OnCollect();
+				}
+			}
 
 			// Animation
 			string poemText = null;
@@ -244,25 +263,35 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				poem.Alpha = Ease.CubeOut(t3);
 				yield return null;
 			}
+
+			// Animation finished
 			while (!Input.MenuConfirm.Pressed && !Input.MenuCancel.Pressed) {
 				yield return null;
 			}
 			//sfx.Source.Param("end", 1f);
-			level.FormationBackdrop.Display = false;
-			for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime * 2f) {
-				poem.Alpha = Ease.CubeIn(1f - t3);
-				yield return null;
-			}
+			if (!completeArea) {
+				level.FormationBackdrop.Display = false;
+				for (float t3 = 0f; t3 < 1f; t3 += Engine.RawDeltaTime * 2f) {
+					poem.Alpha = Ease.CubeIn(1f - t3);
+					yield return null;
+				}
 
-			// Cleanup
-			player.Depth = Depths.Player;
-			level.Frozen = false;
-			level.CanRetry = true;
-			level.FormationBackdrop.Display = false;
-			if (poem != null) {
-				poem.RemoveSelf();
+				// Cleanup
+				player.Depth = Depths.Player;
+				level.Frozen = false;
+				level.CanRetry = true;
+				level.FormationBackdrop.Display = false;
+				if (poem != null) {
+					poem.RemoveSelf();
+				}
+				coroutineEnity.RemoveSelf();
 			}
-			coroutineEnity.RemoveSelf();
+			else {
+				FadeWipe fadeWipe = new FadeWipe(level, wipeIn: false);
+				fadeWipe.Duration = 3.25f;
+				yield return fadeWipe.Duration;
+				level.CompleteArea(spotlightWipe: false, skipScreenWipe: true, skipCompleteScreen: false);
+			}
 		}
 
 		public EntityID GetID() => GetIDStatic();
@@ -279,6 +308,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				cassettePending = false;
 				w.Write(heartPending);
 				heartPending = false;
+				w.Write(heartEndsLevel);
 				w.Write(heartPoem ?? "");
 				heartPoem = "";
 			}
