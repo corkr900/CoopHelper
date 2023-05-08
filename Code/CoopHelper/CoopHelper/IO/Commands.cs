@@ -22,7 +22,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			if (picker != null && session != null) {
 				PlayerID[] players = new PlayerID[sessionSize];
 				players[role] = PlayerID.MyID;
-				picker.MakeSession(role, session, players);
+				picker.MakeSession(session, players);
 			}
 			else if (level?.Session != null && CoopHelperModule.Session != null) {
 				CoopHelperModule.Session.IsInCoopSession = true;

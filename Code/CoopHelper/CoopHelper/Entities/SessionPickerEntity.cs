@@ -139,10 +139,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Scene.Remove(hud);
 			hud = null;
 			Audio.Play("event:/ui/game/unpause");
-			CoopHelperModuleSession coopSes = CoopHelperModule.Session;
 			Session currentSession = SceneAs<Level>()?.Session;
 			if (args.CreateNewSession && currentSession != null) {
-				MakeSession(coopSes.SessionRole, currentSession, args.Players, args.ID);
+				MakeSession(currentSession, args.Players, args.ID);
 			}
 			else {
 				LeaveSession(currentSession);
@@ -157,10 +156,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		internal void MakeSession(int role, Session currentSession, PlayerID[] players, CoopSessionID? id = null) {
+		internal void MakeSession(Session currentSession, PlayerID[] players, CoopSessionID? id = null) {
 			// Set up basic session data and flags
 			if (id == null) id = CoopSessionID.GetNewID();
 			CoopHelperModule.Instance.ChangeSessionInfo(id.Value, players);
+			int role = CoopHelperModule.Session.SessionRole;
 			currentSession.SetFlag("CoopHelper_InSession", true);
 			for (int i = 0; i < PlayersNeeded; i++) {
 				currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
