@@ -16,7 +16,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public DateTime instant;
 		public string room;
 		public bool dead;
-		public List<EntityID> collectedStrawbs;
+		public List<Tuple<EntityID, Vector2>> collectedStrawbs;
 		public bool cassette;
 		public bool heart;
 		public string heartPoem;
@@ -36,7 +36,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private bool heartPending = false;
 		private string heartPoem;
 		private bool heartEndsLevel;
-		public List<EntityID> newlyCollectedStrawbs = new List<EntityID>();
+		public List<Tuple<EntityID, Vector2>> newlyCollectedStrawbs = new List<Tuple<EntityID, Vector2>>();
 		private bool levelEndTriggeredRemotely = false;
 
 		public Player playerEntity { get; private set; }
@@ -80,9 +80,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			}
 		}
 
-		internal void StrawberryCollected(EntityID id) {
+		internal void StrawberryCollected(EntityID id, Vector2 position) {
 			lock (newlyCollectedStrawbs) {
-				newlyCollectedStrawbs.Add(id);
+				newlyCollectedStrawbs.Add(new Tuple<EntityID, Vector2>(id, position));
 				EntityStateTracker.PostUpdate(this);
 			}
 		}
@@ -112,26 +112,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			Critical = true,
 		};
 
-		public static SessionSyncState ParseState(CelesteNetBinaryReader r) {
-			SessionSyncState state = new SessionSyncState {
-				dead = r.ReadBoolean(),
-				cassette = r.ReadBoolean(),
-				heart = r.ReadBoolean(),
-				heartEndsLevel = r.ReadBoolean(),
-				heartPoem = r.ReadString(),
-				player = r.ReadPlayerID(),
-				instant = r.ReadDateTime(),
-				room = r.ReadString(),
-			};
-			List<EntityID> strawbs = new List<EntityID>();
-			int count = r.ReadInt32();
-			for (int i = 0; i < count; i++) {
-				strawbs.Add(r.ReadEntityID());
-			}
-			state.collectedStrawbs = strawbs;
-			return state;
-		}
-
 		public void ApplyState(object state) {
 			if (state is SessionSyncState dss) {
 				if (!dss.player.Equals(PlayerID.MyID)
@@ -156,20 +136,21 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 					// strawberry sync
 					if (dss.collectedStrawbs != null && dss.collectedStrawbs.Count > 0) {
-						foreach (EntityID id in dss.collectedStrawbs) {
+						foreach (Tuple<EntityID, Vector2> tup in dss.collectedStrawbs) {
 							// register strawb as collected
-							SaveData.Instance.AddStrawberry(id, false);
+							SaveData.Instance.AddStrawberry(tup.Item1, false);
 							Session session = level.Session;
-							session.DoNotLoad.Add(id);
-							session.Strawberries.Add(id);
+							session.DoNotLoad.Add(tup.Item1);
+							session.Strawberries.Add(tup.Item1);
 							// handle if the strawb is in the current room
 							foreach (Entity e in Scene.Entities) {
-								if (e is Strawberry strawb && strawb.ID.Equals(id)) {
+								if (e is Strawberry strawb && strawb.ID.Equals(tup.Item1)) {
 									if (strawb.Follower.HasLeader) {
 										strawb.Follower.Leader.LoseFollower(strawb.Follower);
 									}
 									if (!strawb.collected) {
 										strawb.collected = true;
+										strawb.Position = tup.Item2;
 										Player player = EntityAs<Player>();
 										strawb.Add(new Coroutine(strawb.CollectRoutine(player.StrawberryCollectIndex++)));
 										player.StrawberryCollectResetTimer = 2.5f;
@@ -318,11 +299,35 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			w.Write(PlayerState.Mine?.CurrentRoom ?? "");
 			lock (newlyCollectedStrawbs) {
 				w.Write(newlyCollectedStrawbs.Count);
-				foreach (EntityID id in newlyCollectedStrawbs) {
-					w.Write(id);
+				foreach (Tuple<EntityID, Vector2> tup in newlyCollectedStrawbs) {
+					w.Write(tup.Item1);
+					w.Write(tup.Item2);
 				}
 				newlyCollectedStrawbs.Clear();
 			}
 		}
+
+		public static SessionSyncState ParseState(CelesteNetBinaryReader r) {
+			SessionSyncState state = new SessionSyncState {
+				dead = r.ReadBoolean(),
+				cassette = r.ReadBoolean(),
+				heart = r.ReadBoolean(),
+				heartEndsLevel = r.ReadBoolean(),
+				heartPoem = r.ReadString(),
+				player = r.ReadPlayerID(),
+				instant = r.ReadDateTime(),
+				room = r.ReadString(),
+			};
+			List<Tuple<EntityID, Vector2>> strawbs = new List<Tuple<EntityID, Vector2>>();
+			int count = r.ReadInt32();
+			for (int i = 0; i < count; i++) {
+				strawbs.Add(new Tuple<EntityID, Vector2>(
+					r.ReadEntityID(),
+					r.ReadVector2()));
+			}
+			state.collectedStrawbs = strawbs;
+			return state;
+		}
+
 	}
 }

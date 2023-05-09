@@ -201,7 +201,7 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self);
 			if (!self.Golden) {
 				Player player = self.SceneAs<Level>().Tracker.GetEntity<Player>();
-				player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID);
+				player?.Get<SessionSynchronizer>()?.StrawberryCollected(self.ID, self.Position);
 			}
 		}
 
