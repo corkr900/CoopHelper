@@ -172,54 +172,37 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal void MakeSession(Session currentSession, PlayerID[] players, CoopSessionID? id = null) {
-			// Set up basic session data and flags
-			if (id == null) id = CoopSessionID.GetNewID();
-			CoopHelperModule.Instance.ChangeSessionInfo(id.Value, players, DeathMode);
-			int role = CoopHelperModule.Session.SessionRole;
-			currentSession.SetFlag("CoopHelper_InSession", true);
-			for (int i = 0; i < PlayersNeeded; i++) {
-				currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == role);
-			}
+			int? dash = null;
+			string skin = "";
+			string ability = "";
 
-			// Apply role-specific skins
-			if (forceSkin != null && forceSkin.Length > 0) {
-				string newSkin = forceSkin[role % forceSkin.Length];
-				Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
-				if (t_SkinModHelperModule != null) {
-					MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
-					try {
-						m_UpdateSkin?.Invoke(null, new object[] { newSkin });
-					}
-					catch (Exception) {
-						Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + newSkin + "\" is not defined.");
-						m_UpdateSkin?.Invoke(null, new object[] { "Default" });
-					}
-				}
-				else {
-					Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
+			// Figure out my role
+			int myRole = -1;
+			for (int i = 0; i < players.Length; i++) {
+				if (players[i].Equals(PlayerID.MyID)) {
+					myRole = i;
 				}
 			}
+			if (myRole < 0) return;  // I'm not in this one
 
 			// Apply role-specific dash count
 			if (dashes != null && dashes.Length > 0) {
 				Session session = SceneAs<Level>()?.Session;
-				if (session != null) session.Inventory.Dashes = dashes[role % dashes.Length];
+				if (session != null) dash = dashes[myRole % dashes.Length];
 				else Logger.Log(LogLevel.Warn, "Co-op Helper", "Could not change dash count: no session avilable");
+			}
+
+			// Get role-specific skins
+			if (forceSkin != null && forceSkin.Length > 0) {
+				skin = forceSkin[myRole % forceSkin.Length];
 			}
 
 			// Apply role-specific abilities
 			if (abilities != null && abilities.Length > 0) {
-				string ability = abilities[role % abilities.Length];
-				if (ability == "grapple") {
-					Type t_JackalModule = Type.GetType("Celeste.Mod.JackalHelper.JackalModule,JackalHelper");
-					if (t_JackalModule != null) {
-						PropertyInfo p_Session = t_JackalModule.GetProperty("Session");
-						EverestModuleSession JackalSession = p_Session?.GetValue(null) as EverestModuleSession;
-						DynamicData dd = DynamicData.For(JackalSession);
-						dd.Set("hasGrapple", true);
-					}
-				}
+				ability = abilities[myRole % abilities.Length];
 			}
+
+			CoopHelperModule.MakeSession(currentSession, players, id, dash, DeathMode, ability, skin);
 		}
 	}
 }

@@ -52,6 +52,7 @@ namespace Celeste.Mod.CoopHelper {
 		private static IDetour hook_Strawberry_orig_OnCollect;
 		private static IDetour hook_CelesteNetClientSettings_Interactions_get;
 		private static IDetour hook_CrushBlock_AttackSequence;
+		private static IDetour hook_Player_orig_Die;
 
 		public CoopHelperModule() {
 			Instance = this;
@@ -71,6 +72,9 @@ namespace Celeste.Mod.CoopHelper {
 			hook_CelesteNetClientSettings_Interactions_get = new Hook(
 				typeof(CelesteNetClientSettings).GetProperty("Interactions").GetMethod,
 				typeof(CoopHelperModule).GetMethod("OnCelesteNetClientSettingsInteractionsGet"));
+			hook_Player_orig_Die = new Hook(
+				typeof(Player).GetMethod("orig_Die", BindingFlags.Public | BindingFlags.Instance),
+				typeof(CoopHelperModule).GetMethod("OnPlayerDie"));
 
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
@@ -97,7 +101,6 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
-			Everest.Events.Player.OnDie += OnDie;
 			Everest.Events.Level.OnExit += onLevelExit;
 
 			typeof(ModInterop).ModInterop();
@@ -138,7 +141,6 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
-			Everest.Events.Player.OnDie -= OnDie;
 			Everest.Events.Level.OnExit -= onLevelExit;
 		}
 
@@ -149,28 +151,98 @@ namespace Celeste.Mod.CoopHelper {
 		public delegate void OnSessionInfoChangedHandler();
 		public static event OnSessionInfoChangedHandler OnSessionInfoChanged;
 
+		internal CoopHelperModuleSession CachedSession = null;
+
 		public static void NotifySessionChanged() {
 			OnSessionInfoChanged?.Invoke();
 		}
 
-		public void ChangeSessionInfo(CoopSessionID id, PlayerID[] players, DeathSyncMode deathMode) {
+		internal static void MakeSession(
+			Session currentSession,
+			PlayerID[] players,
+			CoopSessionID? id = null,
+			int? dashes = null,
+			DeathSyncMode deathMode = DeathSyncMode.SameRoomOnly,
+			string ability = "",
+			string skin = "")
+		{
+			// Basic checks...
 			if (Session == null) return;
-
 			int myRole = -1;
-			for (int i = 0; i < players.Length; i++) {
+			for (int i = 0; i < (players?.Length ?? 0); i++) {
 				if (players[i].Equals(PlayerID.MyID)) {
 					myRole = i;
 				}
 			}
-			if (myRole < 0) return;  // I'm not in this one
+			if (myRole < 0) return;  // I'm not in this one; error out
 
+
+			// Set up basic session data and flags
+			if (id == null) id = CoopSessionID.GetNewID();
+			currentSession.SetFlag("CoopHelper_InSession", true);
+			for (int i = 0; i < players.Length; i++) {
+				currentSession.SetFlag("CoopHelper_SessionRole_" + i, i == myRole);
+			}
+
+			// Dash count
+			if (dashes != null) currentSession.Inventory.Dashes = dashes.Value;
+
+			// Handle abilities
+			if (ability == "grapple") {
+				Type t_JackalModule = Type.GetType("Celeste.Mod.JackalHelper.JackalModule,JackalHelper");
+				if (t_JackalModule != null) {
+					PropertyInfo p_Session = t_JackalModule.GetProperty("Session");
+					EverestModuleSession JackalSession = p_Session?.GetValue(null) as EverestModuleSession;
+					DynamicData dd = DynamicData.For(JackalSession);
+					dd.Set("hasGrapple", true);
+				}
+			}
+
+			// Handle skins
+			if (!string.IsNullOrEmpty(skin)) {
+				Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
+				if (t_SkinModHelperModule != null) {
+					MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
+					try {
+						m_UpdateSkin?.Invoke(null, new object[] { skin });
+					}
+					catch (Exception) {
+						Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + skin + "\" is not defined.");
+						m_UpdateSkin?.Invoke(null, new object[] { "Default" });
+					}
+				}
+				else {
+					Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
+				}
+			}
+
+			// Write to the Session and broadcast the update
 			Session.IsInCoopSession = true;
-			Session.SessionID = id;
+			Session.SessionID = id.Value;
 			Session.SessionRole = myRole;
 			Session.SessionMembers = new List<PlayerID>(players);
 			Session.DeathSync = deathMode;
+			Session.DashCount = dashes ?? currentSession.Inventory.Dashes;
+			Session.Skin = skin;
+			Session.Ability = ability;
 
 			NotifySessionChanged();
+		}
+
+		private void CacheSession() {
+			CachedSession = Session;
+		}
+
+		private void TryRestoreCachedSession(Session currentSession) {
+			if (CachedSession == null) return;
+			MakeSession(currentSession,
+				CachedSession.SessionMembers?.ToArray(),
+				CachedSession.SessionID,
+				CachedSession.DashCount,
+				CachedSession.DeathSync,
+				CachedSession.Ability,
+				CachedSession.Skin);
+			CachedSession = null;
 		}
 
 		#endregion
@@ -218,8 +290,20 @@ namespace Celeste.Mod.CoopHelper {
 			}
 		}
 
-		private void OnDie(Player pl) {
-			pl.Get<SessionSynchronizer>()?.PlayerDied();
+		public static PlayerDeadBody OnPlayerDie(Func<Player, Vector2, bool, bool, PlayerDeadBody> orig, Player self, Vector2 direction, bool ifInvincible, bool registerStats) {
+			// check whether we'll *actually* die first...
+			Session session = self.level.Session;
+			bool flag = !ifInvincible && global::Celeste.SaveData.Instance.Assists.Invincible;
+			if (!self.Dead && !flag && self.StateMachine.State != Player.StReflectionFall) {
+				// Cache off session data to restore after golden death
+				if (self.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false) {
+					Instance.CacheSession();
+				}
+				// Send sync info
+				self.Get<SessionSynchronizer>()?.PlayerDied();
+			}
+			// Now actually do the thing
+			return orig(self, direction, ifInvincible, registerStats);
 		}
 
 		private void OnPlayerTransition(On.Celeste.Player.orig_OnTransition orig, Player self) {
@@ -232,6 +316,9 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		private void OnLevelLoaderStart(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
+			if (Session != null && !Session.IsInCoopSession) {
+				TryRestoreCachedSession(self.session);
+			}
 			orig(self);
 			EntityStateTracker.ClearBuffers();
 			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);
