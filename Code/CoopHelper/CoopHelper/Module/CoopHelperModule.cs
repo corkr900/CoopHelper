@@ -316,11 +316,11 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		private void OnLevelLoaderStart(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
+			EntityStateTracker.ClearBuffers();
 			if (Session != null && !Session.IsInCoopSession) {
 				TryRestoreCachedSession(self.session);
 			}
 			orig(self);
-			EntityStateTracker.ClearBuffers();
 			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);
 			PlayerState.Mine.CurrentRoom = self.Level.Session.Level;
 			PlayerState.Mine.RespawnPoint = self.Level.Session.RespawnPoint ?? Vector2.Zero;

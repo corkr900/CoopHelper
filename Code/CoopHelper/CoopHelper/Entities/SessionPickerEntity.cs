@@ -165,12 +165,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		internal void LeaveSession(Session currentSession) {
-			currentSession.SetFlag("CoopHelper_InSession", false);
-			for (int i = 0; i < PlayersNeeded; i++) {
-				currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
-			}
+			//currentSession.SetFlag("CoopHelper_InSession", false);
+			//for (int i = 0; i < PlayersNeeded; i++) {
+			//	currentSession.SetFlag("CoopHelper_SessionRole_" + i, false);
+			//}
 		}
 
+		/// <summary>
+		/// Creates a co-op session using the role-specific properties defined by this entity's settings
+		/// </summary>
+		/// <param name="currentSession">Session object for the current playthrough</param>
+		/// <param name="players">List of Player IDs included in the session</param>
+		/// <param name="id">Session ID to use, if available. A new ID will be generated if one is not provided</param>
 		internal void MakeSession(Session currentSession, PlayerID[] players, CoopSessionID? id = null) {
 			int? dash = null;
 			string skin = "";
@@ -202,6 +208,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				ability = abilities[myRole % abilities.Length];
 			}
 
+			// Apply it
 			CoopHelperModule.MakeSession(currentSession, players, id, dash, DeathMode, ability, skin);
 		}
 	}
