@@ -65,7 +65,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// Role-abilities attr
 			string abilitiesarg = data.Attr("abilities", null);
 			if (!string.IsNullOrEmpty(abilitiesarg)) {
-				string[] split = dashesarg.Split(',');
+				string[] split = abilitiesarg.Split(',');
 				abilities = new string[split.Length];
 				for (int i = 0; i < split.Length; i++) {
 					abilities[i] = split[i].Trim().ToLower();
