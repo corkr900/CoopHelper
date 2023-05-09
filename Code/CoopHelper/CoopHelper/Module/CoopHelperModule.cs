@@ -296,11 +296,12 @@ namespace Celeste.Mod.CoopHelper {
 			bool flag = !ifInvincible && global::Celeste.SaveData.Instance.Assists.Invincible;
 			if (!self.Dead && !flag && self.StateMachine.State != Player.StReflectionFall) {
 				// Cache off session data to restore after golden death
-				if (self.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false) {
+				bool hasGolden = self.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false;
+				if (hasGolden) {
 					Instance.CacheSession();
 				}
 				// Send sync info
-				self.Get<SessionSynchronizer>()?.PlayerDied();
+				self.Get<SessionSynchronizer>()?.PlayerDied(hasGolden);
 			}
 			// Now actually do the thing
 			return orig(self, direction, ifInvincible, registerStats);

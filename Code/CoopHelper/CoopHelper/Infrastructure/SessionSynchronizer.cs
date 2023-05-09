@@ -21,6 +21,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public bool heart;
 		public string heartPoem;
 		internal bool heartEndsLevel;
+		internal bool GoldenDeath;
 	}
 
 	public class SessionSynchronizer : Component, ISynchronizable {
@@ -32,12 +33,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		private object basicFlagsLock = new object();
 		private bool deathPending = false;
+		private bool deathPendingIsGolden;
 		private bool cassettePending = false;
 		private bool heartPending = false;
 		private string heartPoem;
 		private bool heartEndsLevel;
 		public List<Tuple<EntityID, Vector2>> newlyCollectedStrawbs = new List<Tuple<EntityID, Vector2>>();
 		private bool levelEndTriggeredRemotely = false;
+		private bool HoldingGolden;
 
 		public Player playerEntity { get; private set; }
 
@@ -70,10 +73,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			EntityStateTracker.RemoveListener(this);
 		}
 
-		internal void PlayerDied() {
+		internal void PlayerDied(bool isGoldenDeath) {
 			if (!CurrentDeathIsSecondary && CoopHelperModule.Session?.DeathSync != Module.DeathSyncMode.None) {
 				lock (basicFlagsLock) {
 					deathPending = true;
+					deathPendingIsGolden = isGoldenDeath;
 					lastTriggeredDeathLocal = SyncTime.Now;
 					EntityStateTracker.PostUpdate(this);
 				}
@@ -112,6 +116,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			Critical = true,
 		};
 
+		private bool PlayerHasGolden() {
+			return EntityAs<Player>()?.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false;
+		}
+
+		private bool ShouldSyncReceivedDeath(SessionSyncState sss) {
+			return sss.dead
+				&& PlayerState.Mine?.CurrentRoom != null
+				&& (CoopHelperModule.Session?.DeathSync == Module.DeathSyncMode.Everywhere
+					|| (CoopHelperModule.Session?.DeathSync == Module.DeathSyncMode.SameRoomOnly && sss.room == PlayerState.Mine.CurrentRoom)
+					|| (sss.GoldenDeath && PlayerHasGolden()))
+				&& (sss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000;
+		}
+
 		public void ApplyState(object state) {
 			if (state is SessionSyncState dss) {
 				if (!dss.player.Equals(PlayerID.MyID)
@@ -121,12 +138,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					Level level = SceneAs<Level>();
 
 					// death sync
-					if (dss.dead
-						&& CoopHelperModule.Session?.DeathSync != Module.DeathSyncMode.None
-						&& PlayerState.Mine?.CurrentRoom != null
-						&& (CoopHelperModule.Session?.DeathSync == Module.DeathSyncMode.Everywhere || dss.room == PlayerState.Mine.CurrentRoom)
-						&& (dss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000
-						&& level?.Transitioning == false)
+					if (ShouldSyncReceivedDeath(dss) && level?.Transitioning == false)
 					{
 						CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
 						EntityAs<Player>()?.Die(Vector2.Zero, true, true);
@@ -286,6 +298,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			lock (basicFlagsLock) {
 				w.Write(deathPending);
 				deathPending = false;
+				w.Write(deathPendingIsGolden);
+				deathPendingIsGolden = false;
 				w.Write(cassettePending);
 				cassettePending = false;
 				w.Write(heartPending);
@@ -310,6 +324,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public static SessionSyncState ParseState(CelesteNetBinaryReader r) {
 			SessionSyncState state = new SessionSyncState {
 				dead = r.ReadBoolean(),
+				GoldenDeath = r.ReadBoolean(),
 				cassette = r.ReadBoolean(),
 				heart = r.ReadBoolean(),
 				heartEndsLevel = r.ReadBoolean(),
