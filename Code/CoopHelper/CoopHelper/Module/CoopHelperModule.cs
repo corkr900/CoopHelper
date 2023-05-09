@@ -88,6 +88,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.MoveBlock.MoveCheck += OnMoveBlockMoveCheck;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
+			On.Celeste.LevelLoader.StartLevel += OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine += OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
@@ -98,7 +99,6 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Player.OnDie += OnDie;
 			Everest.Events.Level.OnExit += onLevelExit;
-			Everest.Events.Level.OnEnter += OnLevelEnter;
 
 			typeof(ModInterop).ModInterop();
 		}
@@ -129,6 +129,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.MoveBlock.MoveCheck -= OnMoveBlockMoveCheck;
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
+			On.Celeste.LevelLoader.StartLevel -= OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine -= OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
@@ -139,7 +140,6 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Player.OnSpawn -= OnSpawn;
 			Everest.Events.Player.OnDie -= OnDie;
 			Everest.Events.Level.OnExit -= onLevelExit;
-			Everest.Events.Level.OnEnter -= OnLevelEnter;
 		}
 
 		#endregion
@@ -231,8 +231,13 @@ namespace Celeste.Mod.CoopHelper {
 			PlayerState.Mine.SendUpdateImmediate();
 		}
 
-		private void OnLevelEnter(Session session, bool fromSaveData) {
+		private void OnLevelLoaderStart(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
+			orig(self);
 			EntityStateTracker.ClearBuffers();
+			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);
+			PlayerState.Mine.CurrentRoom = self.Level.Session.Level;
+			PlayerState.Mine.RespawnPoint = self.Level.Session.RespawnPoint ?? Vector2.Zero;
+			PlayerState.Mine.SendUpdateImmediate();
 		}
 
 		private void onLevelExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
@@ -242,8 +247,8 @@ namespace Celeste.Mod.CoopHelper {
 				PlayerState.Mine.CurrentRoom = "";
 				PlayerState.Mine.RespawnPoint = Vector2.Zero;
 				PlayerState.Mine.SendUpdateImmediate();
+				EntityStateTracker.ClearBuffers();
 			}
-			EntityStateTracker.ClearBuffers();
 		}
 
 		private void OnLevelLoad(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader) {
