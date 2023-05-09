@@ -1,5 +1,7 @@
 
 
+CoopHelper.zip
+CoopHelper_special.zip
 Code/Ref/*.dll
 Code/Ref/*.pdb
 
@@ -403,4 +405,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-CoopHelper.zip

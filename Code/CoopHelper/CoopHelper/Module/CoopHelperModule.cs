@@ -115,6 +115,8 @@ namespace Celeste.Mod.CoopHelper {
 			hook_Strawberry_orig_OnCollect = null;
 			hook_CelesteNetClientSettings_Interactions_get?.Dispose();
 			hook_CelesteNetClientSettings_Interactions_get = null;
+			hook_Player_orig_Die?.Dispose();
+			hook_Player_orig_Die = null;
 
 			// IL Hooks
 			hook_CrushBlock_AttackSequence?.Dispose();
