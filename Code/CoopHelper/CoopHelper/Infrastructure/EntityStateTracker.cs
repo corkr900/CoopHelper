@@ -264,7 +264,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public static void Write(this CelesteNetBinaryWriter w, EntityID id) {
-			w.Write(id.Level);
+			w.Write(id.Level ?? "");
 			w.Write(id.ID);
 		}
 

@@ -209,6 +209,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void CloseSelf() {
 			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
 				newAvailability = false,
+				pickerID = pickerID,
 			}, false);
 			onClose?.Invoke(new SessionPickerHUDCloseArgs() {
 				CreateNewSession = false,
