@@ -1,8 +1,20 @@
 local utils = require("utils")
 
+local deathModeOptions = {
+    None = "None",
+    SameRoomOnly = "SameRoomOnly",
+    Everywhere = "Everywhere",
+}
+
 local SessionPicker = {}
 SessionPicker.name = "corkr900CoopHelper/SessionPicker"
 SessionPicker.depth = 0
+SessionPicker.fieldInformation = {
+    deathSyncMode = {
+        options = deathModeOptions,
+        editable = false
+    }
+}
 SessionPicker.placements = {
     {
         name = "default",
@@ -11,6 +23,7 @@ SessionPicker.placements = {
             skins = "",
             dashes = "",
             abilities = "",
+            deathSyncMode = "SameRoomOnly"
         }
     }
 }

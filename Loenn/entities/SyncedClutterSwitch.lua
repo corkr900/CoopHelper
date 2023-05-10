@@ -24,7 +24,8 @@ for i, variant in ipairs(variants) do
     syncedClutterSwitch.placements[i] = {
         name = variant,
         data = {
-            ["type"] = variant
+            ["type"] = variant,
+            incrementMusicProgress = false,
         }
     }
 end

@@ -16,13 +16,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedClutterSwitch : ClutterSwitch, ISynchronizable {
 
 		private EntityID id;
+		private bool incrementMusicProgress;
 
 		public SyncedClutterSwitch(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			incrementMusicProgress = data.Bool("incrementMusicProgress", true);
 			DashCollision orig_OnDashCollide = OnDashCollide;
 			OnDashCollide = (Player player, Vector2 direction) => {
 				if (!pressed && direction == Vector2.UnitY) {
 					EntityStateTracker.PostUpdate(this);
+					// The orig will always increment it so we need to explicitly decrement to undo it
+					if (!incrementMusicProgress) SceneAs<Level>().Session.Audio.Music.Progress--;
 				}
 				return orig_OnDashCollide(player, direction);
 			};
