@@ -18,7 +18,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private MovementState lastState = MovementState.Idling;
 		internal bool LastMoveCheckResult = false;
 		private MovementTriggeredBy triggeredBy = MovementTriggeredBy.None;
-		private bool waitingForBreakConfirmation = false;
 
 		private object syncDeltaLock = new object();
 		private float mySyncedMovement = 0;
@@ -135,7 +134,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public bool CheckRecurringUpdate() {
-			return canSteer && lastState == MovementState.Moving;
+			return false; //canSteer && lastState == MovementState.Moving;
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {

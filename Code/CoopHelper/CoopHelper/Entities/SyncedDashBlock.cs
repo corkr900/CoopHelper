@@ -13,13 +13,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedDashBlock")]
 	[TrackedAs(typeof(DashBlock))]
 	public class SyncedDashBlock : DashBlock, ISynchronizable {
+		private bool brokenRemotely = false;
 
 		public SyncedDashBlock(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			id = new EntityID(data.Level.Name, data.ID);
 		}
 
 		internal void OnBreak() {
-			EntityStateTracker.PostUpdate(this);
+			if (!brokenRemotely) EntityStateTracker.PostUpdate(this);
 			DestroyStaticMovers();
 		}
 
@@ -54,6 +55,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void ApplyState(object state) {
 			if (state is bool b && b) {
+				brokenRemotely = true;
 				Break(Position + new Vector2(Width/2f, Height/2f), Vector2.Zero, true, true);
 			}
 		}
