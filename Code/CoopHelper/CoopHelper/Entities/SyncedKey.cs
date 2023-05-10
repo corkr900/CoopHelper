@@ -16,7 +16,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedKey")]
 	[Tracked]
 	public class SyncedKey : Key, ISynchronizable {
-		internal bool AnotherPlayerUsed { get; private set; }
+		internal Vector2 OpenTarget;
+		internal bool AnotherPlayerUsed;
 
 		private SyncedKey(Player player, EntityID id) : base(player, id) { }
 
@@ -62,6 +63,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static SyncedKeyState ParseState(CelesteNetBinaryReader r) {
 			return new SyncedKeyState() {
 				Used = r.ReadBoolean(),
+				Target = r.ReadVector2(),
 			};
 		}
 
@@ -102,6 +104,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 							follower.Leader.LoseFollower(follower);
 						}
 						RegisterUsed();
+						Add(new Coroutine(UseRoutine(sks.Target), true));
 						EventInstance evt = Audio.Play("event:/game/03_resort/key_unlock");
 						Alarm.Set(this, 2.7f, () => {
 							RemoveSelf();
@@ -130,6 +133,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(IsUsed);
+			w.Write(OpenTarget);
 		}
 
 		#endregion
@@ -137,5 +141,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 	public class SyncedKeyState {
 		public bool Used;
+		public Vector2 Target;
 	}
 }

@@ -49,18 +49,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// Register as opened immediately so deaths don't result in
 			// the update getting seemingly discarded
 			RegisterOpened(level, key);
-			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
 
 			SoundEmitter emitter = SoundEmitter.Play(unlockSfxName, this);
 			emitter.Source.DisposeOnTransition = true;
 			if (key != null) {
-				key.Visible = true;
 				usedKeyID = key.ID;
-				Add(new Coroutine(key.UseRoutine(Center + new Vector2(0f, 2f))));
-				if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
 			}
 			yield return 1.2f;
-			UnlockingRegistered = true;
 			if (stepMusicProgress) {
 				level.Session.Audio.Music.Progress++;
 				level.Session.Audio.Apply(forceSixteenthNoteHack: false);
@@ -88,16 +83,20 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// this is based on key.RegiserUsed except safe to call twice
 			// and will still do the necessary flagging without the key
 			if (key != null) {
-				key.IsUsed = true;
-				Follower follower = key.follower;
-				if (follower?.Leader != null) {
-					follower.Leader.LoseFollower(follower);
+				usedKeyID = key.ID;
+				Vector2 target = Center + new Vector2(0f, 2f);
+				if (key is SyncedKey sk) {
+					sk.AnotherPlayerUsed = remotePlayerOpened;
+					sk.OpenTarget = target;
 				}
+				Add(new Coroutine(key.UseRoutine(target)));
+				key.RegisterUsed();
 			}
-			if (key != null) usedKeyID = key.ID;
-			if (SceneAs<Level>().Session.Keys.Contains(usedKeyID)) {
+			else {
 				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
 			}
+			UnlockingRegistered = true;
+			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);
 		}
 
 		#region ISync implementation
