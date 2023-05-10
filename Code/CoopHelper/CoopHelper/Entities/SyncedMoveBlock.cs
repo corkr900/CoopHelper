@@ -59,6 +59,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
+			state = lastState = MovementState.Idling;
 			EntityStateTracker.AddListener(this, true);
 		}
 
@@ -134,7 +135,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public bool CheckRecurringUpdate() {
-			return false; //canSteer && lastState == MovementState.Moving;
+			return canSteer && lastState == MovementState.Moving;
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
