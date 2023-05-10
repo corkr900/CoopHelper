@@ -34,7 +34,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + PlayerState.Mine?.CurrentRoom + idSplit[0], idNum);
 			}
 			else {
-				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + data.Level.Name, data.ID);
+				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + (data.Level?.Name ?? PlayerState.Mine?.CurrentRoom), data.ID);
 			}
 			Position = data.Position + offset;
 			removeIfSessionExists = data.Bool("removeIfSessionExists", true);

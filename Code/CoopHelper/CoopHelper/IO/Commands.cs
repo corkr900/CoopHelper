@@ -83,6 +83,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 				ed.ID = -1;
 				ed.Values = new Dictionary<string, object>();
 				ed.Values.Add("removeIfSessionExists", true);
+				ed.Values.Add("idOverride", "debugCMD:0");
 				string[] subArgs = arg?.Split(',');
 				if (subArgs != null) {
 					foreach (string subarg in subArgs) {
