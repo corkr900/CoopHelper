@@ -114,11 +114,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Critical = true,
 		};
 
-		public static SyncedLockBlockStatus ParseState(CelesteNetBinaryReader r) {
-			SyncedLockBlockStatus s = new SyncedLockBlockStatus();
-			s.UnlockingRegistered = r.ReadBoolean();
-			s.KeyUsed = r.ReadEntityID();
-			return s;
+		public EntityID GetID() => ID;
+
+		public bool CheckRecurringUpdate() => false;
+
+		public static bool StaticHandler(EntityID id, object st) {
+			if (!(st is SyncedLockBlockStatus slbs)) return false;
+			Level level = Engine.Scene as Level;
+			if (level == null) return false;
+			if (!level.Session.DoNotLoad.Contains(id)) {
+				level.Session.DoNotLoad.Add(id);
+			}
+			return true;
 		}
 
 		public void ApplyState(object state) {
@@ -129,13 +136,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		public EntityID GetID() => ID;
-
-		public bool CheckRecurringUpdate() => false;
-
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(UnlockingRegistered);
 			w.Write(usedKeyID);
+		}
+
+		public static SyncedLockBlockStatus ParseState(CelesteNetBinaryReader r) {
+			SyncedLockBlockStatus s = new SyncedLockBlockStatus();
+			s.UnlockingRegistered = r.ReadBoolean();
+			s.KeyUsed = r.ReadEntityID();
+			return s;
 		}
 
 		#endregion
