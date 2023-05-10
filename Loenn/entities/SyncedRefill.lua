@@ -9,6 +9,7 @@ refill.placements = {
             oneUse = false,
             twoDash = false,
             respawnTime = 2.5,
+            alwaysBreak = false,
         }
     },
     {
@@ -17,6 +18,7 @@ refill.placements = {
             oneUse = false,
             twoDash = true,
             respawnTime = 2.5,
+            alwaysBreak = false,
         }
     }
 }

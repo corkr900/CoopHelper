@@ -16,14 +16,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedRefill : Refill, ISynchronizable {
 		private EntityID id;
 		private float respawnTime = 2.5f;
+		private bool alwaysBreak = false;
 
 		public SyncedRefill(EntityData data, Vector2 offset) : base(data, offset) {
 			id = new EntityID(data.Level.Name, data.ID);
+			alwaysBreak = data.Bool("alwaysBreak", false);
 			PlayerCollider pcoll = Get<PlayerCollider>();
 			Action<Player> orig_OnPlayer = pcoll.OnCollide;
 			respawnTime = data.Float("respawnTime", 2.5f);
 			pcoll.OnCollide = (Player player) => {
 				bool before = Collidable;
+				if (alwaysBreak) player.Stamina = Calc.Min(player.Stamina, 19f);  // Make sure stamina is low enough to make it break
 				orig_OnPlayer(player);
 				if (before && !Collidable) EntityStateTracker.PostUpdate(this);
 			};

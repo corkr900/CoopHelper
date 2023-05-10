@@ -34,6 +34,7 @@ entities.corkr900CoopHelper/SyncedRefill.placements.name.two_dashes=Synced Refil
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.oneUse=If set, refill will not respawn after use.
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.twoDash=If set, refill will grant the player 2 dashes.
 entities.corkr900CoopHelper/SyncedRefill.attributes.description.respawnTime=The time it takes for the refill to reappear after use
+entities.corkr900CoopHelper/SyncedRefill.attributes.description.alwaysBreak=If set, the refill will instantly break on touch even if the player has all their dashes and stamina is not critically low
 
 # Synced Falling Block
 entities.corkr900CoopHelper/SyncedFallingBlock.placements.name.default=Synced Falling Block
