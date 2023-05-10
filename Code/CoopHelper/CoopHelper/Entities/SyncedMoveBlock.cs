@@ -135,7 +135,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public EntityID GetID() => id;
 
 		public bool CheckRecurringUpdate() {
-			return canSteer && lastState == MovementState.Moving;
+			Vector2 totalMovement = Position - startPosition;
+			float myMovement = (MovesVertically ? totalMovement.X : totalMovement.Y) - otherPlayerTotalMovement;
+			return canSteer && state == MovementState.Moving && Math.Abs(mySyncedMovement - myMovement) > 0.5f;
 		}
 
 		public void WriteState(CelesteNetBinaryWriter w) {
