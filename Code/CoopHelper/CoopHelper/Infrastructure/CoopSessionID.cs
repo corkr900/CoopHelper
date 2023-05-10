@@ -11,7 +11,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		public PlayerID creator { get; internal set; }
 		public DateTime creationInstant { get; internal set; }
-		internal uint idcounter { get; set; }
+		public uint idcounter { get; internal set; }
 
 
 		public static CoopSessionID GetNewID() {
