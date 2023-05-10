@@ -13,6 +13,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public PlayerID senderID;
 		public bool newAvailability;
+		internal EntityID pickerID;
 
 		static DataSessionJoinAvailable() {
 			DataID = "corkr900CoopHelper_JoinAvailable_" + CoopHelperModule.ProtocolVersion;
@@ -35,11 +36,13 @@ namespace Celeste.Mod.CoopHelper.Data {
 		protected override void Read(CelesteNetBinaryReader reader) {
 			senderID = reader.ReadPlayerID();
 			newAvailability = reader.ReadBoolean();
+			pickerID = reader.ReadEntityID();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
 			writer.Write(newAvailability);
+			writer.Write(pickerID);
 		}
 	}
 }

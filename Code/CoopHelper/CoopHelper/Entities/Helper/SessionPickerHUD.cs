@@ -26,6 +26,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private List<Tuple<PlayerID, RequestState>> availablePlayers = new List<Tuple<PlayerID, RequestState>>();
 		private CoopSessionID sessionID;
 		private int hovered;
+		private EntityID pickerID;
 
 		private int PendingInvites {
 			get {
@@ -48,10 +49,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private bool CanSendRequests { get { return sessionID.creator.Equals(PlayerID.MyID); } }
 
-		public SessionPickerHUD(int membersNeeded, Action<SessionPickerHUDCloseArgs> onClose) {
+		public SessionPickerHUD(int membersNeeded, EntityID id, Action<SessionPickerHUDCloseArgs> onClose) {
 			Tag = Tags.HUD;
 			this.onClose = onClose;
 			this.membersNeeded = membersNeeded;
+			pickerID = id;
 		}
 
 		public override void Added(Scene scene) {
@@ -67,6 +69,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
 				newAvailability = true,
+				pickerID = pickerID,
 			}, false);
 		}
 
@@ -81,7 +84,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnAvailable(DataSessionJoinAvailable data) {
-			SetState(data.senderID, data.newAvailability ? RequestState.Available : RequestState.Left);
+			SetState(data.senderID, data.newAvailability && data.pickerID.Equals(pickerID) ? RequestState.Available : RequestState.Left);
 			if (data.senderID.Equals(sessionID.creator)) {
 				sessionID = CoopSessionID.GetNewID();
 			}

@@ -25,8 +25,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private int[] dashes = null;
 		private string[] abilities = null;
 		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
+		private EntityID ID;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
+			string idOverride = data.Attr("idOverride");
+			string[] idSplit = idOverride?.Split(':');
+			if (idSplit != null && idSplit.Length == 2 && int.TryParse(idSplit[1], out int idNum)) {
+				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + PlayerState.Mine?.CurrentRoom + idSplit[0], idNum);
+			}
+			else {
+				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + data.Level.Name, data.ID);
+			}
 			Position = data.Position + offset;
 			removeIfSessionExists = data.Bool("removeIfSessionExists", true);
 			Add(sprite = GFX.SpriteBank.Create("corkr900_CoopHelper_SessionPicker"));
@@ -141,7 +150,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void Open(Player player) {
 			if (hud != null) return;  // Already open
-			hud = new SessionPickerHUD(PlayersNeeded, Close);
+			hud = new SessionPickerHUD(PlayersNeeded, ID, Close);
 			Scene.Add(hud);
 			player.StateMachine.State = Player.StDummy;
 			this.player = player;
