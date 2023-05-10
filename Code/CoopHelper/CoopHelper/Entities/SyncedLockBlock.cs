@@ -108,7 +108,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public static SyncBehavior GetSyncBehavior() => new SyncBehavior() {
 			Header = 10,
 			Parser = ParseState,
-			StaticHandler = null,
+			StaticHandler = StaticHandler,
 			DiscardIfNoListener = false,
 			DiscardDuplicates = false,
 			Critical = true,
