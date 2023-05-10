@@ -16,19 +16,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	public class SyncedLockBlock : LockBlock, ISynchronizable {
 		private bool remotePlayerOpened = false;
 		private EntityID usedKeyID;
-		private bool transitionComplete = false;
 
 		public SyncedLockBlock(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
-			TransitionListener tlisten = new TransitionListener();
-			tlisten.OnInEnd = delegate () {
-				transitionComplete = true;
-				if (remotePlayerOpened) {
-					DoRemoteUnlock();
-				}
-				tlisten?.RemoveSelf();
-				tlisten = null;
-			};
-			Add(tlisten);
 		}
 
 		private void DoRemoteUnlock() {
@@ -136,8 +125,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (state is SyncedLockBlockStatus s) {
 				remotePlayerOpened = true;
 				usedKeyID = s.KeyUsed;
-				if (transitionComplete) DoRemoteUnlock();
-				else remotePlayerOpened = true;
+				DoRemoteUnlock();
 			}
 		}
 
