@@ -150,7 +150,18 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					ISynchronizable ob = outgoing.Dequeue();
 					w.Write(GetHeader(ob));
 					w.Write(ob.GetID());
+					long sizeHeaderPosition = w.BaseStream.Position;
+					w.Write((long)0);  // placeholder... we'll overwrite it later
+					// serialize the update and measure the serialized size
+					long posBefore = w.BaseStream.Position;
 					ob.WriteState(w);
+					long posAfter = w.BaseStream.Position;
+					// go back and overwrite the size header with the measured size
+					w.BaseStream.Seek(sizeHeaderPosition, System.IO.SeekOrigin.Begin);
+					w.Write(posAfter - posBefore);
+					// return to the correct position to continue with next subpacket
+					w.BaseStream.Seek(posAfter, System.IO.SeekOrigin.Begin);
+
 				}
 				int after = outgoing.Count;
 				SentUpdates += before - after;
@@ -169,19 +180,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						int header = r.ReadInt32();
 						if (header == EndOfTransmissionHeader) break;
 						EntityID id = r.ReadEntityID();
-						if (!behaviors.ContainsKey(header)) {
-							throw new InvalidOperationException("Co-op Helper: Received header {0} does not have an associated parser");
-						}
-						object parsedState = behaviors[header].Parser(r);
-						if (isMySession) {
+						long size = r.ReadInt64();
+						if (isMySession && behaviors.ContainsKey(header)) {
+							object parsedState = behaviors[header].Parser(r);
 							incoming.AddLast(new Tuple<int, EntityID, object>(header, id, parsedState));
+						}
+						else {
+							r.BaseStream.Seek(size, System.IO.SeekOrigin.Current);
 						}
 					} while (true);
 				}
 				catch(Exception e) {
-					Logger.Log(LogLevel.Error, "Co-op Helper", "Error occurred deserializing entity update packet:");
-					Logger.Log(LogLevel.Error, "Co-op Helper", e.Message);
-					Logger.Log(LogLevel.Error, "Co-op Helper", e.StackTrace);
+					Logger.Log(LogLevel.Error, "Co-op Helper", "Error occurred deserializing entity update packet. Aborting.");
+					throw e;
 				}
 			}
 		}

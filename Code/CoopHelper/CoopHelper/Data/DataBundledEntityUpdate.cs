@@ -40,11 +40,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 			bool isMySession = !PlayerState.Mine.CurrentMap.IsOverworld
 				&& CoopHelperModule.Session.IsInCoopSession
 				&& CoopHelperModule.Session.SessionID == SessionID;
-			if (isMySession) {
-				EntityStateTracker.ReceiveUpdates(reader, isMySession);
-			}
-			// seek to the end so celestenet doesn't think a serialization error occurred
-			reader.BaseStream.Seek(0, System.IO.SeekOrigin.End);
+			EntityStateTracker.ReceiveUpdates(reader, isMySession);
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
