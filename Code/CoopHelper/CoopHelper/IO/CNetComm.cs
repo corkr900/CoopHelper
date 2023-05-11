@@ -57,6 +57,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public CelesteNetClient CnetClient { get { return CelesteNetClientModule.Instance?.Client; } }
 		public bool IsConnected { get { return CnetClient?.Con?.IsConnected ?? false; } }
 		public uint? CnetID { get { return IsConnected ? (uint?)CnetClient?.PlayerInfo?.ID : null; } }
+		public long MaxPacketSize { get { return CnetClient?.Con is CelesteNetTCPUDPConnection connection ? (connection.ConnectionSettings?.MaxPacketSize ?? 2048) : 2048; } }
 
 		public DataChannelList.Channel CurrentChannel {
 			get {
@@ -85,6 +86,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 
 		public static ulong SentMsgs { get; private set; } = 0;
 		public static ulong ReceivedMsgs { get; private set; } = 0;
+
 		private static object ReceivedMessagesCounterLock = new object();
 
 		#endregion

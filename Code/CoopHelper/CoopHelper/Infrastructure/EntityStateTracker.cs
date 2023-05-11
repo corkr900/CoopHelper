@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Entities;
+using Celeste.Mod.CoopHelper.IO;
 using Monocle;
 using System;
 using System.Collections.Generic;
@@ -145,8 +146,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		internal static void FlushOutgoing(CelesteNetBinaryWriter w) {
 			lock (outgoing) {
+				long streamPositionAtStart = w.BaseStream.Position;
+				long maxPacketSize = CNetComm.Instance?.MaxPacketSize ?? 2048;
+				long stopThreshold = (long)(maxPacketSize * 0.8);
 				int before = outgoing.Count;
-				while (outgoing.Count > 0 && w.BaseStream.Length < MaximumMessageSize) {
+				while (outgoing.Count > 0 && w.BaseStream.Position - streamPositionAtStart < stopThreshold) {
 					ISynchronizable ob = outgoing.Dequeue();
 					w.Write(GetHeader(ob));
 					w.Write(ob.GetID());
@@ -161,7 +165,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					w.Write(posAfter - posBefore);
 					// return to the correct position to continue with next subpacket
 					w.BaseStream.Seek(posAfter, System.IO.SeekOrigin.Begin);
-
 				}
 				int after = outgoing.Count;
 				SentUpdates += before - after;
