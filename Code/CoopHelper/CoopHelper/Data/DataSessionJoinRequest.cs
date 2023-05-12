@@ -14,6 +14,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public PlayerID senderID;
 		public CoopSessionID sessionID;
 		public PlayerID targetID;
+		public int role;
 
 		static DataSessionJoinRequest() {
 			DataID = "corkr900CoopHelper_JoinRequest_" + CoopHelperModule.ProtocolVersion;
@@ -37,12 +38,14 @@ namespace Celeste.Mod.CoopHelper.Data {
 			senderID = reader.ReadPlayerID();
 			sessionID = reader.ReadSessionID();
 			targetID = reader.ReadPlayerID();
+			role = reader.ReadInt32();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(senderID);
 			writer.Write(sessionID);
 			writer.Write(targetID);
+			writer.Write(role);
 		}
 	}
 }

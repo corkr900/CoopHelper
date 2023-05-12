@@ -26,6 +26,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private string[] abilities = null;
 		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
 		private EntityID ID;
+		private string[] roleNames = null;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			string idOverride = data.Attr("idOverride");
@@ -46,6 +47,23 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				new Vector2(0, -16),
 				Open
 			) { PlayerMustBeFacing = false });
+
+			// Role names
+			string namesArg = data.Attr("roleNames", null);
+			if (!string.IsNullOrEmpty(namesArg)) {
+				string[] split = namesArg.Split(',');
+				if (split?.Length == PlayersNeeded) {
+					bool valid = true;
+					for (int i = 0; i < split.Length; i++) {
+						split[i] = split[i].Trim();
+						if (string.IsNullOrEmpty(split[i])) {
+							valid = false;
+							break;
+						}
+					}
+					if (valid) roleNames = split;
+				}
+			}
 
 			// Role-skin attr
 			string skinArg = data.Attr("skins", null);
@@ -150,7 +168,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void Open(Player player) {
 			if (hud != null) return;  // Already open
-			hud = new SessionPickerHUD(PlayersNeeded, ID, Close);
+			hud = new SessionPickerHUD(PlayersNeeded, ID, roleNames, Close);
 			Scene.Add(hud);
 			player.StateMachine.State = Player.StDummy;
 			this.player = player;
