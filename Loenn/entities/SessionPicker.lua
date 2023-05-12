@@ -23,7 +23,7 @@ SessionPicker.placements = {
             skins = "",
             dashes = "",
             abilities = "",
-            deathSyncMode = "SameRoomOnly"
+            deathSyncMode = "SameRoomOnly",
             roleNames = "",
         }
     }
