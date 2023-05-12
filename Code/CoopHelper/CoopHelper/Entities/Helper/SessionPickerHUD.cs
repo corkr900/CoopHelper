@@ -317,6 +317,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					display += " (Joined!)";
 					color = new Color(0.5f, 1f, 0.5f);
 				}
+				if (pps.State == PlayerRequestState.AddedMe) {
+					display += " (Requested to Join)";
+					color = new Color(0.5f, 1f, 0.5f);
+				}
 
 				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
 				yPos += 100;
@@ -329,7 +333,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			yPos += 100;
 			for (int i = 0; i < roleSelection.Length; i++) {
 				PickerRoleStatus prs = roleSelection[i];
-				string display = prs.Player.Name;
+				string display = prs.DisplayName;
 				Color color = Color.White;
 				if (hovered == i) {
 					display = "> " + display;
