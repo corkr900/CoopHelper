@@ -125,10 +125,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		//////////////////////////////////////////////////////////////
 
 		private void OnAvailable(DataSessionJoinAvailable data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinAvailable");
 			SetStatePlayer(data.senderID, data.newAvailability && data.pickerID.Equals(pickerID) ? PlayerRequestState.Available : PlayerRequestState.Left, null);
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinRequest");
 			// Player selection
 			if (data.Role < 0) {
 				if (!data.TargetID.Equals(PlayerID.MyID)) return;
@@ -149,6 +151,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnResponse(DataSessionJoinResponse data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinResponse");
 			int idx = availablePlayers.FindIndex((PickerPlayerStatus t) => {
 				return t.SessionID?.Equals(data.SessionID) ?? false;
 			});
@@ -166,10 +169,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnFinalize(DataSessionJoinFinalize data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinFinalize");
 			if (!data.sessionPlayers.Contains(PlayerID.MyID)) return;
 
 			if (data.RolesFinalized) CloseWithSession(data.sessionID, data.sessionPlayers);
-			else FinalizeSession(data.sessionID, data.sessionPlayers);
+			else if (!data.sessionID.Equals(finalizedSession)) FinalizeSession(data.sessionID, data.sessionPlayers);
 		}
 
 		private void OnPause(Level level, int startIndex, bool minimal, bool quickReset) {
