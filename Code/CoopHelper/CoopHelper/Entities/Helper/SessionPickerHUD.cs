@@ -127,6 +127,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private void OnAvailable(DataSessionJoinAvailable data) {
 			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinAvailable");
 			SetStatePlayer(data.senderID, data.newAvailability && data.pickerID.Equals(pickerID) ? PlayerRequestState.Available : PlayerRequestState.Left, null);
+			if (finalizedPlayers?.Contains(data.senderID) ?? false) {
+				sessionCancelled = true;
+			}
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
@@ -356,6 +359,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private bool MenuSelectRole() {
+			if (sessionCancelled) return false;
 			if (hovered < 0 || hovered >= roleSelection.Length) return false;
 			for (int i = 0; i < roleSelection.Length; i++) {
 				if (roleSelection[i].State == RoleRequestState.RequestSent) return false;
