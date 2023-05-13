@@ -11,17 +11,21 @@ namespace Celeste.Mod.CoopHelper.Data {
 	public class DataSessionJoinRequest : DataType<DataSessionJoinRequest> {
 		public DataPlayerInfo player;
 
-		public PlayerID senderID;
-		public CoopSessionID sessionID;
-		public PlayerID targetID;
-		public int role;
+		public PlayerID SenderID;
+		public CoopSessionID SessionID;
+		public PlayerID TargetID;
+		/// <summary>
+		/// If the request is requesting to join a player, this is -1.
+		/// If the request is requesting a certain role, this will be the role index.
+		/// </summary>
+		public int Role;
 
 		static DataSessionJoinRequest() {
 			DataID = "corkr900CoopHelper_JoinRequest_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public DataSessionJoinRequest() {
-			senderID = PlayerID.MyID;
+			SenderID = PlayerID.MyID;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
@@ -35,17 +39,17 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
-			senderID = reader.ReadPlayerID();
-			sessionID = reader.ReadSessionID();
-			targetID = reader.ReadPlayerID();
-			role = reader.ReadInt32();
+			SenderID = reader.ReadPlayerID();
+			SessionID = reader.ReadSessionID();
+			TargetID = reader.ReadPlayerID();
+			Role = reader.ReadInt32();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
-			writer.Write(senderID);
-			writer.Write(sessionID);
-			writer.Write(targetID);
-			writer.Write(role);
+			writer.Write(SenderID);
+			writer.Write(SessionID);
+			writer.Write(TargetID);
+			writer.Write(Role);
 		}
 	}
 }

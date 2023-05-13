@@ -12,6 +12,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 		public DataPlayerInfo player;
 		public CoopSessionID sessionID;
 		public PlayerID[] sessionPlayers = new PlayerID[0];
+		public bool RolesFinalized;
 
 		static DataSessionJoinFinalize() {
 			DataID = "corkr900CoopHelper_JoinConfirmation_" + CoopHelperModule.ProtocolVersion;
@@ -32,6 +33,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		protected override void Read(CelesteNetBinaryReader reader) {
 			sessionID = reader.ReadSessionID();
+			RolesFinalized = reader.ReadBoolean();
 			int numPlayers = reader.ReadInt32();
 			sessionPlayers = new PlayerID[numPlayers];
 			for (int i = 0; i < numPlayers; i++) {
@@ -41,6 +43,7 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
 			writer.Write(sessionID);
+			writer.Write(RolesFinalized);
 			int numPlayers = sessionPlayers?.Length ?? 0;
 			writer.Write(numPlayers);
 			for (int i = 0; i < numPlayers; i++) {

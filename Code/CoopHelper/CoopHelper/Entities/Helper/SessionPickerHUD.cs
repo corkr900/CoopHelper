@@ -48,9 +48,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private int hovered;
 		private EntityID pickerID;
 		private bool pickingRole = false;
-		private bool roleConfirmationSent;
 		private CoopSessionID finalizedSession;
 		private PlayerID[] finalizedPlayers;
+		bool sessionCancelled = false;
 
 		private int PendingInvites {
 			get {
@@ -129,74 +129,47 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
-			if (!data.targetID.Equals(PlayerID.MyID)) return;
-
+			if (!data.TargetID.Equals(PlayerID.MyID)) return;
 			// Player selection
-			if (!pickingRole && data.role < 0) {
-				// TODO are these conditions right???
-				if (JoinedPlayers == 0 && PendingInvites == 0 && !data.sessionID.creator.Equals(PlayerID.MyID)) {
-					SetStatePlayer(data.senderID, PlayerRequestState.AddedMe, data.sessionID);
-				}
-				else {
+			if (data.Role < 0) {
+				if (pickingRole || data.SessionID.creator.Equals(PlayerID.MyID)) {
 					CNetComm.Instance.Send(new DataSessionJoinResponse() {
-						sessionID = data.sessionID,
-						response = false,
-						respondingToRoleRequest = false,
+						SessionID = data.SessionID,
+						Response = false,
 					}, false);
 				}
+				else SetStatePlayer(data.SenderID, PlayerRequestState.AddedMe, data.SessionID);
 			}
 			// Role selection
-			else if (pickingRole && data.sessionID.Equals(finalizedSession) && data.role >= 0 && data.role < (roleSelection?.Length ?? 0)) {
-				roleSelection[data.role].State = RoleRequestState.RequestReceived;
-				roleSelection[data.role].Player = data.senderID;
-				CheckFinalizeRole(true);
+			else if (pickingRole && data.SessionID.Equals(finalizedSession) && data.Role >= 0 && data.Role < (roleSelection?.Length ?? 0)) {
+				roleSelection[data.Role].State = RoleRequestState.RequestReceived;
+				roleSelection[data.Role].Player = data.SenderID;
+				CheckFinalizeRole();
 			}
 		}
 
 		private void OnResponse(DataSessionJoinResponse data) {
 			int idx = availablePlayers.FindIndex((PickerPlayerStatus t) => {
-				return t.SessionID?.Equals(data.sessionID) ?? false;
+				return t.SessionID?.Equals(data.SessionID) ?? false;
 			});
 			if (idx < 0 || idx >= availablePlayers.Count) return;
 			PickerPlayerStatus pps = availablePlayers[idx];
-			if (data.sessionID == pps.SessionID) {
-				if (data.response) {
-					SetStatePlayer(data.senderID, PlayerRequestState.Joined, data.sessionID);
+			if (data.SessionID == pps.SessionID) {
+				if (data.Response) {
+					SetStatePlayer(data.SenderID, PlayerRequestState.Joined, data.SessionID);
 					CheckFinalizeSession(pps);
 				}
 				else {
-					SetStatePlayer(data.senderID, PlayerRequestState.Available, null);
+					SetStatePlayer(data.SenderID, PlayerRequestState.Available, null);
 				}
 			}
 		}
 
 		private void OnFinalize(DataSessionJoinFinalize data) {
-			if (!pickingRole) {
-				int idx = availablePlayers.FindIndex((PickerPlayerStatus t) => {
-					return t.SessionID?.Equals(data.sessionID) ?? false;
-				});
-				if (idx < 0 || idx >= availablePlayers.Count) {
-					Logger.Log(LogLevel.Error, "Co-op Helper", "Could not find session with ID matching the finalize message");
-					return;
-				}
-				FinalizeSession(availablePlayers[idx].SessionID.Value, data.sessionPlayers);
-			}
-			else if (data.sessionID.Equals(finalizedSession)) {
-				if (roleConfirmationSent) {
-					if (data.sessionPlayers.Length != roleSelection?.Length) return;
-					bool confirmationMatches = true;
-					for (int i = 0; i < roleSelection.Length; i++) {
-						if (!roleSelection[i].Player.Equals(data.sessionPlayers[i])) confirmationMatches = false;
-					}
-					if (confirmationMatches) CloseWithSession(finalizedSession, data.sessionPlayers);
-					else {
-						roleConfirmationSent = false;
-					}
-				}
-				else {
-					CloseWithSession(finalizedSession, data.sessionPlayers);
-				}
-			}
+			if (!data.sessionPlayers.Contains(PlayerID.MyID)) return;
+
+			if (data.RolesFinalized) CloseWithSession(data.sessionID, data.sessionPlayers);
+			else FinalizeSession(data.sessionID, data.sessionPlayers);
 		}
 
 		private void OnPause(Level level, int startIndex, bool minimal, bool quickReset) {
@@ -213,26 +186,54 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		private void CheckFinalizeRole(bool sendConfirmation) {
-			if (!pickingRole) return;
-			foreach (PickerRoleStatus st in roleSelection) {
-				if (st.State == RoleRequestState.Available) return;
-			}
-			if (sendConfirmation) {
-				PlayerID[] idArr = new PlayerID[roleSelection.Length];
-				for (int i = 0; i < roleSelection.Length; i++) {
-					idArr[i] = roleSelection[i].Player;
+		private bool CheckFinalizeRole() {
+			// Basic status check
+			if (!pickingRole) return false;
+			// Only the session creator is allowed to finalize roles
+			if (!finalizedSession.creator.Equals(PlayerID.MyID)) return false;
+
+			// reorder the player list per role selection and check for duplicates
+			PlayerID[] idArr = new PlayerID[roleSelection.Length];
+			bool readyToFinalize = true;
+			bool dupesFound = false;
+			for (int i = 0; i < roleSelection.Length; i++) {
+
+				// Make sure all roles are claimed
+				if (roleSelection[i].State == RoleRequestState.Available) {
+					readyToFinalize = false;
+					break;
 				}
-				finalizedPlayers = idArr;
-				CNetComm.Instance.Send(new DataSessionJoinFinalize() {
-					sessionID = finalizedSession,
-					sessionPlayers = idArr,
-				}, false);
-				roleConfirmationSent = true;
+
+				// Populate the new array
+				idArr[i] = roleSelection[i].Player;
+
+				// Check for duplicate player IDs
+				for (int j = i + 1; j < roleSelection.Length; j++) {
+					if (finalizedPlayers[j].Equals(idArr[i])) {
+						dupesFound = true;
+						break;
+					}
+				}
+				if (dupesFound || !readyToFinalize) break;
 			}
-			else {
-				CloseWithSession(finalizedSession, finalizedPlayers);
+
+			// Handle not-ready conditions
+			if (!readyToFinalize) return false;
+			if (dupesFound) {
+				Logger.Log(LogLevel.Error, "Co-op Helper", "Found duplicate Player IDs when finalizing session; cancelling.");
+				sessionCancelled = true;
+				return false;
 			}
+
+			// apply the reordered array, send fionalization, and close the UI with the new session
+			finalizedPlayers = idArr;
+			CNetComm.Instance.Send(new DataSessionJoinFinalize() {
+				sessionID = finalizedSession,
+				sessionPlayers = idArr,
+				RolesFinalized = true,
+			}, false);
+			CloseWithSession(finalizedSession, finalizedPlayers);
+			return true;
 		}
 
 		private void FinalizeSession(CoopSessionID id, PlayerID[] playerIDs) {
@@ -250,12 +251,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			finalizedPlayers = playerIDs;
 			finalizedSession = id;
 
+			bool rolesFinalized = roleSelection == null;
+
 			CNetComm.Instance.Send(new DataSessionJoinFinalize() {
 				sessionID = id,
 				sessionPlayers = playerIDs,
+				RolesFinalized = rolesFinalized,
 			}, false);
 
-			if (roleSelection == null) {
+			if (rolesFinalized) {
 				CloseWithSession(id, playerIDs);
 			}
 			else {
@@ -270,85 +274,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				ID = id,
 				Players = playerIDs,
 			});
-		}
-
-		public override void Render() {
-			base.Render();
-
-			float yPos = 100;
-			List<PlayerID> joined = new List<PlayerID>();
-			foreach (PickerPlayerStatus pps in availablePlayers) {
-				if (pps.State == PlayerRequestState.Joined) {
-					joined.Add(pps.Player);
-				}
-			}
-
-			// Title
-			ActiveFont.DrawOutline(string.Format(Dialog.Get("corkr900_CoopHelper_SessionPickerTitle"), membersNeeded),
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 1.5f, Color.White, 2f, Color.Black);
-			yPos += 100;
-
-			if (pickingRole) RenderRoleList(ref yPos);
-			else RenderPlayerList(ref yPos);
-		}
-
-		private void RenderPlayerList(ref float yPos) {
-			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
-			yPos += 100;
-			for (int i = 0; i < availablePlayers.Count; i++) {
-				PickerPlayerStatus pps = availablePlayers[i];
-				if (pps.State == PlayerRequestState.Joined) continue;
-				string display = pps.Player.Name;
-				Color color = Color.White;
-				if (hovered == i) {
-					display = "> " + display;
-				}
-				// TODO translate status names
-				if (pps.State == PlayerRequestState.RequestPending) {
-					display += " (Pending)";
-					color = Color.Yellow;
-				}
-				if (pps.State == PlayerRequestState.Left) {
-					display += " (Left)";
-					color = Color.Gray;
-				}
-				if (pps.State == PlayerRequestState.Joined) {
-					display += " (Joined!)";
-					color = new Color(0.5f, 1f, 0.5f);
-				}
-				if (pps.State == PlayerRequestState.AddedMe) {
-					display += " (Requested to Join)";
-					color = new Color(0.5f, 1f, 0.5f);
-				}
-
-				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
-				yPos += 100;
-			}
-		}
-
-		private void RenderRoleList(ref float yPos) {
-			string subtitle = roleConfirmationSent ? "corkr900_CoopHelper_SessionPickerAwaitingConfirmation" : "corkr900_CoopHelper_SessionPickerRoleTitle";
-			ActiveFont.DrawOutline(Dialog.Get(subtitle), new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
-			yPos += 100;
-			for (int i = 0; i < roleSelection.Length; i++) {
-				PickerRoleStatus prs = roleSelection[i];
-				string display = prs.DisplayName;
-				Color color = Color.White;
-				if (hovered == i) {
-					display = "> " + display;
-				}
-				// TODO translate status names
-				if (prs.State == RoleRequestState.RequestReceived) {
-					display += " (" + prs.Player.Name + ")";
-				}
-				else if (prs.State == RoleRequestState.RequestSent) {
-					display += " (" + Dialog.Clean("corkr900_CoopHelper_SessionPickerRequested") + ")";
-				}
-
-				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
-				yPos += 100;
-			}
 		}
 
 		public void CloseSelf() {
@@ -408,17 +333,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				CoopSessionID newID = CoopSessionID.GetNewID();
 				SetStatePlayer(target, PlayerRequestState.RequestPending, newID);
 				CNetComm.Instance.Send(new DataSessionJoinRequest() {
-					sessionID = newID,
-					targetID = target,
-					role = -1,
+					SessionID = newID,
+					TargetID = target,
+					Role = -1,
 				}, false);
 				return true;
 			}
 			else if (pss.State == PlayerRequestState.AddedMe) {
 				CNetComm.Instance.Send(new DataSessionJoinResponse() {
-					sessionID = pss.SessionID.Value,
-					response = true,
-					respondingToRoleRequest = false,
+					SessionID = pss.SessionID.Value,
+					Response = true,
 				}, false);
 				return true;
 			}
@@ -426,7 +350,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private bool MenuSelectRole() {
-			if (roleConfirmationSent) return false;
 			if (hovered < 0 || hovered >= roleSelection.Length) return false;
 			for (int i = 0; i < roleSelection.Length; i++) {
 				if (roleSelection[i].State == RoleRequestState.RequestSent) return false;
@@ -435,10 +358,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 			roleSelection[hovered].State = RoleRequestState.RequestSent;
 			roleSelection[hovered].Player = PlayerID.MyID;
-			CNetComm.Instance.Send(new DataSessionJoinRequest() {
-				sessionID = finalizedSession,
-				role = hovered,
-			}, false);
+			if (!CheckFinalizeRole()) {
+				CNetComm.Instance.Send(new DataSessionJoinRequest() {
+					SessionID = finalizedSession,
+					Role = hovered,
+				}, false);
+			}
 			return true;
 		}
 
@@ -462,6 +387,85 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			else availablePlayers[idx] = pps;
 		}
+
+		public override void Render() {
+			base.Render();
+
+			float yPos = 100;
+			List<PlayerID> joined = new List<PlayerID>();
+			foreach (PickerPlayerStatus pps in availablePlayers) {
+				if (pps.State == PlayerRequestState.Joined) {
+					joined.Add(pps.Player);
+				}
+			}
+
+			// Title
+			ActiveFont.DrawOutline(string.Format(Dialog.Get("corkr900_CoopHelper_SessionPickerTitle"), membersNeeded),
+				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 1.5f, Color.White, 2f, Color.Black);
+			yPos += 100;
+
+			if (pickingRole) RenderRoleList(ref yPos);
+			else RenderPlayerList(ref yPos);
+		}
+
+		private void RenderPlayerList(ref float yPos) {
+			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
+				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
+			yPos += 100;
+			for (int i = 0; i < availablePlayers.Count; i++) {
+				PickerPlayerStatus pps = availablePlayers[i];
+				if (pps.State == PlayerRequestState.Joined) continue;
+				string display = pps.Player.Name;
+				Color color = Color.White;
+				if (hovered == i) {
+					display = "> " + display;
+				}
+				// TODO translate status names
+				if (pps.State == PlayerRequestState.RequestPending) {
+					display += " (Pending)";
+					color = Color.Yellow;
+				}
+				if (pps.State == PlayerRequestState.Left) {
+					display += " (Left)";
+					color = Color.Gray;
+				}
+				if (pps.State == PlayerRequestState.Joined) {
+					display += " (Joined!)";
+					color = new Color(0.5f, 1f, 0.5f);
+				}
+				if (pps.State == PlayerRequestState.AddedMe) {
+					display += " (Requested to Join)";
+					color = new Color(0.5f, 1f, 0.5f);
+				}
+
+				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
+				yPos += 100;
+			}
+		}
+
+		private void RenderRoleList(ref float yPos) {
+			string subtitle = sessionCancelled ? "corkr900_CoopHelper_SessionPickerCancelled" : "corkr900_CoopHelper_SessionPickerRoleTitle";
+			ActiveFont.DrawOutline(Dialog.Get(subtitle), new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
+			yPos += 100;
+			for (int i = 0; i < roleSelection.Length; i++) {
+				PickerRoleStatus prs = roleSelection[i];
+				string display = prs.DisplayName;
+				Color color = Color.White;
+				if (hovered == i) {
+					display = "> " + display;
+				}
+				if (prs.State == RoleRequestState.RequestReceived) {
+					display += " (" + prs.Player.Name + ")";
+				}
+				else if (prs.State == RoleRequestState.RequestSent) {
+					display += " (" + Dialog.Clean("corkr900_CoopHelper_SessionPickerRequested") + ")";
+				}
+
+				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
+				yPos += 100;
+			}
+		}
+
 	}
 
 	public class SessionPickerHUDCloseArgs {

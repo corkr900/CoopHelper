@@ -11,17 +11,16 @@ namespace Celeste.Mod.CoopHelper.Data {
 	public class DataSessionJoinResponse : DataType<DataSessionJoinResponse> {
 		public DataPlayerInfo player;
 
-		public PlayerID senderID;
-		public CoopSessionID sessionID;
-		public bool response;
-		public bool respondingToRoleRequest;
+		public PlayerID SenderID;
+		public CoopSessionID SessionID;
+		public bool Response;
 
 		static DataSessionJoinResponse() {
 			DataID = "corkr900CoopHelper_JoinResponse_" + CoopHelperModule.ProtocolVersion;
 		}
 
 		public DataSessionJoinResponse() {
-			senderID = PlayerID.MyID;
+			SenderID = PlayerID.MyID;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.None; } }
@@ -35,17 +34,15 @@ namespace Celeste.Mod.CoopHelper.Data {
 		}
 
 		protected override void Read(CelesteNetBinaryReader reader) {
-			senderID = reader.ReadPlayerID();
-			sessionID = reader.ReadSessionID();
-			response = reader.ReadBoolean();
-			respondingToRoleRequest = reader.ReadBoolean();
+			SenderID = reader.ReadPlayerID();
+			SessionID = reader.ReadSessionID();
+			Response = reader.ReadBoolean();
 		}
 
 		protected override void Write(CelesteNetBinaryWriter writer) {
-			writer.Write(senderID);
-			writer.Write(sessionID);
-			writer.Write(response);
-			writer.Write(respondingToRoleRequest);
+			writer.Write(SenderID);
+			writer.Write(SessionID);
+			writer.Write(Response);
 		}
 	}
 }

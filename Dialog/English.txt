@@ -12,9 +12,14 @@ corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You
 corkr900_CoopHelper_SessionPickerCurrentTitle= Players in Session
 corkr900_CoopHelper_SessionPickerAvailableTitle= Players Available
-corkr900_CoopHelper_SessionPickerRoleTitle= Play as...
-corkr900_CoopHelper_SessionPickerAwaitingConfirmation= Awaiting confirmation...
+corkr900_CoopHelper_SessionPickerRoleTitle= Pick a Role
+corkr900_CoopHelper_SessionPickerCancelled= Session was Cancelled
 corkr900_CoopHelper_SessionPickerRequested= Requested
+
+corkr900_CoopHelper_PlayerRequestState_RequestPending= Pending
+corkr900_CoopHelper_PlayerRequestState_Left= Left
+corkr900_CoopHelper_PlayerRequestState_Joined= Joined
+corkr900_CoopHelper_PlayerRequestState_AddedMe= Added Me
 
 corkr900_CoopHelper_Overworld= Overworld
 corkr900_CoopHelper_WaitingForPlayers=  Waiting for all players...
