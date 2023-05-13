@@ -449,7 +449,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 
 				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
-				yPos += 100;
+				yPos += 60;
 			}
 		}
 
@@ -472,7 +472,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 
 				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
-				yPos += 100;
+				yPos += 60;
 			}
 		}
 
