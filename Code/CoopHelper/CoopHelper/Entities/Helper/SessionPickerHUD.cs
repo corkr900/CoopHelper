@@ -129,9 +129,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
-			if (!data.TargetID.Equals(PlayerID.MyID)) return;
 			// Player selection
 			if (data.Role < 0) {
+				if (!data.TargetID.Equals(PlayerID.MyID)) return;
 				if (pickingRole || data.SessionID.creator.Equals(PlayerID.MyID)) {
 					CNetComm.Instance.Send(new DataSessionJoinResponse() {
 						SessionID = data.SessionID,
@@ -294,8 +294,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				return;
 			}
 
+			int numOptions = pickingRole ? roleSelection.Length : availablePlayers.Count;
+
 			if (Input.MenuDown.Pressed) {
-				if (hovered < availablePlayers.Count - 1) {
+				if (hovered < numOptions - 1) {
 					hovered++;
 					Audio.Play("event:/ui/main/rollover_down");
 				}
