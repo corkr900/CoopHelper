@@ -205,8 +205,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void FlushIncoming() {
-			Level level = Engine.Scene as Level;
-			if (level == null) return;
+			if (!(Engine.Scene is Level level)) return;
 			if (level.Transitioning) return;  // don't process incoming updates during screen transition or if the scene isn't a Level
 			bool playerPresent = level.Tracker?.GetEntity<Player>() != null;
 			lock (incoming) {

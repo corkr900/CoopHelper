@@ -19,6 +19,7 @@
 ============== Low Utility ==============
 
 core blocks
+clouds
 
 ============== Vanilla ==============
 
@@ -27,7 +28,6 @@ badeline boss
 	- Attack target sync would be hard
 badeline booster
 jelly
-	- conflict resolution necessary
 fling bird
 
 ============== Totally New ==============
@@ -37,7 +37,6 @@ something custom to be hostile toward other players >:)
 
 ============== improvements ===============
 
-manual role picking / session picker UI improvements
 swap block toggle mode
 horizontal session gates
 custom flags  for lightning breaker boxes
@@ -48,12 +47,7 @@ more customization options on puffers
 ===========================================
 
 
-sync other session info
-- flags (!!!)
-- core mode
-- collectables
-	- Custom?
-
+sync flags
 co-op mode everywhere?
 
 ===========================================
@@ -63,5 +57,5 @@ Sync mod entities:
 	JungleHelper birds
 	trigger spikes / grouped trigger spikes
 	crumble block on touch
-	drivable intro car
+	drivable intro car?
 	jungle cobwebs
