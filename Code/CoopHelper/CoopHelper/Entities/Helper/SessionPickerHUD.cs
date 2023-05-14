@@ -211,12 +211,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					break;
 				}
 
-				// Populate the new array
+				// Populate the new array and check for duplicate player IDs
 				idArr[i] = roleSelection[i].Player;
-
-				// Check for duplicate player IDs
-				for (int j = i + 1; j < roleSelection.Length; j++) {
-					if (finalizedPlayers[j].Equals(idArr[i])) {
+				for (int j = 0; j < i; j++) {
+					if (idArr[j].Equals(idArr[i])) {
 						dupesFound = true;
 						break;
 					}
