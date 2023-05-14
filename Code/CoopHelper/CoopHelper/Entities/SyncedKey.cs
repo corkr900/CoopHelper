@@ -58,6 +58,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			DiscardIfNoListener = false,
 			DiscardDuplicates = false,
 			Critical = true,
+			ApplyStateRequiresPlayer = true,
 		};
 
 		public static SyncedKeyState ParseState(CelesteNetBinaryReader r) {
@@ -89,7 +90,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			return !sks.Used;
 		}
-
+		
 		public void ApplyState(object state) {
 			if (state is SyncedKeyState sks) {
 				if (sks.Used) {

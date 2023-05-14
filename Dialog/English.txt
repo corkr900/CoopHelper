@@ -10,7 +10,7 @@ corkr900_CoopHelper_Setting_DisplayName= Display Name
 
 corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You
-corkr900_CoopHelper_SessionPickerCurrentTitle= Players in Session
+corkr900_CoopHelper_SessionPickerWaitingForPlayers= Waiting for other players...
 corkr900_CoopHelper_SessionPickerAvailableTitle= Players Available
 corkr900_CoopHelper_SessionPickerRoleTitle= Pick a Role
 corkr900_CoopHelper_SessionPickerCancelled= Session was Cancelled

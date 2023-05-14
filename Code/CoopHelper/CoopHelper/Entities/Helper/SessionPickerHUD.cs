@@ -422,6 +422,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
 				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 			yPos += 100;
+			if (availablePlayers.Count == 0) {
+				string placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerWaitingForPlayers");
+				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.Gray, 2f, Color.Black);
+				yPos += 60;
+			}
 			for (int i = 0; i < availablePlayers.Count; i++) {
 				PickerPlayerStatus pps = availablePlayers[i];
 				if (pps.State == PlayerRequestState.Joined) continue;
@@ -448,7 +453,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					color = new Color(0.5f, 1f, 0.5f);
 				}
 
-				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 1f, Color.Black);
+				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 2f, Color.Black);
 				yPos += 60;
 			}
 		}

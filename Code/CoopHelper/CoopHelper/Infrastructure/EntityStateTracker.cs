@@ -40,10 +40,14 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		/// If true, these updates will not be discarded in the event of the incoming queue becoming too large.
 		/// </summary>
 		public bool Critical;
+		/// <summary>
+		/// Updates will not be applied if there's no Player in the scene.
+		/// Updates ignored due to this are handled as if there was no listener.
+		/// </summary>
+		public bool ApplyStateRequiresPlayer;
 	}
 
 	public static class EntityStateTracker {
-		private static readonly long MaximumMessageSize = 3200;
 		private static readonly int MaximumBufferRetention = 100;
 		private static readonly int EndOfTransmissionHeader = 0;
 
@@ -201,7 +205,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		internal static void FlushIncoming() {
-			if ((Engine.Scene as Level)?.Transitioning ?? false) return;  // don't process incoming updates during screen transition
+			Level level = Engine.Scene as Level;
+			if (level?.Transitioning ?? false) return;  // don't process incoming updates during screen transition or if the scene isn't a Level
+			bool playerPresent = level.Tracker.GetEntity<Player>() != null;
 			lock (incoming) {
 				Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>> duplicateDict
 					= new Dictionary<EntityID, LinkedListNode<Tuple<int, EntityID, object>>>();
@@ -209,8 +215,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				while (node != null) {
 					LinkedListNode<Tuple<int, EntityID, object>> next = node.Next;
 					SyncBehavior behav = behaviors[node.Value.Item1];
+					bool playerCheck = playerPresent || !behav.ApplyStateRequiresPlayer;
 					// Specific listening entities take priority
-					if (listeners.ContainsKey(node.Value.Item2)) {
+					if (playerCheck && listeners.ContainsKey(node.Value.Item2)) {
 						listeners[node.Value.Item2].ApplyState(node.Value.Item3);
 						incoming.Remove(node);
 						++ProcessedUpdates;
