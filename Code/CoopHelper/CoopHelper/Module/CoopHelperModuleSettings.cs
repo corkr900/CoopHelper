@@ -22,5 +22,8 @@ namespace Celeste.Mod.CoopHelper.Module {
 		[SettingMinLength(0)]
 		[SettingMaxLength(20)]
 		public string DisplayName { get; set; } = "";
+
+		[SettingName("corkr900_CoopHelper_Setting_CoopEverywhere")]
+		public bool CoopEverywhere { get; internal set; }
 	}
 }

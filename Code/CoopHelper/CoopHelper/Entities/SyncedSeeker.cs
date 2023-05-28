@@ -14,6 +14,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedSeeker")]
 	[Tracked]
 	public class SyncedSeeker : Actor, ISynchronizable {
+		// TODO figure out how to make seekers work with co-op everywhere
+
 		private struct PatrolPoint {
 			public Vector2 Point;
 
@@ -153,8 +155,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public bool IsOwner {
 			get {
-				return CoopHelperModule.Session?.IsInCoopSession == true
-				&& owner == CoopHelperModule.Session?.SessionRole;
+				return CoopHelperModule.Settings?.CoopEverywhere == true ? true
+					: CoopHelperModule.Session?.IsInCoopSession == true
+					&& owner == CoopHelperModule.Session?.SessionRole;
 			}
 		}
 

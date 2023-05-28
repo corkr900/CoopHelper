@@ -21,7 +21,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				CurrentMap = GlobalAreaKey.Overworld,
 				CurrentRoom = "",
 				RespawnPoint = Vector2.Zero,
-				LastUpdateReceived = SyncTime.Now,
+				LastUpdateReceived = DateTime.Now,
 			};
 		}
 
@@ -78,7 +78,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		internal static void PurgeStale() {
 			List<PlayerID> toRemove = new List<PlayerID>();
 			foreach (KeyValuePair<PlayerID, PlayerState> v in _playerStates) {
-				if ((SyncTime.Now - v.Value.LastUpdateReceived).TotalSeconds > purgeTime) {
+				if ((DateTime.Now - v.Value.LastUpdateReceived).TotalSeconds > purgeTime) {
 					toRemove.Add(v.Key);
 				}
 			}
@@ -115,7 +115,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			CurrentMap = GlobalAreaKey.Overworld;
 			CurrentRoom = "";
 			RespawnPoint = Vector2.Zero;
-			LastUpdateReceived = SyncTime.Now;
+			LastUpdateReceived = DateTime.Now;
 		}
 
 		public PlayerState(Player p) {
@@ -124,7 +124,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			CurrentMap = new GlobalAreaKey(s.Area);
 			CurrentRoom = s.Level;
 			RespawnPoint = s.RespawnPoint ?? Vector2.Zero;
-			LastUpdateReceived = SyncTime.Now;
+			LastUpdateReceived = DateTime.Now;
 		}
 
 		internal PlayerState(CelesteNetBinaryReader r) {
@@ -132,7 +132,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			CurrentMap = r.ReadAreaKey();
 			CurrentRoom = r.ReadString();
 			RespawnPoint = r.ReadVector2();
-			LastUpdateReceived = SyncTime.Now;
+			LastUpdateReceived = DateTime.Now;
 		}
 
 		public void SetPing(int tcp, int? udp) {
@@ -154,7 +154,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public void CheckSendUpdate() {
-			if ((SyncTime.Now - LastUpdateReceived).TotalSeconds < idleUpdateTime) return;  // Enforce update frequency
+			if ((DateTime.Now - LastUpdateReceived).TotalSeconds < idleUpdateTime) return;  // Enforce update frequency
 			SendUpdateImmediate();
 		}
 	}

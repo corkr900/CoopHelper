@@ -8,6 +8,9 @@ corkr900_CoopHelper_Setting_TimeServer= Time Server
 corkr900_CoopHelper_Setting_DisplayName= Display Name
 #corkr900_CoopHelper_Setting_DisplayName_Subtext=
 
+corkr900_CoopHelper_Setting_CoopEverywhere= Co-op Mode Everywhere
+corkr900_CoopHelper_Setting_CoopEverywhere_Subtext=
+
 corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You
 corkr900_CoopHelper_SessionPickerWaitingForPlayers= Waiting for other players...

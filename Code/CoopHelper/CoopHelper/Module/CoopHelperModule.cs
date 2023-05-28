@@ -102,6 +102,7 @@ namespace Celeste.Mod.CoopHelper {
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Level.OnExit += onLevelExit;
+			Everest.Events.Level.OnLoadEntity += OnLevelLoadEntity;
 
 			typeof(ModInterop).ModInterop();
 		}
@@ -144,6 +145,7 @@ namespace Celeste.Mod.CoopHelper {
 
 			Everest.Events.Player.OnSpawn -= OnSpawn;
 			Everest.Events.Level.OnExit -= onLevelExit;
+			Everest.Events.Level.OnLoadEntity -= OnLevelLoadEntity;
 		}
 
 		#endregion
@@ -271,6 +273,24 @@ namespace Celeste.Mod.CoopHelper {
 
 		#region Hooked Code + Event Handlers
 
+		private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
+			if (!Settings.CoopEverywhere) return false;
+			switch(data.Name) {
+				default:
+					return false;
+
+				case "refill":
+					level.Add(new SyncedRefill(data, offset));
+					return true;
+				case "zipMover":
+					level.Add(new SyncedZipMover(data, offset));
+					return true;
+				case "fallingBlock":
+					level.Add(new SyncedFallingBlock(data, offset));
+					return true;
+			}
+		}
+
 		public static void OnStrawberryCollect(Action<Strawberry> orig, Strawberry self) {
 			orig(self);
 			if (!self.Golden) {
@@ -321,7 +341,7 @@ namespace Celeste.Mod.CoopHelper {
 		private void OnLevelLoaderStart(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
 			EntityStateTracker.ClearBuffers();
 			orig(self);
-			if (Session != null && !Session.IsInCoopSession) {
+			if (Session?.IsInCoopSession ?? false) {
 				TryRestoreCachedSession(self.session);
 			}
 			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);

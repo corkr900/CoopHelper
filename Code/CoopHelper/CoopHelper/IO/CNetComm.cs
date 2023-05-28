@@ -161,7 +161,10 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		internal void Tick(ulong counter) {
-			if (CoopHelperModule.Session?.IsInCoopSession == true && EntityStateTracker.HasUpdates) {
+			if ((CoopHelperModule.Settings?.CoopEverywhere == true
+					|| CoopHelperModule.Session?.IsInCoopSession == true)
+				&& EntityStateTracker.HasUpdates)
+			{
 				EntityStateTracker.NotifyInitiatingOutgoingMessage();
 				Send(new DataBundledEntityUpdate(), false);
 			}
@@ -230,8 +233,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
-			if (!CoopHelperModule.Session.IsInCoopSession) return;
-			if (!CoopHelperModule.Session.IsInCoopSession) return;
+			if (CoopHelperModule.Settings?.CoopEverywhere != true && CoopHelperModule.Session?.IsInCoopSession != true) return;
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
 

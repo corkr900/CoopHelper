@@ -13,13 +13,22 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public DateTime creationInstant { get; internal set; }
 		public uint idcounter { get; internal set; }
 
+		public static CoopSessionID CoopEverywhereID {
+			get {
+				return new CoopSessionID() {
+					creator = new PlayerID(0, 0, ""),
+					creationInstant = DateTime.MinValue,
+					idcounter = 0,
+				};
+			}
+		}
 
 		public static CoopSessionID GetNewID() {
 			localIDGenCounter += 1;
 			return new CoopSessionID() {
 				idcounter = localIDGenCounter,
 				creator = PlayerID.MyID,
-				creationInstant = SyncTime.Now,
+				creationInstant = DateTime.Now,
 			};
 		}
 

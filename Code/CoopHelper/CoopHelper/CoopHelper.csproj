@@ -130,7 +130,6 @@
     <Compile Include="Infrastructure\CoopSessionID.cs" />
     <Compile Include="Infrastructure\GlobalAreaKey.cs" />
     <Compile Include="Infrastructure\PlayerID.cs" />
-    <Compile Include="Infrastructure\SyncTime.cs" />
     <Compile Include="Infrastructure\Util.cs" />
     <Compile Include="IO\CNetComm.cs" />
     <Compile Include="Module\CoopHelperModuleSaveData.cs" />

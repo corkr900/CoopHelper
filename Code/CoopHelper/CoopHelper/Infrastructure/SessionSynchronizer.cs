@@ -29,7 +29,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static DateTime lastTriggeredDeathRemote = DateTime.MinValue;
 		private static bool CurrentDeathIsSecondary = false;
 
-		public static string IDString = "%SESSIONSYNC%";
+		public static readonly string IDString = "%SESSIONSYNC%";
 
 		private object basicFlagsLock = new object();
 		private bool deathPending = false;
@@ -40,7 +40,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private bool heartEndsLevel;
 		public List<Tuple<EntityID, Vector2>> newlyCollectedStrawbs = new List<Tuple<EntityID, Vector2>>();
 		private bool levelEndTriggeredRemotely = false;
-		private bool HoldingGolden;
 
 		public Player playerEntity { get; private set; }
 
@@ -78,7 +77,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				lock (basicFlagsLock) {
 					deathPending = true;
 					deathPendingIsGolden = isGoldenDeath;
-					lastTriggeredDeathLocal = SyncTime.Now;
+					lastTriggeredDeathLocal = DateTime.Now;
 					EntityStateTracker.PostUpdate(this);
 				}
 			}
@@ -132,8 +131,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public void ApplyState(object state) {
 			if (state is SessionSyncState dss) {
 				if (!dss.player.Equals(PlayerID.MyID)
-					&& CoopHelperModule.Session?.IsInCoopSession == true
-					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player))
+					&& CoopHelperModule.Settings?.CoopEverywhere == true
+					|| (CoopHelperModule.Session?.IsInCoopSession == true
+						&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)))
 				{
 					Level level = SceneAs<Level>();
 
