@@ -282,12 +282,85 @@ namespace Celeste.Mod.CoopHelper {
 				case "refill":
 					level.Add(new SyncedRefill(data, offset));
 					return true;
+
 				case "zipMover":
 					level.Add(new SyncedZipMover(data, offset));
 					return true;
+
 				case "fallingBlock":
 					level.Add(new SyncedFallingBlock(data, offset));
 					return true;
+
+				case "crumbleBlock":
+					level.Add(new SyncedCrumblePlatform(data, offset));
+					return true;
+
+				case "touchSwitch":
+					level.Add(new SyncedTouchSwitch(data, offset));
+					return true;
+
+				case "key":
+					level.Add(new SyncedKey(data, offset));
+					return true;
+
+				case "lockBlock":
+					level.Add(new SyncedLockBlock(data, offset));
+					return true;
+
+				case "booster":
+					level.Add(new SyncedBooster(data, offset));
+					return true;
+
+				case "moveBlock":
+					level.Add(new SyncedMoveBlock(data, offset));
+					return true;
+
+				case "switchBlock":
+				case "swapBlock":
+					level.Add(new SyncedSwapBlock(data, offset));
+					return true;
+
+				case "dashSwitchH":
+					data.Values["side"] = data.Bool("leftSide", false) ? "Left" : "Right";
+					goto case "dashSwitch";
+				case "dashSwitchV":
+					data.Values["side"] = data.Bool("ceiling", false) ? "Up" : "Down";
+					goto case "dashSwitch";
+				case "dashSwitch":
+					level.Add(new SyncedDashSwitch(data, offset));
+					return true;
+
+				case "templeCrackedBlock":
+					level.Add(new SyncedTempleCrackedBlock(data, offset));
+					return true;
+
+				case "coreModeToggle":
+					level.Add(new SyncedCoreModeToggle(data, offset));
+					return true;
+
+				case "eyebomb":
+					level.Add(new SyncedPuffer(data, offset));
+					return true;
+
+				case "lightningBlock":
+					level.Add(new SyncedLightningBreakerBox(data, offset));
+					return true;
+
+				case "crushBlock":
+					level.Add(new SyncedKevin(data, offset));
+					return true;
+
+				case "dashBlock":
+					level.Add(new SyncedDashBlock(data, offset));
+					return true;
+
+				case "colorSwitch":
+					level.Add(new SyncedClutterSwitch(data, offset));
+					return true;
+
+				//case "seeker":
+				//	level.Add(new SyncedSeeker(data, offset));
+				//	return true;
 			}
 		}
 
