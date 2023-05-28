@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Celeste.Mod.CoopHelper.Module {
 	public class CoopHelperModuleSettings : EverestModuleSettings {
@@ -23,6 +24,7 @@ namespace Celeste.Mod.CoopHelper.Module {
 		[SettingMaxLength(20)]
 		public string DisplayName { get; set; } = "";
 
+		[YamlIgnore]
 		[SettingName("corkr900_CoopHelper_Setting_CoopEverywhere")]
 		public bool CoopEverywhere { get; internal set; }
 	}
