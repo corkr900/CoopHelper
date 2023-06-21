@@ -34,6 +34,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		/// <summary>
 		/// If true, if there are multiple updates for the same entity in the incoming queue then the older update will be discarded.
 		/// Use this for classes that may send frequent updates and can recover from not receiving all of them.
+		/// Setting this to true has a performance cost so use sparingly.
 		/// </summary>
 		public bool DiscardDuplicates;
 		/// <summary>

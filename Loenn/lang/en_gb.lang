@@ -157,6 +157,12 @@ entities.corkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description
 entities.corkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description.cutscene=Dialog ID of cutscene to display. Leave empty for no cutscene.
 entities.corkr900CoopHelper/SyncedSummitBackgroundManagercorkr900CoopHelper/SyncedSummitBackgroundManager.attributes.description.ambience=Ambience background music.
 
+# Synced Summit Background Manager
+entities.corkr900CoopHelper/SyncedBounceBlock.placements.name.default=Synced Core Block
+entities.corkr900CoopHelper/SyncedBounceBlock.placements.name.fire=Synced Core Block (Only Hot)
+entities.corkr900CoopHelper/SyncedBounceBlock.placements.name.ice=Synced Core Block (Only Cold)
+entities.corkr900CoopHelper/SyncedBounceBlock.attributes.description.coreMode=If set to "None", block will change with the core mode. Otherwise, it will be locked in the mode specified, regardless of the level's core mode.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
