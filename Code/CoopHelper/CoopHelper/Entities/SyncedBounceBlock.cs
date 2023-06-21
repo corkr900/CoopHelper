@@ -104,6 +104,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void Update_WindingUp() {
+			usedByOtherPlayer = false;
 			Player player = WindUpPlayerCheck();
 			if (player != null || usedByOtherPlayer) {
 				if (iceMode) {
