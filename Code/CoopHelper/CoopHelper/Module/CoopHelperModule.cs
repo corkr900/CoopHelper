@@ -358,6 +358,11 @@ namespace Celeste.Mod.CoopHelper {
 					level.Add(new SyncedClutterSwitch(data, offset));
 					return true;
 
+				case "bounceBlock":
+					data.Values["coreMode"] = data.Bool("notCoreMode") ? "Cold" : "None";
+					level.Add(new SyncedBounceBlock(data, offset));
+					return true;
+
 				//case "seeker":
 				//	level.Add(new SyncedSeeker(data, offset));
 				//	return true;
