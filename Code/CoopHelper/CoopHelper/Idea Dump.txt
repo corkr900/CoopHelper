@@ -1,6 +1,7 @@
 ﻿
 ============== BUGS ==============
 
+- (!!!) session picker doesn't work if you connect to cnet after entering room
 - (!!!) keys can desync somehow
 - Steerable move blocks can desync easily when steering around corners
 - seekers
@@ -12,7 +13,6 @@
 
 ============== Utility ==============
 
-[Grouped] Trigger spikes
 
 ============== Low Utility ==============
 
