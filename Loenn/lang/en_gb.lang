@@ -169,6 +169,11 @@ entities.corkr900CoopHelper/SyncedCloud.placements.name.fragile=Synced Cloud (Fr
 entities.corkr900CoopHelper/SyncedCloud.attributes.description.fragile=If set, the cloud will disappear for a bit after use
 entities.corkr900CoopHelper/SyncedCloud.attributes.description.small=Makes the cloud smaller
 
+# Synced Feather
+entities.corkr900CoopHelper/SyncedFeather.placements.name.normal=Synced Feather
+entities.corkr900CoopHelper/SyncedFeather.attributes.description.shielded=Whether the feather is shielded
+entities.corkr900CoopHelper/SyncedFeather.attributes.description.singleUse=Whether the feather may only be used once
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 

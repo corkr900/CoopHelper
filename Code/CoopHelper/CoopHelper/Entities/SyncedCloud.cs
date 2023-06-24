@@ -30,8 +30,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			else {
 				instance = Audio.Play("event:/game/04_cliffside/cloud_blue_boost", Position);
 			}
-			instance.setPitch(0.8f);
-			instance.setVolume(0.8f);
+			instance.setPitch(0.7f);
+			instance.setVolume(0.6f);
 		}
 
 		public override void Update() {

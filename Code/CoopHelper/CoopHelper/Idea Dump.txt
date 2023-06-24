@@ -18,7 +18,6 @@
 
 ============== Low Utility ==============
 
-clouds
 feathers
 
 ============== Vanilla ==============

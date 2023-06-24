@@ -98,6 +98,7 @@
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
     <Compile Include="Entities\SyncedBounceBlock.cs" />
     <Compile Include="Entities\SyncedCloud.cs" />
+    <Compile Include="Entities\SyncedFeather.cs" />
     <Compile Include="Entities\SyncedSeeker.cs" />
     <Compile Include="Entities\SessionGate.cs" />
     <Compile Include="Entities\SyncedBooster.cs" />
@@ -197,6 +198,9 @@
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedFallingBlock.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedFallingBlock.lua</Link>
+    </None>
+    <None Include="..\..\..\Loenn\entities\SyncedFeather.lua">
+      <Link>Entity Plugins\Loenn\entities\SyncedFeather.lua</Link>
     </None>
     <None Include="..\..\..\Loenn\entities\SyncedKevin.lua">
       <Link>Entity Plugins\Loenn\entities\SyncedKevin.lua</Link>
