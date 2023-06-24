@@ -93,6 +93,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public void ApplyState(object s) {
 			if (s is SyncedTriggerSpikesState state) {
 				lock(syncLock) {
+					if ((lastSyncedState?.Length ?? 0) < state.triggeredInfo.Length) lastSyncedState = new bool[state.triggeredInfo.Length];
 					for (int i = 0; i < Calc.Min(state.triggeredInfo.Length, spikes?.Length ?? 0); i++) {
 						spikes[i].Triggered |= state.triggeredInfo[i];
 						lastSyncedState[i] |= state.triggeredInfo[i];
