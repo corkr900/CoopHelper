@@ -34,6 +34,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			instance.setVolume(0.8f);
 		}
 
+		public override void Update() {
+			bool waitingBefore = waiting;
+			base.Update();
+			bool waitingAfter = waiting;
+			if (waitingBefore && ! waitingAfter) {
+				EntityStateTracker.PostUpdate(this);
+			}
+		}
+
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			EntityStateTracker.AddListener(this, false);
