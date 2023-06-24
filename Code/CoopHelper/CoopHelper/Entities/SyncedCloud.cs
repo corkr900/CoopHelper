@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Entities {
+	[CustomEntity("corkr900CoopHelper/SyncedCloud")]
 	public class SyncedCloud : Cloud, ISynchronizable {
 		private EntityID id;
 

@@ -363,6 +363,10 @@ namespace Celeste.Mod.CoopHelper {
 					level.Add(new SyncedBounceBlock(data, offset));
 					return true;
 
+				case "cloud":
+					level.Add(new SyncedCloud(data, offset));
+					return true;
+
 				//case "seeker":
 				//	level.Add(new SyncedSeeker(data, offset));
 				//	return true;
