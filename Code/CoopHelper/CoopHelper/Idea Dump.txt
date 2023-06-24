@@ -9,8 +9,6 @@
 	- Synced entities it interacts with don't have one single source of truth, can lead to weird behavior
 	- Need to implement ownership changes
 	- might need to handle pause?
-- Clutter Switch
-	- Lightning version doesn't work (removed from editor)
 
 ============== Utility ==============
 
@@ -18,7 +16,6 @@
 
 ============== Low Utility ==============
 
-feathers
 
 ============== Vanilla ==============
 
@@ -45,13 +42,11 @@ more customization options on puffers
 
 ===========================================
 
-
-sync flags
-co-op mode everywhere?
+sync flags?
 
 ===========================================
 
-Sync mod entities:
+Sync mod entities?
 	Communalhelper dream entities
 	JungleHelper birds
 	trigger spikes / grouped trigger spikes

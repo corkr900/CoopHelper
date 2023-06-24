@@ -3,6 +3,7 @@ using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
+using FMOD;
 using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using Monocle;
@@ -53,6 +54,7 @@ namespace Celeste.Mod.CoopHelper {
 		private static IDetour hook_CelesteNetClientSettings_Interactions_get;
 		private static IDetour hook_CrushBlock_AttackSequence;
 		private static IDetour hook_Player_orig_Die;
+		private static IDetour hook_SpikeInfo_OnPlayer;
 
 		public CoopHelperModule() {
 			Instance = this;
@@ -75,6 +77,9 @@ namespace Celeste.Mod.CoopHelper {
 			hook_Player_orig_Die = new Hook(
 				typeof(Player).GetMethod("orig_Die", BindingFlags.Public | BindingFlags.Instance),
 				typeof(CoopHelperModule).GetMethod("OnPlayerDie"));
+			hook_SpikeInfo_OnPlayer = new Hook(
+				typeof(TriggerSpikes.SpikeInfo).GetMethod("OnPlayer", BindingFlags.Public | BindingFlags.Instance),
+				typeof(CoopHelperModule).GetMethod("OnSpikeInfoOnPlayer"));
 
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
@@ -95,10 +100,12 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LevelLoader.StartLevel += OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine += OnAscendManagerRoutine;
+			//On.Celeste.TriggerSpikes.SpikeInfo.OnPlayer += OnSpikeInfoOnPlayer;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added += OnClutterAbsorbEffectAdded;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
+
 
 			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Level.OnExit += onLevelExit;
@@ -118,6 +125,8 @@ namespace Celeste.Mod.CoopHelper {
 			hook_CelesteNetClientSettings_Interactions_get = null;
 			hook_Player_orig_Die?.Dispose();
 			hook_Player_orig_Die = null;
+			hook_SpikeInfo_OnPlayer?.Dispose();
+			hook_SpikeInfo_OnPlayer = null;
 
 			// IL Hooks
 			hook_CrushBlock_AttackSequence?.Dispose();
@@ -138,6 +147,7 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LevelLoader.StartLevel -= OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine -= OnAscendManagerRoutine;
+			//On.Celeste.TriggerSpikes.SpikeInfo.OnPlayer -= OnSpikeInfoOnPlayer;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added -= OnClutterAbsorbEffectAdded;
@@ -367,9 +377,25 @@ namespace Celeste.Mod.CoopHelper {
 					level.Add(new SyncedCloud(data, offset));
 					return true;
 
-				case "seeker":
-					level.Add(new SyncedSeeker(data, offset));
+				case "triggerSpikesUp":
+					data.Name = "corkr900CoopHelper/TriggerSpikesUp";
+					goto case "dashSwitch";
+				case "triggerSpikesDown":
+					data.Name = "corkr900CoopHelper/TriggerSpikesDown";
+					goto case "dashSwitch";
+				case "triggerSpikesRight":
+					data.Name = "corkr900CoopHelper/TriggerSpikesRight";
+					goto case "dashSwitch";
+				case "triggerSpikesLeft":
+					data.Name = "corkr900CoopHelper/TriggerSpikesLeft";
+					goto case "dashSwitch";
+				case "%triggerSpikes":
+					level.Add(new SyncedTriggerSpikes(data, offset));
 					return true;
+
+					//case "seeker":
+					//	level.Add(new SyncedSeeker(data, offset));
+					//	return true;
 			}
 		}
 
@@ -600,6 +626,17 @@ namespace Celeste.Mod.CoopHelper {
 			if (self is SyncedBooster sb) {
 				sb.OnPlayerBoosted();
 			}
+		}
+
+		public delegate bool orig_SpikeInfoOnPlayer(ref TriggerSpikes.SpikeInfo self, Player player, Vector2 outwards);
+		public static bool OnSpikeInfoOnPlayer(orig_SpikeInfoOnPlayer orig, ref TriggerSpikes.SpikeInfo self, Player player, Vector2 outwards) {
+			bool ret = orig(ref self, player, outwards);
+
+			TriggerSpikes.SpikeInfo inf = (TriggerSpikes.SpikeInfo)self;
+			if (inf.Parent is SyncedTriggerSpikes sts) {
+				sts.OnTriggered();
+			}
+			return ret;
 		}
 
 		#endregion

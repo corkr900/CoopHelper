@@ -38,13 +38,15 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void UsedByOtherPlayer(Vector2 speed) {
-			if (!Collidable) return;
 			Collidable = false;
 			Add(new Coroutine(RemoteCollectRoutine(speed)));
 			if (!singleUse) {
 				outline.Visible = true;
 				respawnTimer = 3f;
 			}
+			var instance = Audio.Play(shielded ? "event:/game/06_reflection/feather_bubble_renew" : "event:/game/06_reflection/feather_renew", Position);
+			instance.setPitch(0.7f);
+			instance.setVolume(0.6f);
 		}
 
 		private IEnumerator RemoteCollectRoutine(Vector2 playerSpeed) {

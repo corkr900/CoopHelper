@@ -174,6 +174,12 @@ entities.corkr900CoopHelper/SyncedFeather.placements.name.normal=Synced Feather
 entities.corkr900CoopHelper/SyncedFeather.attributes.description.shielded=Whether the feather is shielded
 entities.corkr900CoopHelper/SyncedFeather.attributes.description.singleUse=Whether the feather may only be used once
 
+# Synced Trigger Spikes
+entities.corkr900CoopHelper/TriggerSpikesUp.placements.name.up_dust=Synced Trigger Spikes (Up)
+entities.corkr900CoopHelper/TriggerSpikesDown.placements.name.down_dust=Synced Trigger Spikes (Down)
+entities.corkr900CoopHelper/TriggerSpikesLeft.placements.name.left_dust=Synced Trigger Spikes (Left)
+entities.corkr900CoopHelper/TriggerSpikesRight.placements.name.right_dust=Synced Trigger Spikes (Right)
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
