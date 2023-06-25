@@ -283,18 +283,6 @@ namespace Celeste.Mod.CoopHelper {
 			}
 		}
 
-		private void ILLoadLevelAddKey(ILContext il) {
-			ILCursor cursor = new ILCursor(il);
-			if (cursor.TryGotoNext(instr => instr.MatchNewobj<Key>()
-				&& cursor.Next.MatchCall<Scene>("Add")
-				&& !cursor.Next.Next.MatchBreak()))
-			{
-				//cursor.EmitDelegate<Func<Key, Key>>((Key orig) => {
-				//	if (Session?.IsInCoopSession)
-				//});
-			}
-		}
-
 		#endregion
 
 		#region Hooked Code + Event Handlers
@@ -417,10 +405,12 @@ namespace Celeste.Mod.CoopHelper {
 
 		public static void OnLevelOrigLoadLevel(Action<Level, Player.IntroTypes, bool> orig, Level self, Player.IntroTypes intro, bool isFromLoader) {
 			orig(self, intro, isFromLoader);
-			Player pl = self.Tracker?.GetEntity<Player>();
-			if (pl != null && Session?.SyncedKeys != null) {
-				foreach (EntityID id in Session.SyncedKeys) {
-					self.Add(new SyncedKey(pl, id));
+			if (intro != Player.IntroTypes.Transition) {
+				Player pl = self.Tracker?.GetEntity<Player>();
+				if (pl != null && Session?.SyncedKeys != null) {
+					foreach (EntityID id in Session.SyncedKeys) {
+						self.Add(new SyncedKey(pl, id));
+					}
 				}
 			}
 		}
