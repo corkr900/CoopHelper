@@ -122,17 +122,27 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		private static SyncBehavior GetBehavior(ISynchronizable isy) {
 			if (isy is ExternalSyncedEntity ese) return null;
+			// TODO figure out a new solution that doesn't involve reflection
 			MethodInfo info = isy.GetType().GetMethod("GetSyncBehavior", BindingFlags.Static | BindingFlags.Public);
 			return info?.Invoke(null, null) as SyncBehavior;
 		}
 
-		private static int GetHeader(ISynchronizable isy) {
-			return isy is ExternalSyncedEntity ese ? ese.Header : GetBehavior(isy).Header;
+		private static int GetHeader(ISynchronizable isy, out SyncBehavior behav) {
+			if (isy is ExternalSyncedEntity ese) {
+				behav = null;
+				return ese.Header;
+			}
+			behav = GetBehavior(isy);
+			return behav.Header;
 		}
 
 		public static void PostUpdate(EntityID id) {
 			if (listeners.ContainsKey(id)) {
 				PostUpdate(listeners[id]);
+				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Update posted with ID '{id}' by ID");
+			}
+			else {
+				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Update posted with ID '{id}' by ID ignored; outgoing update is already queued.");
 			}
 		}
 
@@ -140,6 +150,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			lock (outgoing) {
 				if (!outgoing.Contains(entity, new SynchronizableComparer())) {
 					outgoing.Enqueue(entity);
+					Logger.Log(LogLevel.Debug, "Co-op Helper", $"Update posted with ID '{entity.GetID()}' by reference");
+				}
+				else {
+					Logger.Log(LogLevel.Debug, "Co-op Helper", $"Update posted with ID '{entity.GetID()}' by reference ignored; outgoing update is already queued.");
 				}
 				IgnorePendingUpdatesInUpdateCheck = false;
 			}
@@ -157,10 +171,12 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				int before = outgoing.Count;
 				while (outgoing.Count > 0 && w.BaseStream.Position - streamPositionAtStart < stopThreshold) {
 					ISynchronizable ob = outgoing.Dequeue();
-					w.Write(GetHeader(ob));
+					w.Write(GetHeader(ob, out SyncBehavior bhv));
 					w.Write(ob.GetID());
+					Logger.Log(LogLevel.Debug, "Co-op Helper", $"Serializing update with header {bhv.Header} with ID {ob.GetID()}");
+
 					long sizeHeaderPosition = w.BaseStream.Position;
-					w.Write((long)0);  // placeholder... we'll overwrite it later
+					w.Write((long)0);  // We'll overwrite this later with the actual size
 					// serialize the update and measure the serialized size
 					long posBefore = w.BaseStream.Position;
 					ob.WriteState(w);
@@ -188,6 +204,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						int header = r.ReadInt32();
 						if (header == EndOfTransmissionHeader) break;
 						EntityID id = r.ReadEntityID();
+						Logger.Log(LogLevel.Debug, "Co-op Helper", $"Deserializing update with header {header} with ID {id}");
 						long size = r.ReadInt64();
 						if (isMySession && behaviors.ContainsKey(header)) {
 							object parsedState = behaviors[header].Parser(r);
@@ -195,6 +212,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						}
 						else {
 							r.BaseStream.Seek(size, System.IO.SeekOrigin.Current);
+							Logger.Log(LogLevel.Debug, "Co-op Helper", $"Ignoring update with header {header} with ID {id}; not my session or unknown header");
 						}
 					} while (true);
 				}
@@ -222,16 +240,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						listeners[node.Value.Item2].ApplyState(node.Value.Item3);
 						incoming.Remove(node);
 						++ProcessedUpdates;
+						Logger.Log(LogLevel.Debug, "Co-op Helper", $"Processed update with header {node.Value.Item1} with ID {node.Value.Item2}");
 					}
 					// If there's no listener but a static handler, try to use that
 					else if (behav.StaticHandler?.Invoke(node.Value.Item2, node.Value.Item3) == true) {
 						incoming.Remove(node);
 						++ProcessedUpdates;
+						Logger.Log(LogLevel.Debug, "Co-op Helper", $"Processed update with header {node.Value.Item1} with ID {node.Value.Item2} with static handler");
 					}
 					// Discard unlistened updates if the behavior says to
 					else if (behav.DiscardIfNoListener) {
 						incoming.Remove(node);
 						++DiscardedUpdates;
+						Logger.Log(LogLevel.Debug, "Co-op Helper", $"Discarded update with header {node.Value.Item1} with ID {node.Value.Item2}; no listener");
 					}
 					// Discard oldest duplicates if the type says to
 					else if (behav.DiscardDuplicates) {
@@ -239,6 +260,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 							incoming.Remove(duplicateDict[node.Value.Item2]);
 							duplicateDict[node.Value.Item2] = node;
 							++DiscardedUpdates;
+							Logger.Log(LogLevel.Debug, "Co-op Helper", $"Discarded update with header {node.Value.Item1} with ID {node.Value.Item2}; duplicate detected");
 						}
 						else {
 							duplicateDict.Add(node.Value.Item2, node);

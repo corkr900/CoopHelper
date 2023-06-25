@@ -1,6 +1,7 @@
 ﻿
 ============== BUGS ==============
 
+- Session piker should tell you to connect if youre not connected
 - (!!!) session picker doesn't work if you connect to cnet after entering room
 - (!!!) keys can desync somehow
 - Steerable move blocks can desync easily when steering around corners

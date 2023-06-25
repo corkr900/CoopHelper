@@ -69,24 +69,29 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public static bool StaticHandler(EntityID id, object state) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: running static handler...");
 			if (!(state is SyncedKeyState sks)) return false;
 			if (!(Engine.Scene is Level level)) return false;
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler processing...");
 			Session session = level.Session;
 			if (session.DoNotLoad.Contains(id)) {
 				if (sks.Used && session.Keys.Contains(id)) {
 					session.Keys.Remove(id);
 				}
+				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 1");
 				return true;
 			}
 			Player player = level.Tracker.GetEntity<Player>();
 			if (player == null) {
 				session.DoNotLoad.Add(id);
 				session.Keys.Add(id);
+				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 2");
 			}
 			else {
 				session.DoNotLoad.Add(id);
 				session.Keys.Add(id);
 				level.Add(new SyncedKey(player, id));
+				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 3");
 			}
 			return !sks.Used;
 		}
