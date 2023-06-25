@@ -44,6 +44,8 @@ namespace Celeste.Mod.CoopHelper.Module {
 			get { return usingCoopEverywhere ? null : _ability; }
 			set { _ability = value; }
 		}
+
+		internal HashSet<EntityID> SyncedKeys = new HashSet<EntityID>();
 	}
 
 	public enum DeathSyncMode {

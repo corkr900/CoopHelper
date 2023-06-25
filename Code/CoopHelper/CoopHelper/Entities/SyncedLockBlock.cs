@@ -82,7 +82,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				key.RegisterUsed();
 			}
 			else {
-				SceneAs<Level>().Session.Keys.Remove(usedKeyID);
+				SceneAs<Level>()?.Session?.Keys?.Remove(usedKeyID);
+				CoopHelperModule.Session?.SyncedKeys?.Remove(usedKeyID);
 			}
 			UnlockingRegistered = true;
 			if (!remotePlayerOpened) EntityStateTracker.PostUpdate(this);

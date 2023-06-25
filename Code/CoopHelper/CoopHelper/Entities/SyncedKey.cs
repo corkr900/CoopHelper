@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.CoopHelper.Module;
 using Celeste.Mod.Entities;
 using FMOD.Studio;
 using Microsoft.Xna.Framework;
@@ -19,18 +20,36 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		internal Vector2 OpenTarget;
 		internal bool AnotherPlayerUsed;
 
-		private SyncedKey(Player player, EntityID id) : base(player, id) { }
+		internal SyncedKey(Player player, EntityID id) : base(player, id) {
+			PlayerCollider coll = Get<PlayerCollider>();
+			if (coll != null) coll.OnCollide = OnPlayerOverride;
+		}
 
 		public SyncedKey(EntityData data, Vector2 offset) : base(data, offset, new EntityID(data.Level.Name, data.ID)) {
 			PlayerCollider coll = Get<PlayerCollider>();
-			Action<Player> orig_OnPlayer = coll.OnCollide;
-			coll.OnCollide = (Player p) => {
-				orig_OnPlayer(p);
-				if (!AnotherPlayerUsed) EntityStateTracker.PostUpdate(this);
-			};
+			if (coll != null) coll.OnCollide = OnPlayerOverride;
 		}
 
 		internal void OnRegisterUsed() {
+			if (!AnotherPlayerUsed) EntityStateTracker.PostUpdate(this);
+			CoopHelperModule.Session?.SyncedKeys?.Remove(ID);
+		}
+
+		private void OnPlayerOverride(Player player) {
+			SceneAs<Level>().Particles.Emit(P_Collect, 10, Position, Vector2.One * 3f);
+			Audio.Play("event:/game/general/key_get", Position);
+			Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
+			player.Leader.GainFollower(follower);
+			Collidable = false;
+			Session session = SceneAs<Level>().Session;
+			session.DoNotLoad.Add(ID);
+			session.UpdateLevelStartDashes();
+			wiggler.Start();
+			Depth = -1000000;
+			if (nodes != null && nodes.Length >= 2) {
+				Add(new Coroutine(NodeRoutine(player)));
+			}
+			CoopHelperModule.Session?.SyncedKeys?.Add(ID);
 			if (!AnotherPlayerUsed) EntityStateTracker.PostUpdate(this);
 		}
 
@@ -74,9 +93,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			if (!(Engine.Scene is Level level)) return false;
 			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler processing...");
 			Session session = level.Session;
+			CoopHelperModuleSession coopSession = CoopHelperModule.Session;
+			if (session == null ||  coopSession == null) return false;
 			if (session.DoNotLoad.Contains(id)) {
-				if (sks.Used && session.Keys.Contains(id)) {
-					session.Keys.Remove(id);
+				if (sks.Used && coopSession.SyncedKeys.Contains(id)) {
+					coopSession.SyncedKeys.Remove(id);
 				}
 				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 1");
 				return true;
@@ -84,12 +105,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Player player = level.Tracker.GetEntity<Player>();
 			if (player == null) {
 				session.DoNotLoad.Add(id);
-				session.Keys.Add(id);
+				coopSession.SyncedKeys.Add(id);
 				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 2");
 			}
 			else {
 				session.DoNotLoad.Add(id);
-				session.Keys.Add(id);
+				coopSession.SyncedKeys.Add(id);
 				level.Add(new SyncedKey(player, id));
 				Logger.Log(LogLevel.Debug, "Co-op Helper", $"Key: static handler exited condition 3");
 			}

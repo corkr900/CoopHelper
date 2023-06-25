@@ -55,6 +55,7 @@ namespace Celeste.Mod.CoopHelper {
 		private static IDetour hook_CrushBlock_AttackSequence;
 		private static IDetour hook_Player_orig_Die;
 		private static IDetour hook_SpikeInfo_OnPlayer;
+		private static IDetour hook_Level_orig_LoadLevel;
 
 		public CoopHelperModule() {
 			Instance = this;
@@ -80,6 +81,9 @@ namespace Celeste.Mod.CoopHelper {
 			hook_SpikeInfo_OnPlayer = new Hook(
 				typeof(TriggerSpikes.SpikeInfo).GetMethod("OnPlayer", BindingFlags.Public | BindingFlags.Instance),
 				typeof(CoopHelperModule).GetMethod("OnSpikeInfoOnPlayer"));
+			hook_Level_orig_LoadLevel = new Hook(
+				typeof(Level).GetMethod("orig_LoadLevel", BindingFlags.Public | BindingFlags.Instance),
+				typeof(CoopHelperModule).GetMethod("OnLevelOrigLoadLevel"));
 
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
@@ -279,6 +283,18 @@ namespace Celeste.Mod.CoopHelper {
 			}
 		}
 
+		private void ILLoadLevelAddKey(ILContext il) {
+			ILCursor cursor = new ILCursor(il);
+			if (cursor.TryGotoNext(instr => instr.MatchNewobj<Key>()
+				&& cursor.Next.MatchCall<Scene>("Add")
+				&& !cursor.Next.Next.MatchBreak()))
+			{
+				//cursor.EmitDelegate<Func<Key, Key>>((Key orig) => {
+				//	if (Session?.IsInCoopSession)
+				//});
+			}
+		}
+
 		#endregion
 
 		#region Hooked Code + Event Handlers
@@ -396,6 +412,16 @@ namespace Celeste.Mod.CoopHelper {
 					//case "seeker":
 					//	level.Add(new SyncedSeeker(data, offset));
 					//	return true;
+			}
+		}
+
+		public static void OnLevelOrigLoadLevel(Action<Level, Player.IntroTypes, bool> orig, Level self, Player.IntroTypes intro, bool isFromLoader) {
+			orig(self, intro, isFromLoader);
+			Player pl = self.Tracker?.GetEntity<Player>();
+			if (pl != null && Session?.SyncedKeys != null) {
+				foreach (EntityID id in Session.SyncedKeys) {
+					self.Add(new SyncedKey(pl, id));
+				}
 			}
 		}
 
