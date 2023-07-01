@@ -412,7 +412,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 1.5f, Color.White, 2f, Color.Black);
 			yPos += 100;
 
-			if (pickingRole) RenderRoleList(ref yPos);
+			if (CNetComm.Instance?.IsConnected != true) {
+				yPos += 100;
+				ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerConnectToCnet"),
+					new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
+			}
+			else if (pickingRole) RenderRoleList(ref yPos);
 			else RenderPlayerList(ref yPos);
 		}
 

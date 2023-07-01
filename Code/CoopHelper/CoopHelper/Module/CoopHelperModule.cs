@@ -383,16 +383,16 @@ namespace Celeste.Mod.CoopHelper {
 
 				case "triggerSpikesUp":
 					data.Name = "corkr900CoopHelper/TriggerSpikesUp";
-					goto case "dashSwitch";
+					goto case "%triggerSpikes";
 				case "triggerSpikesDown":
 					data.Name = "corkr900CoopHelper/TriggerSpikesDown";
-					goto case "dashSwitch";
+					goto case "%triggerSpikes";
 				case "triggerSpikesRight":
 					data.Name = "corkr900CoopHelper/TriggerSpikesRight";
-					goto case "dashSwitch";
+					goto case "%triggerSpikes";
 				case "triggerSpikesLeft":
 					data.Name = "corkr900CoopHelper/TriggerSpikesLeft";
-					goto case "dashSwitch";
+					goto case "%triggerSpikes";
 				case "%triggerSpikes":
 					level.Add(new SyncedTriggerSpikes(data, offset));
 					return true;

@@ -1,9 +1,7 @@
 ﻿
 ============== BUGS ==============
 
-- Session piker should tell you to connect if youre not connected
-- (!!!) session picker doesn't work if you connect to cnet after entering room
-- (!!!) keys can desync somehow
+- (!!!) session picker doesn't work if you connect to cnet after entering room (sometimes hard to reproduce)
 - Steerable move blocks can desync easily when steering around corners
 - seekers
 	- idle wobble is desynced
