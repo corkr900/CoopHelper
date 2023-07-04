@@ -24,7 +24,7 @@ using System.Xml;
 namespace Celeste.Mod.CoopHelper {
 	public class CoopHelperModule : EverestModule {
 
-		public static readonly string ProtocolVersion = "beta_0_2";
+		public static readonly string ProtocolVersion = "beta_1_0";
 
 		#region Setup and Static Stuff
 
@@ -397,9 +397,9 @@ namespace Celeste.Mod.CoopHelper {
 					level.Add(new SyncedTriggerSpikes(data, offset));
 					return true;
 
-					//case "seeker":
-					//	level.Add(new SyncedSeeker(data, offset));
-					//	return true;
+				//case "seeker":
+				//	level.Add(new SyncedSeeker(data, offset));
+				//	return true;
 			}
 		}
 

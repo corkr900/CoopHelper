@@ -28,10 +28,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static int? _localMACHash = null;
 		private static string _lastKnownName;
 		private static string GetName() {
-			string name = CoopHelperModule.Settings.DisplayName;
-			if (string.IsNullOrEmpty(name)) {
-				name = CNetComm.Instance?.CnetClient?.PlayerInfo?.Name;
-			}
+			string name = CNetComm.Instance?.CnetClient?.PlayerInfo?.Name;
 			if (string.IsNullOrEmpty(name)) {
 				name = _lastKnownName;
 			}

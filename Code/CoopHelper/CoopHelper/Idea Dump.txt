@@ -38,6 +38,8 @@ custom flags  for lightning breaker boxes
 custom health for lightning breaker boxes
 more customization options on seekers
 more customization options on puffers
+better trigger spikes
+grouped trigger spikes
 
 ===========================================
 

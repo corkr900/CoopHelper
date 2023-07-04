@@ -1,3 +1,6 @@
+
+corkr900_CoopHelper= Co-op Helper
+
 corkr900= Cork's test stuff
 corkr900_00_CoopHelperTestMap= Co-op Helper Test Map
 poem_corkr900_00_CoopHelperTestMap_A= POOOOEEEEMMM I Guess

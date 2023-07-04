@@ -13,17 +13,7 @@ namespace Celeste.Mod.CoopHelper.Module {
 			None,
 		}
 
-		[SettingName("corkr900_CoopHelper_Setting_TimeServer")]
-		//[SettingSubText("corkr900_CoopHelper_Setting_TimeServer_Subtext")]
-		public TimeServer NSTPTimeServer { get; set; } = TimeServer.Windows;
-
-		[SettingName("corkr900_CoopHelper_Setting_DisplayName")]
-		//[SettingSubText("corkr900_CoopHelper_Setting_DisplayName_Subtext")]
-		[SettingInGame(false)]
-		[SettingMinLength(0)]
-		[SettingMaxLength(20)]
-		public string DisplayName { get; set; } = "";
-
+		[SettingIgnore]  // Temporary until all this is stabilized
 		[YamlIgnore]
 		[SettingName("corkr900_CoopHelper_Setting_CoopEverywhere")]
 		public bool CoopEverywhere { get; internal set; }
