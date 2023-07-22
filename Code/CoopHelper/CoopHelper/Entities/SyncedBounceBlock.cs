@@ -226,7 +226,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 			ToggleSprite();
 			EntityStateTracker.AddListener(this, false);
-			Alarm.Set(this, 0.35f, () => { Engine.Commands.Log("AAA"); });
 		}
 
 		public override void SceneEnd(Scene scene) {

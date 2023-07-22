@@ -173,7 +173,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 					ISynchronizable ob = outgoing.Dequeue();
 					w.Write(GetHeader(ob, out SyncBehavior bhv));
 					w.Write(ob.GetID());
-					Logger.Log(LogLevel.Debug, "Co-op Helper", $"Serializing update with header {bhv.Header} with ID {ob.GetID()}");
+					Logger.Log(LogLevel.Debug, "Co-op Helper", $"Serializing update with header {bhv?.Header} with ID {ob?.GetID()}");
 
 					long sizeHeaderPosition = w.BaseStream.Position;
 					w.Write((long)0);  // We'll overwrite this later with the actual size
