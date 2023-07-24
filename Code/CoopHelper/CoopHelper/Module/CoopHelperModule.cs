@@ -104,7 +104,6 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LevelLoader.StartLevel += OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine += OnAscendManagerRoutine;
-			//On.Celeste.TriggerSpikes.SpikeInfo.OnPlayer += OnSpikeInfoOnPlayer;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added += OnClutterAbsorbEffectAdded;
@@ -151,7 +150,6 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.LevelLoader.StartLevel -= OnLevelLoaderStart;
 			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine -= OnAscendManagerRoutine;
-			//On.Celeste.TriggerSpikes.SpikeInfo.OnPlayer -= OnSpikeInfoOnPlayer;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
 			On.Celeste.ClutterAbsorbEffect.Added -= OnClutterAbsorbEffectAdded;
