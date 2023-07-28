@@ -130,6 +130,8 @@ namespace Celeste.Mod.CoopHelper {
 			hook_Player_orig_Die = null;
 			hook_SpikeInfo_OnPlayer?.Dispose();
 			hook_SpikeInfo_OnPlayer = null;
+			hook_Level_orig_LoadLevel?.Dispose();
+			hook_Level_orig_LoadLevel = null;
 
 			// IL Hooks
 			hook_CrushBlock_AttackSequence?.Dispose();
@@ -435,17 +437,19 @@ namespace Celeste.Mod.CoopHelper {
 		}
 
 		public static PlayerDeadBody OnPlayerDie(Func<Player, Vector2, bool, bool, PlayerDeadBody> orig, Player self, Vector2 direction, bool ifInvincible, bool registerStats) {
-			// check whether we'll *actually* die first...
-			Session session = self.level.Session;
-			bool flag = !ifInvincible && global::Celeste.SaveData.Instance.Assists.Invincible;
-			if (!self.Dead && !flag && self.StateMachine.State != Player.StReflectionFall) {
-				// Cache off session data to restore after golden death
-				bool hasGolden = self.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false;
-				if (hasGolden) {
-					Instance.CacheSession();
+			if (Session?.IsInCoopSession ?? false) {
+				// check whether we'll *actually* die first...
+				Session session = self.level.Session;
+				bool flag = !ifInvincible && global::Celeste.SaveData.Instance.Assists.Invincible;
+				if (!self.Dead && !flag && self.StateMachine.State != Player.StReflectionFall) {
+					// Cache off session data to restore after golden death
+					bool hasGolden = self.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false;
+					if (hasGolden) {
+						Instance.CacheSession();
+					}
+					// Send sync info
+					self.Get<SessionSynchronizer>()?.PlayerDied(hasGolden);
 				}
-				// Send sync info
-				self.Get<SessionSynchronizer>()?.PlayerDied(hasGolden);
 			}
 			// Now actually do the thing
 			return orig(self, direction, ifInvincible, registerStats);
@@ -463,9 +467,7 @@ namespace Celeste.Mod.CoopHelper {
 		private void OnLevelLoaderStart(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
 			EntityStateTracker.ClearBuffers();
 			orig(self);
-			if (Session?.IsInCoopSession ?? false) {
-				TryRestoreCachedSession(self.session);
-			}
+			TryRestoreCachedSession(self.session);
 			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);
 			PlayerState.Mine.CurrentRoom = self.Level.Session.Level;
 			PlayerState.Mine.RespawnPoint = self.Level.Session.RespawnPoint ?? Vector2.Zero;
