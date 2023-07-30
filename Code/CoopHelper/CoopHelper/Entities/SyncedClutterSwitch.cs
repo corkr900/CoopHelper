@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Celeste.Mod.CoopHelper.Entities.SyncedZipMover;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SyncedClutterSwitch")]
@@ -32,34 +33,34 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			};
 		}
 
-		private static void DoStaticCutscene(ClutterBlock.Colors color) {
+		private static void DoStaticCutscene(SyncedClutterSwitchState scss) {
 			if (!(Engine.Scene is Level level)) return;
 
 			Input.Rumble(RumbleStrength.Strong, RumbleLength.Medium);
-			level.Session.SetFlag("oshiro_clutter_cleared_" + (int)color);
+			level.Session.SetFlag("oshiro_clutter_cleared_" + (int)scss.color);
 			level.Session.SetFlag("oshiro_clutter_door_open", setTo: false);
 			level.DirectionalShake(Vector2.UnitY, 0.6f);
 
 			Entity cutsceneEntity = new Entity();
 			level.Add(cutsceneEntity);
-			cutsceneEntity.Add(new Coroutine(AbsorbRoutine(cutsceneEntity, color), true));
+			cutsceneEntity.Add(new Coroutine(StaticAbsorbRoutine(cutsceneEntity, scss), true));
 		}
 
-		private static IEnumerator AbsorbRoutine(Entity entity, ClutterBlock.Colors color) {
+		private static IEnumerator StaticAbsorbRoutine(Entity entity, SyncedClutterSwitchState scss) {
 			SoundSource cutsceneSfx;
 			Level level = entity.SceneAs<Level>();
 
 			entity.Add(cutsceneSfx = new SoundSource());
 			float duration = 0f;
-			if (color == ClutterBlock.Colors.Green) {
+			if (scss.color == ClutterBlock.Colors.Green) {
 				cutsceneSfx.Play("event:/game/03_resort/clutterswitch_books");
 				duration = 6.366f;
 			}
-			else if (color == ClutterBlock.Colors.Red) {
+			else if (scss.color == ClutterBlock.Colors.Red) {
 				cutsceneSfx.Play("event:/game/03_resort/clutterswitch_linens");
 				duration = 6.15f;
 			}
-			else if (color == ClutterBlock.Colors.Yellow) {
+			else if (scss.color == ClutterBlock.Colors.Yellow) {
 				cutsceneSfx.Play("event:/game/03_resort/clutterswitch_boxes");
 				duration = 6.066f;
 			}
@@ -70,7 +71,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Vector2 target = level.Camera.CameraToScreen(Vector2.One / 2f) /*+ new Vector2(Width / 2f, 0f)*/;
 			ClutterAbsorbEffect effect = new ClutterAbsorbEffect();
 			level.Add(effect);
-			level.Session.Audio.Music.Progress++;
+			if (scss.incrementMusicProgress) level.Session.Audio.Music.Progress++;
 			level.Session.Audio.Apply(forceSixteenthNoteHack: false);
 			level.Session.LightingAlphaAdd -= 0.05f;
 			float start = level.Lighting.Alpha;
@@ -82,17 +83,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			entity.Add(tween);
 			Input.Rumble(RumbleStrength.Light, RumbleLength.Medium);
 			foreach (ClutterBlock item in level.Entities.FindAll<ClutterBlock>()) {
-				if (item.BlockColor == color) {
+				if (item.BlockColor == scss.color) {
 					item.Absorb(effect);
 				}
 			}
 			foreach (ClutterBlockBase item2 in level.Entities.FindAll<ClutterBlockBase>()) {
-				if (item2.BlockColor == color) {
+				if (item2.BlockColor == scss.color) {
 					item2.Deactivate();
 				}
 			}
 			yield return 1.5f;
-			List<MTexture> images = GFX.Game.GetAtlasSubtextures("objects/resortclutter/" + color.ToString() + "_");
+			List<MTexture> images = GFX.Game.GetAtlasSubtextures("objects/resortclutter/" + scss.color.ToString() + "_");
 			for (int i = 0; i < 25; i++) {
 				for (int j = 0; j < 5; j++) {
 					Vector2 position = target + Calc.AngleToVector(Calc.Random.NextFloat((float)Math.PI * 2f), 320f);
@@ -133,23 +134,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Critical = true,
 		};
 
-		public static object ParseState(CelesteNetBinaryReader r) {
-			ClutterBlock.Colors color;
-			Enum.TryParse(r.ReadString(), out color);
-			return color;
-		}
-
 		public static bool StaticHandler(EntityID id, object state) {
-			if (!(state is ClutterBlock.Colors color)) return false;
-			DoStaticCutscene(color);
+			if (!(state is SyncedClutterSwitchState scss)) return false;
+			DoStaticCutscene(scss);
 			return true;
 		}
 
 		public void ApplyState(object state) {
-			if (state is ClutterBlock.Colors color) {
+			if (state is SyncedClutterSwitchState scss) {
 				SceneAs<Level>()?.Particles?.Emit(P_Pressed, 20, TopCenter - Vector2.UnitY * 10f, new Vector2(16f, 8f));
 				BePressed();
-				DoStaticCutscene(color);
+				DoStaticCutscene(scss);
 			}
 		}
 
@@ -159,6 +154,20 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void WriteState(CelesteNetBinaryWriter w) {
 			w.Write(color.ToString() ?? "");
+			w.Write(incrementMusicProgress);
 		}
+
+		public static object ParseState(CelesteNetBinaryReader r) {
+			SyncedClutterSwitchState scss = new SyncedClutterSwitchState();
+			Enum.TryParse(r.ReadString(), out scss.color);
+			scss.incrementMusicProgress = r.ReadBoolean();
+			return scss;
+		}
+
+	}
+
+	public class SyncedClutterSwitchState {
+		public ClutterBlock.Colors color;
+		public bool incrementMusicProgress;
 	}
 }

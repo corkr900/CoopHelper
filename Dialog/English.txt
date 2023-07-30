@@ -17,6 +17,7 @@ corkr900_CoopHelper_Setting_CoopEverywhere_Subtext=
 corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You
 corkr900_CoopHelper_SessionPickerWaitingForPlayers= Waiting for other players...
+corkr900_CoopHelper_SessionPickerCheckVersion= If you don't see someone you expect to, make sure you{n}both have the most up-to-date version of Co-op Helper.
 corkr900_CoopHelper_SessionPickerConnectToCnet= You are not connected to CelesteNet
 corkr900_CoopHelper_SessionPickerAvailableTitle= Players Available
 corkr900_CoopHelper_SessionPickerRoleTitle= Pick a Role

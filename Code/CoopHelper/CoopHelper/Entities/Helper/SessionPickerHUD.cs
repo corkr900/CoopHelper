@@ -399,6 +399,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public override void Render() {
 			base.Render();
 
+			// Shade the background so the text is easier to read
+			Draw.Rect(0, 0, 1920, 1080, Color.Black * 0.4f);
+
 			float yPos = 100;
 			List<PlayerID> joined = new List<PlayerID>();
 			foreach (PickerPlayerStatus pps in availablePlayers) {
@@ -427,7 +430,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			yPos += 100;
 			if (availablePlayers.Count == 0) {
 				string placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerWaitingForPlayers");
-				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.Gray, 2f, Color.Black);
+				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
+				yPos += 60;
+				placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerCheckVersion");
+				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
 				yPos += 60;
 			}
 			for (int i = 0; i < availablePlayers.Count; i++) {
