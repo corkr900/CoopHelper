@@ -96,6 +96,7 @@
     <Compile Include="Entities\ForceCelesteNetInteractionsController.cs" />
     <Compile Include="Entities\GroupGate.cs" />
     <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
+    <Compile Include="Entities\Helper\SessionPickerAvailabilityInfo.cs" />
     <Compile Include="Entities\SyncedBounceBlock.cs" />
     <Compile Include="Entities\SyncedCloud.cs" />
     <Compile Include="Entities\SyncedFeather.cs" />

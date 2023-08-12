@@ -189,57 +189,59 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public void Handle(CelesteNetConnection con, DataConnectionInfo data) {
 			if (data.Player == null) data.Player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveConnectionInfo?.Invoke(data));
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, Data.DataPlayerState data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceivePlayerState?.Invoke(data));
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinAvailable?.Invoke(data));
-
 			lock (ReceivedMessagesCounterLock) {
 				++ReceivedMsgs;
 			}
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinRequest data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinRequest?.Invoke(data));
-
 			lock (ReceivedMessagesCounterLock) {
 				++ReceivedMsgs;
 			}
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinResponse data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinResponse?.Invoke(data));
-
 			lock (ReceivedMessagesCounterLock) {
 				++ReceivedMsgs;
 			}
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, DataSessionJoinFinalize data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveSessionJoinFinalize?.Invoke(data));
-
 			lock (ReceivedMessagesCounterLock) {
 				++ReceivedMsgs;
 			}
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
 			if (CoopHelperModule.Settings?.CoopEverywhere != true && CoopHelperModule.Session?.IsInCoopSession != true) return;
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
-
 			lock (ReceivedMessagesCounterLock) {
 				++ReceivedMsgs;
 			}
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		#endregion

@@ -1,5 +1,8 @@
 ﻿using Celeste;
+using Celeste.Mod.CoopHelper.Data;
+using Celeste.Mod.CoopHelper.Entities.Helper;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
@@ -27,8 +30,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
 		private EntityID ID;
 		private string[] roleNames = null;
+		SessionPickerAvailabilityInfo availabilityInfo;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
+			availabilityInfo = new SessionPickerAvailabilityInfo();
 			string idOverride = data.Attr("idOverride");
 			string[] idSplit = idOverride?.Split(':');
 			if (idSplit != null && idSplit.Length == 2 && int.TryParse(idSplit[1], out int idNum)) {
@@ -133,18 +138,18 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		public override void Added(Scene scene) {
 			base.Added(scene);
 			if (!CheckRemove()) {
-				CoopHelperModule.OnSessionInfoChanged += SessionInfoChanged;
+				AddHooks();
 			}
 		}
 
 		public override void Removed(Scene scene) {
 			base.Removed(scene);
-			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
+			RemoveHooks();
 		}
 
 		public override void SceneEnd(Scene scene) {
 			base.SceneEnd(scene);
-			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
+			RemoveHooks();
 		}
 
 		private void SessionInfoChanged() {
@@ -168,7 +173,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public void Open(Player player) {
 			if (hud != null) return;  // Already open
-			hud = new SessionPickerHUD(PlayersNeeded, ID, roleNames, Close);
+			hud = new SessionPickerHUD(availabilityInfo, PlayersNeeded, ID, roleNames, Close);
 			Scene.Add(hud);
 			player.StateMachine.State = Player.StDummy;
 			this.player = player;
@@ -238,5 +243,82 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			// Apply it
 			CoopHelperModule.MakeSession(currentSession, players, id, dash, DeathMode, ability, skin);
 		}
+
+		#region Lifecycle & Comms Stuff
+
+		private void AddHooks() {
+			CoopHelperModule.OnSessionInfoChanged += SessionInfoChanged;
+			CNetComm.OnReceiveSessionJoinAvailable += OnAvailable;
+			CNetComm.OnReceiveSessionJoinRequest += OnRequest;
+			CNetComm.OnReceiveSessionJoinResponse += OnResponse;
+			CNetComm.OnReceiveSessionJoinFinalize += OnFinalize;
+			Everest.Events.Level.OnPause += OnPause;
+		}
+
+		private void RemoveHooks() {
+			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
+			CNetComm.OnReceiveSessionJoinAvailable -= OnAvailable;
+			CNetComm.OnReceiveSessionJoinRequest -= OnRequest;
+			CNetComm.OnReceiveSessionJoinResponse -= OnResponse;
+			CNetComm.OnReceiveSessionJoinFinalize -= OnFinalize;
+			Everest.Events.Level.OnPause -= OnPause;
+		}
+
+		private void OnAvailable(DataSessionJoinAvailable data) {
+			PlayerRequestState newstate = data.newAvailability && data.pickerID.Equals(ID) ? PlayerRequestState.Available : PlayerRequestState.Left;
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Received DataSessionJoinAvailable from {data.senderID.Name}. New state: {newstate}");
+			availabilityInfo.Set(data.senderID, newstate, null);
+			hud?.OnAvailable(data.senderID);
+		}
+
+		private void OnRequest(DataSessionJoinRequest data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinRequest");
+			bool pickingRole = hud?.PickingRole ?? false;
+			bool acceptRoleRequest = hud?.CanAcceptRoleRequest(data.SessionID, data.Role) ?? false;
+			// Player selection
+			if (data.Role < 0) {
+				if (!data.TargetID.Equals(PlayerID.MyID)) return;  // Requesting to join myself?? Weird. Ignore.
+				if (pickingRole || data.SessionID.creator.Equals(PlayerID.MyID)) {
+					// Auto-reject if I'm already in role selection. Session creator check is desync protection.
+					CNetComm.Instance.Send(new DataSessionJoinResponse() {
+						SessionID = data.SessionID,
+						Response = false,
+					}, false);
+				}
+				else availabilityInfo.Set(data.SenderID, PlayerRequestState.AddedMe, data.SessionID);  // Normal request
+			}
+			// Role selection
+			else if (pickingRole && acceptRoleRequest) {
+				hud?.RoleRequestReceived(data.SenderID, data.Role);
+			}
+		}
+
+		private void OnResponse(DataSessionJoinResponse data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinResponse");
+			PickerPlayerStatus? pps = availabilityInfo.Get(data.SessionID);
+			if (pps == null) return;
+			if (data.SessionID == pps?.SessionID) {
+				if (data.Response) {
+					availabilityInfo.Set(data.SenderID, PlayerRequestState.Joined, data.SessionID);
+					hud?.CheckFinalizeSession(pps.Value);
+				}
+				else {
+					availabilityInfo.Set(data.SenderID, PlayerRequestState.Available, null);
+				}
+			}
+		}
+
+		private void OnFinalize(DataSessionJoinFinalize data) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinFinalize");
+			if (!data.sessionPlayers.Contains(PlayerID.MyID)) return;
+			hud?.OnFinalize(data.sessionID, data.sessionPlayers, data.RolesFinalized);
+		}
+
+		private void OnPause(Level level, int startIndex, bool minimal, bool quickReset) {
+			hud?.CloseSelf();
+		}
+
+		#endregion
+
 	}
 }

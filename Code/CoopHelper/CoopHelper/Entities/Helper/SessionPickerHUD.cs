@@ -1,5 +1,6 @@
 ﻿using Celeste;
 using Celeste.Mod.CoopHelper.Data;
+using Celeste.Mod.CoopHelper.Entities.Helper;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
@@ -10,24 +11,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 	public class SessionPickerHUD : Entity {
-
-		private enum PlayerRequestState {
-			Left,
-			Available,
-			RequestPending,
-			Joined,
-			AddedMe,
-			ResponsePending,
-		}
-
-		private struct PickerPlayerStatus {
-			public PlayerID Player;
-			public PlayerRequestState State;
-			public CoopSessionID? SessionID;
-		}
 
 		private enum RoleRequestState {
 			Available,
@@ -41,38 +28,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			public PlayerID Player;
 		}
 
+		private SessionPickerAvailabilityInfo availabilityInfo;
 		private Action<SessionPickerHUDCloseArgs> onClose;
 		private int membersNeeded;
 		private PickerRoleStatus[] roleSelection;
-		private List<PickerPlayerStatus> availablePlayers = new List<PickerPlayerStatus>();
 		private int hovered;
 		private EntityID pickerID;
-		private bool pickingRole = false;
 		private CoopSessionID finalizedSession;
 		private PlayerID[] finalizedPlayers;
 		bool sessionCancelled = false;
 
-		private int PendingInvites {
-			get {
-				int cnt = 0;
-				foreach (PickerPlayerStatus stat in availablePlayers) {
-					if (stat.State == PlayerRequestState.RequestPending) ++cnt;
-				}
-				return cnt;
-			}
-		}
-		private int JoinedPlayers {
-			get {
-				int cnt = 0;
-				foreach(PickerPlayerStatus status in availablePlayers) {
-					if (status.State == PlayerRequestState.Joined) ++cnt;
-				}
-				return cnt;
-			}
-		}
+		public bool PickingRole { get; private set; } = false;
 
-		public SessionPickerHUD(int membersNeeded, EntityID id, string[] roleNames, Action<SessionPickerHUDCloseArgs> onClose) {
+		public SessionPickerHUD(SessionPickerAvailabilityInfo availabilityInfo, int membersNeeded, EntityID id, string[] roleNames, Action<SessionPickerHUDCloseArgs> onClose) {
 			Tag = Tags.HUD;
+			this.availabilityInfo = availabilityInfo;
 			this.onClose = onClose;
 			this.membersNeeded = membersNeeded;
 			pickerID = id;
@@ -87,115 +57,54 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			}
 		}
 
-		private void AddHooks() {
-			CNetComm.OnReceiveSessionJoinAvailable += OnAvailable;
-			CNetComm.OnReceiveSessionJoinRequest += OnRequest;
-			CNetComm.OnReceiveSessionJoinResponse += OnResponse;
-			CNetComm.OnReceiveSessionJoinFinalize += OnFinalize;
-			Everest.Events.Level.OnPause += OnPause;
-		}
-
-		private void RemoveHooks() {
-			CNetComm.OnReceiveSessionJoinAvailable -= OnAvailable;
-			CNetComm.OnReceiveSessionJoinRequest -= OnRequest;
-			CNetComm.OnReceiveSessionJoinResponse -= OnResponse;
-			CNetComm.OnReceiveSessionJoinFinalize -= OnFinalize;
-			Everest.Events.Level.OnPause -= OnPause;
-		}
-
 		public override void Added(Scene scene) {
 			base.Added(scene);
-			AddHooks();
 			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
 				newAvailability = true,
 				pickerID = pickerID,
 			}, false);
 		}
 
-		public override void Removed(Scene scene) {
-			base.Removed(scene);
-			RemoveHooks();
-		}
-
-		public override void SceneEnd(Scene scene) {
-			base.SceneEnd(scene);
-			RemoveHooks();
-		}
-
 		//////////////////////////////////////////////////////////////
 
-		private void OnAvailable(DataSessionJoinAvailable data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinAvailable");
-			SetStatePlayer(data.senderID, data.newAvailability && data.pickerID.Equals(pickerID) ? PlayerRequestState.Available : PlayerRequestState.Left, null);
-			if (finalizedPlayers?.Contains(data.senderID) ?? false) {
+		public void OnAvailable(PlayerID sender) {
+			if (finalizedPlayers?.Contains(sender) ?? false) {
 				sessionCancelled = true;
 			}
 		}
 
-		private void OnRequest(DataSessionJoinRequest data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinRequest");
-			// Player selection
-			if (data.Role < 0) {
-				if (!data.TargetID.Equals(PlayerID.MyID)) return;
-				if (pickingRole || data.SessionID.creator.Equals(PlayerID.MyID)) {
-					CNetComm.Instance.Send(new DataSessionJoinResponse() {
-						SessionID = data.SessionID,
-						Response = false,
-					}, false);
-				}
-				else SetStatePlayer(data.SenderID, PlayerRequestState.AddedMe, data.SessionID);
-			}
-			// Role selection
-			else if (pickingRole && data.SessionID.Equals(finalizedSession) && data.Role >= 0 && data.Role < (roleSelection?.Length ?? 0)) {
-				roleSelection[data.Role].State = RoleRequestState.RequestReceived;
-				roleSelection[data.Role].Player = data.SenderID;
-				CheckFinalizeRole();
-			}
+		public void RoleRequestReceived(PlayerID senderID, int role) {
+			if (role < 0 || role >= roleSelection.Length) return;
+			roleSelection[role].State = RoleRequestState.RequestReceived;
+			roleSelection[role].Player = senderID;
+			CheckFinalizeRole();
 		}
 
-		private void OnResponse(DataSessionJoinResponse data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinResponse");
-			int idx = availablePlayers.FindIndex((PickerPlayerStatus t) => {
-				return t.SessionID?.Equals(data.SessionID) ?? false;
-			});
-			if (idx < 0 || idx >= availablePlayers.Count) return;
-			PickerPlayerStatus pps = availablePlayers[idx];
-			if (data.SessionID == pps.SessionID) {
-				if (data.Response) {
-					SetStatePlayer(data.SenderID, PlayerRequestState.Joined, data.SessionID);
-					CheckFinalizeSession(pps);
-				}
-				else {
-					SetStatePlayer(data.SenderID, PlayerRequestState.Available, null);
-				}
-			}
-		}
-
-		private void OnFinalize(DataSessionJoinFinalize data) {
+		public void OnFinalize(CoopSessionID sessionID, PlayerID[] sessionPlayers, bool rolesFinalized) {
 			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinFinalize");
-			if (!data.sessionPlayers.Contains(PlayerID.MyID)) return;
+			if (!sessionPlayers.Contains(PlayerID.MyID)) return;
 
-			if (data.RolesFinalized) CloseWithSession(data.sessionID, data.sessionPlayers);
-			else if (!data.sessionID.Equals(finalizedSession)) FinalizeSession(data.sessionID, data.sessionPlayers);
+			if (rolesFinalized) CloseWithSession(sessionID, sessionPlayers);
+			else if (!sessionID.Equals(finalizedSession)) FinalizeSession(sessionID, sessionPlayers);
 		}
 
-		private void OnPause(Level level, int startIndex, bool minimal, bool quickReset) {
-			CloseSelf();
+		public bool CanAcceptRoleRequest(CoopSessionID sessionID, int role) {
+			return sessionID.Equals(finalizedSession) && role >= 0 && role < (roleSelection?.Length ?? 0);
 		}
 
-		private void CheckFinalizeSession(PickerPlayerStatus lastResponder) {
+		public void CheckFinalizeSession(PickerPlayerStatus lastResponder) {
 			if (lastResponder.SessionID == null) {
 				Logger.Log(LogLevel.Error, "Co-op Helper", "Cannot check-finalize session creation; responder doesn't have a known session ID");
 				return;
 			}
-			if (JoinedPlayers + 1 == membersNeeded) {
+			if (availabilityInfo.JoinedPlayers + 1 == membersNeeded) {
 				FinalizeSession(lastResponder.SessionID.Value, null);
 			}
 		}
 
 		private bool CheckFinalizeRole() {
 			// Basic status check
-			if (!pickingRole) return false;
+			if (!PickingRole) return false;
 			// Only the session creator is allowed to finalize roles
 			if (!finalizedSession.creator.Equals(PlayerID.MyID)) return false;
 
@@ -243,10 +152,10 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void FinalizeSession(CoopSessionID id, PlayerID[] playerIDs) {
 			if (playerIDs == null) {
-				playerIDs = new PlayerID[JoinedPlayers + 1];
+				playerIDs = new PlayerID[availabilityInfo.JoinedPlayers + 1];
 				playerIDs[0] = PlayerID.MyID;
 				int i = 0;
-				foreach (PickerPlayerStatus pps in availablePlayers) {
+				foreach (PickerPlayerStatus pps in availabilityInfo.AvailablePlayers) {
 					if (pps.State == PlayerRequestState.Joined) {
 						playerIDs[++i] = pps.Player;
 					}
@@ -268,7 +177,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				CloseWithSession(id, playerIDs);
 			}
 			else {
-				pickingRole = true;
+				PickingRole = true;
 				hovered = 0;
 			}
 		}
@@ -299,7 +208,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				return;
 			}
 
-			int numOptions = pickingRole ? roleSelection.Length : availablePlayers.Count;
+			int numOptions = PickingRole ? roleSelection.Length : availabilityInfo.AvailablePlayers.Count;
 
 			if (Input.MenuDown.Pressed) {
 				if (hovered < numOptions - 1) {
@@ -316,7 +225,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				else Audio.Play("event:/ui/main/button_invalid");
 			}
 
-			if (pickingRole) {
+			if (PickingRole) {
 				// Role selection
 				if (Input.MenuConfirm.Pressed) {
 					if (MenuSelectRole()) Audio.Play("event:/ui/main/button_select");
@@ -333,12 +242,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private bool MenuSelectPlayer() {
-			if (hovered < 0 || hovered >= availablePlayers.Count) return false;
-			PickerPlayerStatus pss = availablePlayers[hovered];
+			if (hovered < 0 || hovered >= availabilityInfo.TotalCount) return false;
+			PickerPlayerStatus pss = availabilityInfo.Get(hovered).Value;
 			if (pss.State == PlayerRequestState.Available) {
 				PlayerID target = pss.Player;
 				CoopSessionID newID = CoopSessionID.GetNewID();
-				SetStatePlayer(target, PlayerRequestState.RequestPending, newID);
+				availabilityInfo.Set(target, PlayerRequestState.RequestPending, newID);
 				CNetComm.Instance.Send(new DataSessionJoinRequest() {
 					SessionID = newID,
 					TargetID = target,
@@ -375,40 +284,12 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			return true;
 		}
 
-		private void SetStatePlayer(PlayerID id, PlayerRequestState st, CoopSessionID? sessionID) {
-			if (st == PlayerRequestState.AddedMe && sessionID == null) {
-				Logger.Log(LogLevel.Error, "Co-op Helper", "sessionID cannot be null when setting player status to AddedMe");
-				st = PlayerRequestState.Left;
-			}
-
-			int idx = availablePlayers.FindIndex((PickerPlayerStatus t) => {
-				return t.Player.Equals(id);
-			});
-			PickerPlayerStatus pps = new PickerPlayerStatus() {
-				Player = id,
-				State = st,
-				SessionID = sessionID,
-			};
-
-			if (idx < 0) {
-				if (st != PlayerRequestState.Left) availablePlayers.Add(pps);
-			}
-			else availablePlayers[idx] = pps;
-		}
-
 		public override void Render() {
 			base.Render();
+			float yPos = 100;
 
 			// Shade the background so the text is easier to read
 			Draw.Rect(0, 0, 1920, 1080, Color.Black * 0.4f);
-
-			float yPos = 100;
-			List<PlayerID> joined = new List<PlayerID>();
-			foreach (PickerPlayerStatus pps in availablePlayers) {
-				if (pps.State == PlayerRequestState.Joined) {
-					joined.Add(pps.Player);
-				}
-			}
 
 			// Title
 			ActiveFont.DrawOutline(string.Format(Dialog.Get("corkr900_CoopHelper_SessionPickerTitle"), membersNeeded),
@@ -420,7 +301,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerConnectToCnet"),
 					new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 			}
-			else if (pickingRole) RenderRoleList(ref yPos);
+			else if (PickingRole) RenderRoleList(ref yPos);
 			else RenderPlayerList(ref yPos);
 		}
 
@@ -428,7 +309,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
 				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 			yPos += 100;
-			if (availablePlayers.Count == 0) {
+			if (availabilityInfo.TotalCount == 0) {
 				string placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerWaitingForPlayers");
 				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
 				yPos += 60;
@@ -436,8 +317,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
 				yPos += 60;
 			}
-			for (int i = 0; i < availablePlayers.Count; i++) {
-				PickerPlayerStatus pps = availablePlayers[i];
+			for (int i = 0; i < availabilityInfo.TotalCount; i++) {
+				PickerPlayerStatus pps = availabilityInfo.Get(i).Value;
 				if (pps.State == PlayerRequestState.Joined) continue;
 				string display = pps.Player.Name;
 				Color color = Color.White;
