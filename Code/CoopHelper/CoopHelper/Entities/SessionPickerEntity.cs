@@ -272,7 +272,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinRequest");
 			bool pickingRole = hud?.PickingRole ?? false;
 			bool acceptRoleRequest = hud?.CanAcceptRoleRequest(data.SessionID, data.Role) ?? false;
 			// Player selection
@@ -294,11 +293,13 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnResponse(DataSessionJoinResponse data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinResponse");
 			if (data.SenderID.Equals(PlayerID.MyID)) return;  // Probably not needed but double checking
 			PickerPlayerStatus? pps = availabilityInfo.GetWithConflictCheck(data.SenderID, data.SessionID);
 			if (pps == null) return;
-			if (data.SessionID == pps?.SessionID) {
+			if (pps.Value.State == PlayerRequestState.Conflict) {  // Resolve conflicted state
+				availabilityInfo.Set(data.SenderID, PlayerRequestState.AddedMe, data.SessionID);
+			}
+			else if (data.SessionID == pps?.SessionID) {
 				if (data.Response) {
 					availabilityInfo.Set(data.SenderID, PlayerRequestState.Joined, data.SessionID);
 					hud?.CheckFinalizeSession(pps.Value);
@@ -310,7 +311,6 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnFinalize(DataSessionJoinFinalize data) {
-			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinFinalize");
 			if (!data.sessionPlayers.Contains(PlayerID.MyID)) return;
 			hud?.OnFinalize(data.sessionID, data.sessionPlayers, data.RolesFinalized);
 		}

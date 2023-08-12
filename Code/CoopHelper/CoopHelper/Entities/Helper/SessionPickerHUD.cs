@@ -260,6 +260,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					SessionID = pss.SessionID.Value,
 					Response = true,
 				}, false);
+				availabilityInfo.Set(pss.Player, PlayerRequestState.ResponsePending, pss.SessionID.Value);
 				return true;
 			}
 			return false;
@@ -327,7 +328,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				}
 				// TODO translate status names
 				if (pps.State == PlayerRequestState.RequestPending) {
-					display += " (Pending)";
+					display += " (Request Pending)";
+					color = Color.Yellow;
+				}
+				if (pps.State == PlayerRequestState.ResponsePending) {
+					display += " (Response Pending)";
 					color = Color.Yellow;
 				}
 				if (pps.State == PlayerRequestState.Left) {
@@ -342,8 +347,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					display += " (Requested to Join)";
 					color = new Color(0.5f, 1f, 0.5f);
 				}
-				if (pps.State == PlayerRequestState.AddedMe) {
-					display += " (Conflict Detected; Try Again)";
+				if (pps.State == PlayerRequestState.Conflict) {
+					display += " (Conflicted; Try Again)";
 				}
 
 				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 2f, Color.Black);
