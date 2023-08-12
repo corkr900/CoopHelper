@@ -244,7 +244,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private bool MenuSelectPlayer() {
 			if (hovered < 0 || hovered >= availabilityInfo.TotalCount) return false;
 			PickerPlayerStatus pss = availabilityInfo.Get(hovered).Value;
-			if (pss.State == PlayerRequestState.Available) {
+			if (pss.State == PlayerRequestState.Available || pss.State == PlayerRequestState.Conflict) {
 				PlayerID target = pss.Player;
 				CoopSessionID newID = CoopSessionID.GetNewID();
 				availabilityInfo.Set(target, PlayerRequestState.RequestPending, newID);
@@ -341,6 +341,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				if (pps.State == PlayerRequestState.AddedMe) {
 					display += " (Requested to Join)";
 					color = new Color(0.5f, 1f, 0.5f);
+				}
+				if (pps.State == PlayerRequestState.AddedMe) {
+					display += " (Conflict Detected; Try Again)";
 				}
 
 				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 2f, Color.Black);

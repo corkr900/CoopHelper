@@ -295,7 +295,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void OnResponse(DataSessionJoinResponse data) {
 			Logger.Log(LogLevel.Debug, "Co-op Helper", "Received DataSessionJoinResponse");
-			PickerPlayerStatus? pps = availabilityInfo.Get(data.SessionID);
+			if (data.SenderID.Equals(PlayerID.MyID)) return;  // Probably not needed but double checking
+			PickerPlayerStatus? pps = availabilityInfo.GetWithConflictCheck(data.SenderID, data.SessionID);
 			if (pps == null) return;
 			if (data.SessionID == pps?.SessionID) {
 				if (data.Response) {

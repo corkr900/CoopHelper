@@ -189,7 +189,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public void Handle(CelesteNetConnection con, DataConnectionInfo data) {
 			if (data.Player == null) data.Player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveConnectionInfo?.Invoke(data));
-			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
 		public void Handle(CelesteNetConnection con, Data.DataPlayerState data) {

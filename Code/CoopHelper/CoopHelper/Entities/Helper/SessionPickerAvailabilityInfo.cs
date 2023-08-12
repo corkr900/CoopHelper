@@ -15,6 +15,7 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 		Joined,
 		AddedMe,
 		ResponsePending,
+		Conflict,
 	}
 
 	public struct PickerPlayerStatus {
@@ -61,6 +62,24 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 			return AvailablePlayers[idx];
 		}
 
+		public PickerPlayerStatus? GetWithConflictCheck(PlayerID player, CoopSessionID? session) {
+			for (int i = 0; i < AvailablePlayers.Count; i++) {
+				if (AvailablePlayers[i].Player.Equals(player)) {
+					if (AvailablePlayers[i].SessionID == session) {
+						return AvailablePlayers[i];
+					}
+					else {
+						PickerPlayerStatus sts = AvailablePlayers[i];
+						sts.State = PlayerRequestState.Conflict;
+						sts.SessionID = null;
+						AvailablePlayers[i] = sts;
+						return null;
+					}
+				}
+			}
+			return null;
+		}
+
 		public void Set(PlayerID id, PlayerRequestState st, CoopSessionID? sessionID) {
 			if (st == PlayerRequestState.AddedMe && sessionID == null) {
 				Logger.Log(LogLevel.Error, "Co-op Helper", "sessionID cannot be null when setting player status to AddedMe");
@@ -82,14 +101,5 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 			else AvailablePlayers[idx] = pps;
 		}
 
-		//internal List<PlayerID> GetAll(PlayerRequestState state) {
-		//	List<PlayerID> ret = new List<PlayerID>();
-		//	foreach (PickerPlayerStatus pps in AvailablePlayers) {
-		//		if (pps.State == state) {
-		//			ret.Add(pps.Player);
-		//		}
-		//	}
-		//	return ret;
-		//}
 	}
 }
