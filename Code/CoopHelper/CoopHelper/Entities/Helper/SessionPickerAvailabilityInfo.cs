@@ -52,23 +52,18 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 
 		public int TotalCount { get { return AvailablePlayers.Count; } }
 
-		public PickerPlayerStatus? Get(CoopSessionID sessionID) {
-			int idx = AvailablePlayers.FindIndex((PickerPlayerStatus t) => {
-				return t.SessionID?.Equals(sessionID) ?? false;
-			});
-			if (idx < 0 || idx >= AvailablePlayers.Count) return null;
-			return AvailablePlayers[idx];
-		}
-
 		public PickerPlayerStatus? Get(int idx) {
 			if (idx < 0 || idx >= AvailablePlayers.Count) return null;
 			return AvailablePlayers[idx];
 		}
 
-		public PickerPlayerStatus? GetWithConflictCheck(PlayerID player, CoopSessionID? session) {
+		public PickerPlayerStatus? Get(PlayerID player, CoopSessionID? session) {
 			for (int i = 0; i < AvailablePlayers.Count; i++) {
 				if (AvailablePlayers[i].Player.Equals(player)) {
-					if (AvailablePlayers[i].SessionID == session) {
+					if (AvailablePlayers[i].State == PlayerRequestState.Left) {
+						return null;
+					}
+					else if (AvailablePlayers[i].SessionID == session) {
 						return AvailablePlayers[i];
 					}
 					else {
