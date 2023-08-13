@@ -106,6 +106,8 @@ namespace Celeste.Mod.CoopHelper.IO {
 		private void OnComponentDisposed(object sender, EventArgs args) {
 			CelesteNetClientContext.OnStart -= OnCNetClientContextStart;
 			CelesteNetClientContext.OnDispose -= OnCNetClientContextDispose;
+			OnReceivePlayerState -= PlayerState.OnPlayerStateReceived;
+			OnReceiveConnectionInfo -= PlayerState.OnConnectionDataReceived;
 		}
 
 		#endregion
@@ -154,9 +156,10 @@ namespace Celeste.Mod.CoopHelper.IO {
 				else CnetClient.Send(data);
 				if (!(data is Data.DataPlayerState)) ++SentMsgs;
 			}
-			catch(Exception) {
-				// a well-timed connection blorp might theoretically get us here
-				// but we can ignore it because the connection already blorped
+			catch(Exception e) {
+				// The only way I know of for this to happen is a well-timed connection blorp but just in case
+				Logger.Log(LogLevel.Error, "Co-op Helper", $"Exception was handled in CoopHelper.IO.CNetComm.Send<{typeof(T).Name}>");
+				Logger.LogDetailed(LogLevel.Error, "Co-op Helper", e.Message);
 			}
 		}
 
