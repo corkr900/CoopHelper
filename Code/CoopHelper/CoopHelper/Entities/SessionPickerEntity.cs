@@ -193,6 +193,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			else {
 				LeaveSession(currentSession);
 			}
+			availabilityInfo.ResetPending();
 			CheckRemove();
 		}
 

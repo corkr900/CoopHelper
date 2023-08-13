@@ -1,10 +1,13 @@
-﻿using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Data;
+using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.CoopHelper.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.CoopHelper.Entities.Helper {
 
@@ -99,6 +102,31 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 				if (st != PlayerRequestState.Left) AvailablePlayers.Add(pps);
 			}
 			else AvailablePlayers[idx] = pps;
+		}
+
+		public void ResetPending() {
+			for (int i = 0; i  < AvailablePlayers.Count; i++) {
+				PickerPlayerStatus pps = AvailablePlayers[i];
+				switch(pps.State) {
+					case PlayerRequestState.AddedMe:
+						if (pps.SessionID != null) {
+							CNetComm.Instance.Send(new DataSessionJoinResponse() {
+								SessionID = pps.SessionID.Value,
+								Response = false,
+							}, false);
+						}
+						Set(pps.Player, PlayerRequestState.Available, null);
+						break;
+
+					case PlayerRequestState.RequestPending:
+					case PlayerRequestState.ResponsePending:
+					case PlayerRequestState.Conflict:
+						Set(pps.Player, PlayerRequestState.Available, null);
+						break;
+					default:
+						break;
+				}
+			}
 		}
 
 	}
