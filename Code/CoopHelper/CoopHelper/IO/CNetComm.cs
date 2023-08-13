@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -106,8 +107,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 		private void OnComponentDisposed(object sender, EventArgs args) {
 			CelesteNetClientContext.OnStart -= OnCNetClientContextStart;
 			CelesteNetClientContext.OnDispose -= OnCNetClientContextDispose;
-			OnReceivePlayerState -= PlayerState.OnPlayerStateReceived;
-			OnReceiveConnectionInfo -= PlayerState.OnConnectionDataReceived;
 		}
 
 		#endregion
