@@ -24,7 +24,7 @@ using System.Xml;
 namespace Celeste.Mod.CoopHelper {
 	public class CoopHelperModule : EverestModule {
 
-		public static readonly string ProtocolVersion = "1_0_3";
+		public static readonly string ProtocolVersion = "1_0_4";
 
 		#region Setup and Static Stuff
 
