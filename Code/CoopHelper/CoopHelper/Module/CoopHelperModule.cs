@@ -50,12 +50,13 @@ namespace Celeste.Mod.CoopHelper {
 
 		private CNetComm Comm;
 
-		private static IDetour hook_Strawberry_orig_OnCollect;
-		private static IDetour hook_CelesteNetClientSettings_Interactions_get;
-		private static IDetour hook_CrushBlock_AttackSequence;
-		private static IDetour hook_Player_orig_Die;
-		private static IDetour hook_SpikeInfo_OnPlayer;
-		private static IDetour hook_Level_orig_LoadLevel;
+		private static Hook hook_Strawberry_orig_OnCollect;
+		private static Hook hook_CelesteNetClientSettings_Interactions_get;
+		private static Hook hook_Player_orig_Die;
+		private static Hook hook_SpikeInfo_OnPlayer;
+		private static Hook hook_Level_orig_LoadLevel;
+
+		private static ILHook hook_CrushBlock_AttackSequence;
 
 		public CoopHelperModule() {
 			Instance = this;
@@ -218,19 +219,26 @@ namespace Celeste.Mod.CoopHelper {
 
 			// Handle skins
 			if (!string.IsNullOrEmpty(skin)) {
-				Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
-				if (t_SkinModHelperModule != null) {
-					MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
-					try {
-						m_UpdateSkin?.Invoke(null, new object[] { skin });
-					}
-					catch (Exception) {
-						Logger.Log(LogLevel.Error, "Co-op Helper + SkinModHelper", "Could not change skin: skin \"" + skin + "\" is not defined.");
-						m_UpdateSkin?.Invoke(null, new object[] { "Default" });
-					}
+				// If using SMH+
+				if (SkinModHelperPlus.SetSessionSkin != null) {
+					SkinModHelperPlus.SetSessionSkin(skin);
 				}
+				// If using classic SMH
 				else {
-					Logger.Log(LogLevel.Info, "Co-op Helper + SkinModHelper", "Could not change skin: SkinModHelper is not installed.");
+					Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
+					if (t_SkinModHelperModule != null) {
+						MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
+						try {
+							m_UpdateSkin?.Invoke(null, new object[] { skin });
+						}
+						catch (Exception) {
+							Logger.Log(LogLevel.Error, "Co-op Helper", "Could not change skin: skin \"" + skin + "\" is not defined.");
+							m_UpdateSkin?.Invoke(null, new object[] { "Default" });
+						}
+					}
+					else {
+						Logger.Log(LogLevel.Info, "Co-op Helper", "Could not change skin: neither SkinModHelper nor SMH+ is installed.");
+					}
 				}
 			}
 

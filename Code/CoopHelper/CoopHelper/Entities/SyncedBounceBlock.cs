@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 

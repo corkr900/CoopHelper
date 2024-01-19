@@ -4,6 +4,7 @@ CoopHelper.zip
 CoopHelper_special.zip
 Code/Ref/*.dll
 Code/Ref/*.pdb
+Code/net7.0/*
 
 
 

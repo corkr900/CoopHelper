@@ -1,153 +1,58 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7CCE11EC-96D6-49EE-9F4A-7081CAB0E3BD}</ProjectGuid>
+    <TargetFramework>net7.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Celeste.Mod.CoopHelper</RootNamespace>
-    <AssemblyName>CoopHelper</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>CoopHelper</AssemblyTitle>
+    <Product>CoopHelper</Product>
+    <Copyright>Copyright ©  2024</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\..\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
+    <Compile Include="IO\SkinModHelperPlus.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Celeste, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86" Publicize="true">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Celeste.exe</HintPath>
-      <Private>False</Private>
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Celeste" Publicize="True">
+      <HintPath>..\..\..\..\..\Celeste.dll</HintPath>
     </Reference>
     <Reference Include="CelesteNet.Client">
       <HintPath>..\..\Ref\CelesteNet.Client.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="CelesteNet.Shared">
       <HintPath>..\..\Ref\CelesteNet.Shared.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="FNA, Version=21.7.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="FNA">
       <HintPath>..\..\..\..\..\FNA.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MMHOOK_Celeste, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MMHOOK_Celeste">
       <HintPath>..\..\..\..\..\MMHOOK_Celeste.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Mono.Cecil">
       <HintPath>..\..\..\..\..\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="MonoMod, Version=22.1.4.3, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\MonoMod.exe</HintPath>
-      <Private>False</Private>
+    <Reference Include="MonoMod.Patcher">
+      <HintPath>..\..\..\..\..\MonoMod.Patcher.dll</HintPath>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour, Version=22.1.4.3, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>..\..\..\..\..\MonoMod.RuntimeDetour.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="MonoMod.Utils, Version=22.1.4.3, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\..\MonoMod.Utils.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="YamlDotNet, Version=8.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="YamlDotNet">
       <HintPath>..\..\..\..\..\YamlDotNet.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Data\DataBundledEntityUpdate.cs" />
-    <Compile Include="Data\DataPlayerState.cs" />
-    <Compile Include="Data\DataSessionJoinAvailable.cs" />
-    <Compile Include="Entities\ForceCelesteNetInteractionsController.cs" />
-    <Compile Include="Entities\GroupGate.cs" />
-    <Compile Include="Entities\Helper\SessionDebugHUD.cs" />
-    <Compile Include="Entities\Helper\SessionPickerAvailabilityInfo.cs" />
-    <Compile Include="Entities\SyncedBounceBlock.cs" />
-    <Compile Include="Entities\SyncedCloud.cs" />
-    <Compile Include="Entities\SyncedFeather.cs" />
-    <Compile Include="Entities\SyncedSeeker.cs" />
-    <Compile Include="Entities\SessionGate.cs" />
-    <Compile Include="Entities\SyncedBooster.cs" />
-    <Compile Include="Entities\SyncedClutterSwitch.cs" />
-    <Compile Include="Entities\SyncedCoreModeToggle.cs" />
-    <Compile Include="Entities\SyncedCrumblePlatform.cs" />
-    <Compile Include="Entities\SyncedDashBlock.cs" />
-    <Compile Include="Entities\SyncedFallingBlock.cs" />
-    <Compile Include="Entities\SyncedDashSwitch.cs" />
-    <Compile Include="Entities\SyncedKevin.cs" />
-    <Compile Include="Entities\SyncedKey.cs" />
-    <Compile Include="Entities\SyncedLightningBreakerBox.cs" />
-    <Compile Include="Entities\SyncedLockBlock.cs" />
-    <Compile Include="Entities\SyncedMoveBlock.cs" />
-    <Compile Include="Entities\SyncedPuffer.cs" />
-    <Compile Include="Entities\SyncedRefill.cs" />
-    <Compile Include="Entities\SyncedSummitBackgroundManager.cs" />
-    <Compile Include="Entities\SyncedSwapBlock.cs" />
-    <Compile Include="Entities\SyncedTempleCrackedBlock.cs" />
-    <Compile Include="Entities\SyncedTouchSwitch.cs" />
-    <Compile Include="Entities\SyncedTriggerSpikes.cs" />
-    <Compile Include="Entities\SyncedZipMover.cs" />
-    <Compile Include="Infrastructure\BidirectionalDictionary.cs" />
-    <Compile Include="Infrastructure\ExternalSyncedEntity.cs" />
-    <Compile Include="Infrastructure\SessionSynchronizer.cs" />
-    <Compile Include="Infrastructure\EntityStateTracker.cs" />
-    <Compile Include="Infrastructure\PlayerState.cs" />
-    <Compile Include="IO\Commands.cs" />
-    <Compile Include="IO\ModInterop.cs" />
-    <Compile Include="Module\CoopHelperModule.cs" />
-    <Compile Include="Data\DataSessionJoinFinalize.cs" />
-    <Compile Include="Data\DataSessionJoinRequest.cs" />
-    <Compile Include="Data\DataSessionJoinResponse.cs" />
-    <Compile Include="Entities\Helper\ISynchronizable.cs" />
-    <Compile Include="Entities\SessionPickerEntity.cs" />
-    <Compile Include="Entities\Helper\SessionPickerHUD.cs" />
-    <Compile Include="Infrastructure\CoopGameComponent.cs" />
-    <Compile Include="Infrastructure\CoopSessionID.cs" />
-    <Compile Include="Infrastructure\GlobalAreaKey.cs" />
-    <Compile Include="Infrastructure\PlayerID.cs" />
-    <Compile Include="Infrastructure\Util.cs" />
-    <Compile Include="IO\CNetComm.cs" />
-    <Compile Include="Module\CoopHelperModuleSaveData.cs" />
-    <Compile Include="Module\CoopHelperModuleSession.cs" />
-    <Compile Include="Module\CoopHelperModuleSettings.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Triggers\SyncedChangeRespawnTrigger.cs" />
-    <Compile Include="Triggers\SyncedDialogCutscene.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\Dialog\English.txt">
@@ -256,6 +161,4 @@
       <Link>Entity Plugins\Loenn\triggers\SyncedDialogCutscene.lua</Link>
     </None>
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
