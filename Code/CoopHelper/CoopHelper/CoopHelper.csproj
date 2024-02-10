@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <OutputType>Library</OutputType>
@@ -9,26 +10,30 @@
     <Copyright>Copyright ©  2024</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- Use sensible build paths that the debugger can handle -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputPath>../../</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="IO\SkinModHelperPlus.cs" />
-  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
+  
   <ItemGroup>
     <Reference Include="Celeste" Publicize="True">
       <HintPath>..\..\..\..\..\Celeste.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="CelesteNet.Client">
       <HintPath>..\..\Ref\CelesteNet.Client.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="CelesteNet.Shared">
       <HintPath>..\..\Ref\CelesteNet.Shared.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="FNA">
       <HintPath>..\..\..\..\..\FNA.dll</HintPath>
@@ -36,24 +41,30 @@
     </Reference>
     <Reference Include="MMHOOK_Celeste">
       <HintPath>..\..\..\..\..\MMHOOK_Celeste.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\..\..\..\Mono.Cecil.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Patcher">
       <HintPath>..\..\..\..\..\MonoMod.Patcher.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>..\..\..\..\..\MonoMod.RuntimeDetour.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\..\..\..\..\MonoMod.Utils.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="YamlDotNet">
       <HintPath>..\..\..\..\..\YamlDotNet.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  
   <ItemGroup>
     <Content Include="..\..\..\Dialog\English.txt">
       <Link>English.txt</Link>
@@ -63,6 +74,7 @@
     </Content>
     <Content Include="Idea Dump.txt" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Include="..\..\..\everest.yaml">
       <Link>everest.yaml</Link>

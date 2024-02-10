@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.IO {
-	[ModImportName("SkinModHelper")]
+	[ModImportName("SkinModHelperPlus")]
 	public class SkinModHelperPlus {
 		public static Func<string, bool> SetSessionSkin;
 	}

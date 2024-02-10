@@ -289,7 +289,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			float yPos = 100;
 
 			// Shade the background so the text is easier to read
-			Draw.Rect(0, 0, 1920, 1080, Color.Black * 0.4f);
+			Draw.Rect(0, 0, 1920, 1080, Color.Black * 0.6f);
 
 			// Title
 			ActiveFont.DrawOutline(string.Format(Dialog.Get("corkr900_CoopHelper_SessionPickerTitle"), membersNeeded),
@@ -306,52 +306,54 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void RenderPlayerList(ref float yPos) {
-			ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
-				new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
-			yPos += 100;
 			if (availabilityInfo.TotalCount == 0) {
 				string placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerWaitingForPlayers");
-				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
-				yPos += 60;
+				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
+				yPos += 100;
 				placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerCheckVersion");
 				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
 				yPos += 60;
 			}
-			for (int i = 0; i < availabilityInfo.TotalCount; i++) {
-				PickerPlayerStatus pps = availabilityInfo.Get(i).Value;
-				if (pps.State == PlayerRequestState.Joined) continue;
-				string display = pps.Player.Name;
-				Color color = Color.White;
-				if (hovered == i) {
-					display = "> " + display;
-				}
-				// TODO translate status names
-				if (pps.State == PlayerRequestState.RequestPending) {
-					display += " (Request Pending)";
-					color = Color.Yellow;
-				}
-				if (pps.State == PlayerRequestState.ResponsePending) {
-					display += " (Response Pending)";
-					color = Color.Yellow;
-				}
-				if (pps.State == PlayerRequestState.Left) {
-					display += " (Left)";
-					color = Color.Gray;
-				}
-				if (pps.State == PlayerRequestState.Joined) {
-					display += " (Joined!)";
-					color = new Color(0.5f, 1f, 0.5f);
-				}
-				if (pps.State == PlayerRequestState.AddedMe) {
-					display += " (Requested to Join)";
-					color = new Color(0.5f, 1f, 0.5f);
-				}
-				if (pps.State == PlayerRequestState.Conflict) {
-					display += " (Conflicted; Try Again)";
-				}
+			else {
+				ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),
+					new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
+				yPos += 100;
+				for (int i = 0; i < availabilityInfo.TotalCount; i++) {
+					PickerPlayerStatus pps = availabilityInfo.Get(i).Value;
+					if (pps.State == PlayerRequestState.Joined) continue;
+					string display = pps.Player.Name;
+					Color color = Color.White;
+					if (hovered == i) {
+						display = "> " + display;
+					}
+					// TODO translate status names
+					if (pps.State == PlayerRequestState.RequestPending) {
+						display += " (Request Pending)";
+						color = Color.Yellow;
+					}
+					if (pps.State == PlayerRequestState.ResponsePending) {
+						display += " (Response Pending)";
+						color = Color.Yellow;
+					}
+					if (pps.State == PlayerRequestState.Left) {
+						display += " (Left)";
+						color = Color.Gray;
+					}
+					if (pps.State == PlayerRequestState.Joined) {
+						display += " (Joined!)";
+						color = new Color(0.5f, 1f, 0.5f);
+					}
+					if (pps.State == PlayerRequestState.AddedMe) {
+						display += " (Requested to Join)";
+						color = new Color(0.5f, 1f, 0.5f);
+					}
+					if (pps.State == PlayerRequestState.Conflict) {
+						display += " (Conflicted; Try Again)";
+					}
 
-				ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 2f, Color.Black);
-				yPos += 60;
+					ActiveFont.DrawOutline(display, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, color, 2f, Color.Black);
+					yPos += 60;
+				}
 			}
 		}
 

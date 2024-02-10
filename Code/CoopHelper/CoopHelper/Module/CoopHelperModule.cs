@@ -116,6 +116,7 @@ namespace Celeste.Mod.CoopHelper {
 			Everest.Events.Level.OnLoadEntity += OnLevelLoadEntity;
 
 			typeof(ModInterop).ModInterop();
+			typeof(SkinModHelperPlus).ModInterop();
 		}
 
 		public override void Unload() {

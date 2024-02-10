@@ -30,7 +30,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
 		private EntityID ID;
 		private string[] roleNames = null;
-		SessionPickerAvailabilityInfo availabilityInfo;
+		private SessionPickerAvailabilityInfo availabilityInfo;
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			availabilityInfo = new SessionPickerAvailabilityInfo();
