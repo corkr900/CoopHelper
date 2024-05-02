@@ -13,7 +13,6 @@ namespace Celeste.Mod.CoopHelper.Module {
 			None,
 		}
 
-		[SettingIgnore]  // Temporary until all this is stabilized
 		[YamlIgnore]
 		[SettingName("corkr900_CoopHelper_Setting_CoopEverywhere")]
 		public bool CoopEverywhere { get; internal set; }

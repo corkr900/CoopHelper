@@ -216,9 +216,9 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 						}
 					} while (true);
 				}
-				catch(Exception e) {
+				catch(Exception) {
 					Logger.Log(LogLevel.Error, "Co-op Helper", "Error occurred deserializing entity update packet. Aborting.");
-					throw e;
+					throw;
 				}
 			}
 		}

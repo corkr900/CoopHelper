@@ -17,22 +17,23 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		static PlayerState() {
 			Mine = new PlayerState() {
-				pid = PlayerID.MyID,
+				Pid = PlayerID.MyID,
 				CurrentMap = GlobalAreaKey.Overworld,
 				CurrentRoom = "",
 				RespawnPoint = Vector2.Zero,
 				LastUpdateReceived = DateTime.Now,
+				LastUpdateSent = DateTime.Now,
 			};
 		}
 
 		internal static void OnConnected() {
-			Mine.pid = PlayerID.MyID;
+			Mine.Pid = PlayerID.MyID;
 			Mine.SendUpdateImmediate();
 		}
 
 		#region Remote State Information
 
-		private static readonly float idleUpdateTime = 30;  // Send fresh updates every 30 seconds even if nothing changed
+		private static readonly float heartbeatTime = 30;  // Send fresh updates every 30 seconds even if nothing changed
 		private static readonly float purgeTime = 600;		// Data is stale enough to purge after 600 seconds (10 minutes)
 
 		private static Dictionary<PlayerID, PlayerState> _playerStates = new Dictionary<PlayerID, PlayerState>();
@@ -43,11 +44,11 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		/// </summary>
 		/// <param name="id">ID of the player</param>
 		/// <returns>Player's state if known, otherwise null</returns>
-		public static PlayerState GetPlayerState(PlayerID id) {
+		public static PlayerState Get(PlayerID id) {
 			return _playerStates.ContainsKey(id) ? _playerStates[id] : null;
 		}
 
-		internal static IEnumerator<PlayerState> AllPlayerStates() => _playerStates.Values.GetEnumerator();
+		internal static IEnumerator<PlayerState> All() => _playerStates.Values.GetEnumerator();
 
 		internal static void OnPlayerStateReceived(Data.DataPlayerState data) {
 			PlayerID id = data.senderID;
@@ -90,11 +91,20 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 
 		#endregion
 
-		public DateTime LastUpdateReceived;
-		public Vector2 RespawnPoint;
-		public GlobalAreaKey CurrentMap;
-		public string CurrentRoom;
-		public PlayerID pid { get; private set; }
+		/// <summary>
+		/// Instant of the last outbound update. Not synced.
+		/// </summary>
+		public DateTime LastUpdateSent { get; private set; }
+		/// <summary>
+		/// Instant of the last incoming update. Not synced
+		/// </summary>
+		public DateTime LastUpdateReceived { get; private set; }
+
+		public Vector2 RespawnPoint { get; private set; }
+		public GlobalAreaKey CurrentMap { get; private set; }
+		public string CurrentRoom { get; private set; }
+		public EntityID? ActivePicker { get; set; }
+		public PlayerID Pid { get; private set; }
 		/// <summary>
 		/// Last Measured UDP ping time (reliable/slow packets) in ms (or 300 if unknown)
 		/// </summary>
@@ -111,28 +121,33 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		private PlayerState() {
-			pid = default(PlayerID);
+			Pid = default(PlayerID);
 			CurrentMap = GlobalAreaKey.Overworld;
 			CurrentRoom = "";
 			RespawnPoint = Vector2.Zero;
 			LastUpdateReceived = DateTime.Now;
+			LastUpdateSent = DateTime.Now;
 		}
 
 		public PlayerState(Player p) {
 			Session s = p.SceneAs<Level>().Session;
-			pid = PlayerID.MyID;
+			Pid = PlayerID.MyID;
 			CurrentMap = new GlobalAreaKey(s.Area);
 			CurrentRoom = s.Level;
 			RespawnPoint = s.RespawnPoint ?? Vector2.Zero;
 			LastUpdateReceived = DateTime.Now;
+			LastUpdateSent = DateTime.Now;
 		}
 
 		internal PlayerState(CelesteNetBinaryReader r) {
-			pid = r.ReadPlayerID();
+			Pid = r.ReadPlayerID();
 			CurrentMap = r.ReadAreaKey();
 			CurrentRoom = r.ReadString();
 			RespawnPoint = r.ReadVector2();
+			bool hasActivePicker = r.ReadBoolean();
+			ActivePicker = hasActivePicker ? r.ReadEntityID() : null;
 			LastUpdateReceived = DateTime.Now;
+			LastUpdateSent = DateTime.Now;
 		}
 
 		public void SetPing(int tcp, int? udp) {
@@ -143,19 +158,47 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public void ApplyUpdate(PlayerState newState) {
 			RespawnPoint = newState.RespawnPoint;
 			CurrentRoom = newState.CurrentRoom;
-			pid = newState.pid;
+			Pid = newState.Pid;
+			LastUpdateReceived = DateTime.Now;
 		}
 
 		public void SendUpdateImmediate() {
-			if (!pid.Equals(PlayerID.MyID)) return;  // Safeguard against broadcasting others' statuses
+			if (!Pid.Equals(PlayerID.MyID)) return;  // Safeguard against broadcasting others' statuses
+			LastUpdateSent = DateTime.Now;
 			CNetComm.Instance.Send(new Data.DataPlayerState() {
 				newState = this,
 			}, false);
 		}
 
-		public void CheckSendUpdate() {
-			if ((DateTime.Now - LastUpdateReceived).TotalSeconds < idleUpdateTime) return;  // Enforce update frequency
+		public void CheckSendHeartbeat() {
+			if ((DateTime.Now - LastUpdateSent).TotalSeconds < heartbeatTime) return;  // Enforce update frequency
 			SendUpdateImmediate();
+		}
+
+		// Functions to update state
+
+		public void ConnectedToCnet() {
+			Pid = PlayerID.MyID;
+			SendUpdateImmediate();
+		}
+
+		public void EnterMap(GlobalAreaKey area, string room = "") {
+			CurrentMap = area;
+			CurrentRoom = room;
+			RespawnPoint = Vector2.Zero;
+		}
+
+		public void EnterMap(AreaKey area, string room = "") => EnterMap(new GlobalAreaKey(area), room);
+
+		internal void EnterOverworld() => EnterMap(GlobalAreaKey.Overworld);
+
+		internal void UpdateRespawn(Vector2 point) {
+			RespawnPoint = point;
+		}
+
+		internal void EnterRoom(string room, Vector2 respawnPoint) {
+			CurrentRoom = room;
+			RespawnPoint = respawnPoint;
 		}
 	}
 
@@ -166,10 +209,17 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public static void Write(this CelesteNetBinaryWriter w, PlayerState s) {
-			w.Write(s.pid);
+			w.Write(s.Pid);
 			w.Write(s.CurrentMap);
 			w.Write(s.CurrentRoom ?? "");
 			w.Write(s.RespawnPoint);
+			if (s.ActivePicker != null) {
+				w.Write(true);
+				w.Write(s.ActivePicker.Value);
+			}
+			else {
+				w.Write(false);
+			}
 		}
 	}
 }

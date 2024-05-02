@@ -249,7 +249,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void AddHooks() {
 			CoopHelperModule.OnSessionInfoChanged += SessionInfoChanged;
-			CNetComm.OnReceiveSessionJoinAvailable += OnAvailable;
+			CNetComm.OnReceivePlayerState += OnPlayerStatusUpdate;
 			CNetComm.OnReceiveSessionJoinRequest += OnRequest;
 			CNetComm.OnReceiveSessionJoinResponse += OnResponse;
 			CNetComm.OnReceiveSessionJoinFinalize += OnFinalize;
@@ -258,18 +258,21 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		private void RemoveHooks() {
 			CoopHelperModule.OnSessionInfoChanged -= SessionInfoChanged;
-			CNetComm.OnReceiveSessionJoinAvailable -= OnAvailable;
+			CNetComm.OnReceivePlayerState -= OnPlayerStatusUpdate;
 			CNetComm.OnReceiveSessionJoinRequest -= OnRequest;
 			CNetComm.OnReceiveSessionJoinResponse -= OnResponse;
 			CNetComm.OnReceiveSessionJoinFinalize -= OnFinalize;
 			Everest.Events.Level.OnPause -= OnPause;
 		}
 
-		private void OnAvailable(DataSessionJoinAvailable data) {
-			PlayerRequestState newstate = data.newAvailability && data.pickerID.Equals(ID) ? PlayerRequestState.Available : PlayerRequestState.Left;
-			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Received DataSessionJoinAvailable from {data.senderID.Name}. New state: {newstate}");
-			availabilityInfo.Set(data.senderID, newstate, null);
-			hud?.OnAvailable(data.senderID);
+		private void OnPlayerStatusUpdate(DataPlayerState data) {
+			EntityID? pickerID = data.newState.ActivePicker;
+			bool newAvailability = pickerID != null;
+			PlayerID player = data.newState.Pid;
+			PlayerRequestState newstate = newAvailability && (pickerID?.Equals(ID) == true) ? PlayerRequestState.Available : PlayerRequestState.Left;
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Received availability update from {player.Name}. New state: {newstate}");
+			availabilityInfo.Set(player, newstate, null);
+			hud?.OnAvailable(player);
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {

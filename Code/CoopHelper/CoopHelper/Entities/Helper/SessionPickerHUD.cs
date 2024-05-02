@@ -58,10 +58,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
-			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
-				newAvailability = true,
-				pickerID = pickerID,
-			}, false);
+			PlayerState.Mine.ActivePicker = pickerID;
+			PlayerState.Mine.SendUpdateImmediate();
 		}
 
 		//////////////////////////////////////////////////////////////
@@ -190,10 +188,8 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		public void CloseSelf() {
-			CNetComm.Instance.Send(new DataSessionJoinAvailable() {
-				newAvailability = false,
-				pickerID = pickerID,
-			}, false);
+			PlayerState.Mine.ActivePicker = null;
+			PlayerState.Mine.SendUpdateImmediate();
 			onClose?.Invoke(new SessionPickerHUDCloseArgs() {
 				CreateNewSession = false,
 			});
@@ -310,9 +306,17 @@ namespace Celeste.Mod.CoopHelper.Entities {
 				string placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerWaitingForPlayers");
 				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One, Color.LightGray, 2f, Color.Black);
 				yPos += 100;
+
 				placeholderText = Dialog.Clean("corkr900_CoopHelper_SessionPickerCheckVersion");
 				ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
-				yPos += 60;
+				yPos += 250;
+
+				string vers = Everest.Modules.FirstOrDefault((EverestModule m) => m.Metadata.Name == "CoopHelper")?.Metadata.VersionString;
+				if (!string.IsNullOrEmpty(vers)) {
+					placeholderText = string.Format(Dialog.Get("corkr900_CoopHelper_SessionPickerYourVersion"), vers);
+					ActiveFont.DrawOutline(placeholderText, new Vector2(960, yPos), Vector2.UnitX / 2f, Vector2.One * 0.7f, Color.LightGray, 2f, Color.Black);
+					yPos += 60;
+				}
 			}
 			else {
 				ActiveFont.DrawOutline(Dialog.Get("corkr900_CoopHelper_SessionPickerAvailableTitle"),

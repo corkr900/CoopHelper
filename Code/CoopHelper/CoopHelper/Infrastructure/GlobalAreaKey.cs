@@ -93,7 +93,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
             _cachedDisplayName = dispName;
             if (SID != "Overworld" && AreaData.Areas != null) {
                 foreach (AreaData d in AreaData.Areas) {
-                    if (d.GetSID() == SID) {
+                    if (d.SID == SID) {
                         _areaData = d;
                         _localKey = new AreaKey(d.ID, mode);
                     }

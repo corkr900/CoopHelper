@@ -297,7 +297,7 @@ namespace Celeste.Mod.CoopHelper {
 		#region Hooked Code + Event Handlers
 
 		private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
-			if (!Settings.CoopEverywhere) return false;
+			if (!Session.CoopEverywhere) return false;
 			switch(data.Name) {
 				default:
 					return false;
@@ -468,8 +468,7 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self);
 			Session s = self.SceneAs<Level>()?.Session;
 			if (s == null) return;
-			PlayerState.Mine.CurrentRoom = s.Level;
-			PlayerState.Mine.RespawnPoint = s.RespawnPoint ?? Vector2.Zero;
+			PlayerState.Mine.EnterRoom(s.Level, s.RespawnPoint ?? Vector2.Zero);
 			PlayerState.Mine.SendUpdateImmediate();
 		}
 
@@ -477,18 +476,15 @@ namespace Celeste.Mod.CoopHelper {
 			EntityStateTracker.ClearBuffers();
 			orig(self);
 			TryRestoreCachedSession(self.session);
-			PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Level.Session.Area);
-			PlayerState.Mine.CurrentRoom = self.Level.Session.Level;
-			PlayerState.Mine.RespawnPoint = self.Level.Session.RespawnPoint ?? Vector2.Zero;
+			PlayerState.Mine.EnterMap(self.Level.Session.Area, self.Level.Session.Level);
+			PlayerState.Mine.UpdateRespawn(self.Level.Session.RespawnPoint ?? Vector2.Zero);
 			PlayerState.Mine.SendUpdateImmediate();
 		}
 
 		private void onLevelExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow) {
 			// If we're restarting, another update is close behind so don't bother updating
 			if (mode != LevelExit.Mode.Restart) {
-				PlayerState.Mine.CurrentMap = GlobalAreaKey.Overworld;
-				PlayerState.Mine.CurrentRoom = "";
-				PlayerState.Mine.RespawnPoint = Vector2.Zero;
+				PlayerState.Mine.EnterOverworld();
 				PlayerState.Mine.SendUpdateImmediate();
 				EntityStateTracker.ClearBuffers();
 			}
@@ -497,9 +493,8 @@ namespace Celeste.Mod.CoopHelper {
 		private void OnLevelLoad(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader) {
 			orig(self, playerIntro, isFromLoader);
 			if (isFromLoader && playerIntro != Player.IntroTypes.Transition) {
-				PlayerState.Mine.CurrentMap = new GlobalAreaKey(self.Session.Area);
-				PlayerState.Mine.CurrentRoom = self.Session.Level;
-				PlayerState.Mine.RespawnPoint = self.Session.RespawnPoint ?? Vector2.Zero;
+				PlayerState.Mine.EnterMap(self.Session.Area, self.Session.Level);
+				PlayerState.Mine.UpdateRespawn(self.Session.RespawnPoint ?? Vector2.Zero);
 				PlayerState.Mine.SendUpdateImmediate();
 			}
 		}
@@ -508,7 +503,7 @@ namespace Celeste.Mod.CoopHelper {
 			orig(self, player);
 			Session s = player.SceneAs<Level>().Session;
 			if (s.RespawnPoint != null && s.RespawnPoint != PlayerState.Mine.RespawnPoint) {
-				PlayerState.Mine.RespawnPoint = s.RespawnPoint.Value;
+				PlayerState.Mine.UpdateRespawn(s.RespawnPoint.Value);
 				PlayerState.Mine.SendUpdateImmediate();
 			}
 		}

@@ -29,9 +29,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public delegate void OnReceiveBundledEntityUpdateHandler(DataBundledEntityUpdate data);
 		public static event OnReceiveBundledEntityUpdateHandler OnReceiveBundledEntityUpdate;
 
-		public delegate void OnReceiveSessionJoinAvailableHandler(DataSessionJoinAvailable data);
-		public static event OnReceiveSessionJoinAvailableHandler OnReceiveSessionJoinAvailable;
-
 		public delegate void OnReceiveSessionJoinRequestHandler(DataSessionJoinRequest data);
 		public static event OnReceiveSessionJoinRequestHandler OnReceiveSessionJoinRequest;
 
@@ -117,6 +114,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			CnetClient.Data.RegisterHandlersIn(this);
 			CnetClient.Con.OnDisconnect += OnDisconnect;
 			updateQueue.Enqueue(() => OnConnected?.Invoke(cxt));
+			PlayerState.Mine?.ConnectedToCnet();
 		}
 
 		private void OnCNetClientContextDispose(CelesteNetClientContext cxt) {
@@ -162,9 +160,13 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 		}
 
+		/// <summary>
+		/// This function is called once per CelesteNet tick.
+		/// This is the primary kicking-off point for network-y stuff
+		/// </summary>
+		/// <param name="counter">This parameter counts up once for each tick that occurs since starting the game</param>
 		internal void Tick(ulong counter) {
-			if ((CoopHelperModule.Settings?.CoopEverywhere == true
-					|| CoopHelperModule.Session?.IsInCoopSession == true)
+			if (CoopHelperModule.Session?.InSessionIncludingEverywhere == true
 				&& EntityStateTracker.HasUpdates)
 			{
 				EntityStateTracker.NotifyInitiatingOutgoingMessage();
@@ -180,7 +182,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			// Some things don't need to happen very often, so only do them every X ticks
 			if (counter % 30 == 0) {
 				PlayerState.PurgeStale();
-				PlayerState.Mine.CheckSendUpdate();
+				PlayerState.Mine.CheckSendHeartbeat();
 			}
 		}
 
@@ -196,15 +198,6 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public void Handle(CelesteNetConnection con, Data.DataPlayerState data) {
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceivePlayerState?.Invoke(data));
-			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
-		}
-
-		public void Handle(CelesteNetConnection con, DataSessionJoinAvailable data) {
-			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
-			updateQueue.Enqueue(() => OnReceiveSessionJoinAvailable?.Invoke(data));
-			lock (ReceivedMessagesCounterLock) {
-				++ReceivedMsgs;
-			}
 			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
 		}
 
@@ -236,7 +229,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		public void Handle(CelesteNetConnection con, DataBundledEntityUpdate data) {
-			if (CoopHelperModule.Settings?.CoopEverywhere != true && CoopHelperModule.Session?.IsInCoopSession != true) return;
+			if (CoopHelperModule.Session?.InSessionIncludingEverywhere != true) return;
 			if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
 			updateQueue.Enqueue(() => OnReceiveBundledEntityUpdate?.Invoke(data));
 			lock (ReceivedMessagesCounterLock) {

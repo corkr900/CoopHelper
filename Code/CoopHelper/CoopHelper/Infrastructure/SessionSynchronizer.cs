@@ -115,10 +115,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			Critical = true,
 		};
 
+		/// <summary>
+		/// Determines whether the player is carrying a golden strawberry
+		/// </summary>
+		/// <returns>true if the player is carrying a golden strawberry, else false</returns>
 		private bool PlayerHasGolden() {
 			return EntityAs<Player>()?.Leader?.Followers?.Any((Follower f) => f.Entity is Strawberry strawb && strawb.Golden) ?? false;
 		}
 
+		/// <summary>
+		/// Determines whether an incoming death message should cause the local player to die too
+		/// </summary>
+		/// <param name="sss">The incoming update object</param>
+		/// <returns>true if the local player should die, else false</returns>
 		private bool ShouldSyncReceivedDeath(SessionSyncState sss) {
 			return sss.dead
 				&& PlayerState.Mine?.CurrentRoom != null
@@ -128,95 +137,104 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				&& (sss.instant - lastTriggeredDeathRemote).TotalMilliseconds > 1000;
 		}
 
+		/// <summary>
+		/// This function is called when an update is received with a matching entity ID.
+		/// This is the primary function responsible for handling session-level synchronization.
+		/// </summary>
+		/// <param name="state"></param>
 		public void ApplyState(object state) {
-			if (state is SessionSyncState dss) {
-				if (!dss.player.Equals(PlayerID.MyID)
-					&& CoopHelperModule.Settings?.CoopEverywhere == true
-					|| (CoopHelperModule.Session?.IsInCoopSession == true
-						&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)))
-				{
-					Level level = SceneAs<Level>();
+			// Something weird happened?
+			if (state is not SessionSyncState dss) return;
+			// quit if it's my ID
+			if (dss.player.Equals(PlayerID.MyID)) return;
+			// quit if not in a relevant co-op session
+			if (CoopHelperModule.Session?.CoopEverywhere != true &&
+				!(CoopHelperModule.Session?.IsInCoopSession == true
+					&& CoopHelperModule.Session.SessionMembers.Contains(dss.player)))
+				return;
+			
+			// okay, now ACTUALLY apply the incoming updates :)
 
-					// death sync
-					if (ShouldSyncReceivedDeath(dss) && level?.Transitioning == false)
-					{
-						CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
-						EntityAs<Player>()?.Die(Vector2.Zero, true, true);
-						CurrentDeathIsSecondary = false;
-						lastTriggeredDeathRemote = dss.instant;
-					}
+			Level level = SceneAs<Level>();
 
-					// strawberry sync
-					if (dss.collectedStrawbs != null && dss.collectedStrawbs.Count > 0) {
-						foreach (Tuple<EntityID, Vector2> tup in dss.collectedStrawbs) {
-							// register strawb as collected
-							SaveData.Instance.AddStrawberry(tup.Item1, false);
-							Session session = level.Session;
-							session.DoNotLoad.Add(tup.Item1);
-							session.Strawberries.Add(tup.Item1);
-							// handle if the strawb is in the current room
-							foreach (Entity e in Scene.Entities) {
-								if (e is Strawberry strawb && strawb.ID.Equals(tup.Item1)) {
-									if (strawb.Follower.HasLeader) {
-										strawb.Follower.Leader.LoseFollower(strawb.Follower);
-									}
-									if (!strawb.collected) {
-										strawb.collected = true;
-										strawb.Position = tup.Item2;
-										Player player = EntityAs<Player>();
-										strawb.Add(new Coroutine(strawb.CollectRoutine(player.StrawberryCollectIndex++)));
-										player.StrawberryCollectResetTimer = 2.5f;
-									}
-									break;
-								}
+			// death sync
+			if (ShouldSyncReceivedDeath(dss) && level?.Transitioning == false)
+			{
+				CurrentDeathIsSecondary = true;  // Prevents death signals from just bouncing back & forth forever
+				EntityAs<Player>()?.Die(Vector2.Zero, true, true);
+				CurrentDeathIsSecondary = false;
+				lastTriggeredDeathRemote = dss.instant;
+			}
+
+			// strawberry sync
+			if (dss.collectedStrawbs != null && dss.collectedStrawbs.Count > 0) {
+				foreach (Tuple<EntityID, Vector2> tup in dss.collectedStrawbs) {
+					// register strawb as collected
+					SaveData.Instance.AddStrawberry(tup.Item1, false);
+					Session session = level.Session;
+					session.DoNotLoad.Add(tup.Item1);
+					session.Strawberries.Add(tup.Item1);
+					// handle if the strawb is in the current room
+					foreach (Entity e in Scene.Entities) {
+						if (e is Strawberry strawb && strawb.ID.Equals(tup.Item1)) {
+							if (strawb.Follower.HasLeader) {
+								strawb.Follower.Leader.LoseFollower(strawb.Follower);
 							}
-						}
-					}
-
-					// cassette sync
-					if (dss.cassette && !level.Session.Cassette) {
-						bool cassetteFound = false;
-						foreach (Entity e in Scene.Entities) {
-							if (e is Cassette cass) {
-								cass.OnPlayer(EntityAs<Player>());
-								cassetteFound = true;
-								break;
+							if (!strawb.collected) {
+								strawb.collected = true;
+								strawb.Position = tup.Item2;
+								Player player = EntityAs<Player>();
+								strawb.Add(new Coroutine(strawb.CollectRoutine(player.StrawberryCollectIndex++)));
+								player.StrawberryCollectResetTimer = 2.5f;
 							}
-						}
-						if (!cassetteFound) {
-							level.Session.Cassette = true;
-							SaveData.Instance.RegisterCassette(level.Session.Area);
-							CassetteBlockManager cbm = Scene.Tracker.GetEntity<CassetteBlockManager>();
-							cbm?.StopBlocks();
-							cbm?.Finish();
+							break;
 						}
 					}
+				}
+			}
 
-					// heart sync
-					if (dss.heart && !level.Session.HeartGem && !levelEndTriggeredRemotely) {
-						// This is basically just copied from HeartGem.RegisterAsCollected
-						levelEndTriggeredRemotely = true;
-						level.Session.HeartGem = true;
-						int unlockedModes = SaveData.Instance.UnlockedModes;
-						SaveData.Instance.RegisterHeartGem(level.Session.Area);
-						if (!string.IsNullOrEmpty(dss.heartPoem)) {
-							SaveData.Instance.RegisterPoemEntry(dss.heartPoem);
-						}
-						if (unlockedModes < 3 && SaveData.Instance.UnlockedModes >= 3) {
-							level.Session.UnlockedCSide = true;
-						}
-						if (SaveData.Instance.TotalHeartGemsInVanilla >= 24) {
-							Achievements.Register(Achievement.CSIDES);
-						}
-						Entity e = new Entity();
-						e.Tag = Tags.FrozenUpdate;
-						e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem, dss.heartEndsLevel)));
-						level.Add(e);
-
-						foreach (Entity heart in level.Tracker.GetEntities<HeartGem>()) {
-							heart.RemoveSelf();
-						}
+			// cassette sync
+			if (dss.cassette && !level.Session.Cassette) {
+				bool cassetteFound = false;
+				foreach (Entity e in Scene.Entities) {
+					if (e is Cassette cass) {
+						cass.OnPlayer(EntityAs<Player>());
+						cassetteFound = true;
+						break;
 					}
+				}
+				if (!cassetteFound) {
+					level.Session.Cassette = true;
+					SaveData.Instance.RegisterCassette(level.Session.Area);
+					CassetteBlockManager cbm = Scene.Tracker.GetEntity<CassetteBlockManager>();
+					cbm?.StopBlocks();
+					cbm?.Finish();
+				}
+			}
+
+			// heart sync
+			if (dss.heart && !level.Session.HeartGem && !levelEndTriggeredRemotely) {
+				// This is basically just copied from HeartGem.RegisterAsCollected
+				levelEndTriggeredRemotely = true;
+				level.Session.HeartGem = true;
+				int unlockedModes = SaveData.Instance.UnlockedModes;
+				SaveData.Instance.RegisterHeartGem(level.Session.Area);
+				if (!string.IsNullOrEmpty(dss.heartPoem)) {
+					SaveData.Instance.RegisterPoemEntry(dss.heartPoem);
+				}
+				if (unlockedModes < 3 && SaveData.Instance.UnlockedModes >= 3) {
+					level.Session.UnlockedCSide = true;
+				}
+				if (SaveData.Instance.TotalHeartGemsInVanilla >= 24) {
+					Achievements.Register(Achievement.CSIDES);
+				}
+				Entity e = new Entity();
+				e.Tag = Tags.FrozenUpdate;
+				e.Add(new Coroutine(RemoteHeartCollectionRoutine(level, e, Entity as Player, level.Session.Area, dss.heartPoem, dss.heartEndsLevel)));
+				level.Add(e);
+
+				foreach (Entity heart in level.Tracker.GetEntities<HeartGem>()) {
+					heart.RemoveSelf();
 				}
 			}
 		}

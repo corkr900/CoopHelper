@@ -40,8 +40,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public override int GetHashCode() => idcounter.GetHashCode() * creator.GetHashCode() * creationInstant.GetHashCode();
 		public static bool operator !=(CoopSessionID l, CoopSessionID r) => !(l == r);
 		public static bool operator ==(CoopSessionID l, CoopSessionID r) {
-			if (l == null && r == null) return true;
-			if (l == null || r == null) return false;
+			//if (l == null && r == null) return true;
+			//if (l == null || r == null) return false;
 			return l.Equals(r);
 		}
 
