@@ -5,6 +5,7 @@ CoopHelper_special.zip
 Code/Ref/*.dll
 Code/Ref/*.pdb
 Code/net7.0/*
+Code/YamlDotNet.dll
 
 
 
@@ -406,4 +407,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-Code/YamlDotNet.dll
