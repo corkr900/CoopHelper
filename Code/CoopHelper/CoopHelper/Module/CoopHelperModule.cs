@@ -1,4 +1,4 @@
-using Celeste.Mod.CelesteNet.Client;
+﻿using Celeste.Mod.CelesteNet.Client;
 using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
@@ -298,6 +298,7 @@ namespace Celeste.Mod.CoopHelper {
 
 		private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
 			if (!Session.CoopEverywhere) return false;
+			data.Values ??= new();
 			switch(data.Name) {
 				default:
 					return false;
