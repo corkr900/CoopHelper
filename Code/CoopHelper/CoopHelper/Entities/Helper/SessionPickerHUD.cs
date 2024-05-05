@@ -58,6 +58,9 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public override void Added(Scene scene) {
 			base.Added(scene);
+			Logger.Log(LogLevel.Info, "Co-op Helper", $"[1] HUD opened for picker with ID '{pickerID}'");
+			//Logger.Log(LogLevel.Info, "Co-op Helper", $"[2] availabilityInfo: {availabilityInfo.TotalCount} total; List:\n {
+			//	string.Join(", ",availabilityInfo.AvailablePlayers.Select((PickerPlayerStatus pps) => $"{pps.Player} ({pps.State})"))}");
 			PlayerState.Mine.ActivePicker = pickerID;
 			PlayerState.Mine.SendUpdateImmediate();
 		}

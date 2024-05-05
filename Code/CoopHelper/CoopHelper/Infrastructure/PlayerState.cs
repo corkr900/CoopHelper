@@ -48,7 +48,13 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			return _playerStates.ContainsKey(id) ? _playerStates[id] : null;
 		}
 
-		internal static IEnumerator<PlayerState> All() => _playerStates.Values.GetEnumerator();
+		internal static IEnumerable<PlayerState> All {
+			get {
+				foreach (PlayerState ps in _playerStates.Values) {
+					yield return ps;
+				}
+			}
+		}
 
 		internal static void OnPlayerStateReceived(Data.DataPlayerState data) {
 			PlayerID id = data.senderID;
@@ -183,6 +189,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public void EnterMap(GlobalAreaKey area, string room = "") {
+			Logger.Log(LogLevel.Info, "Co-op Helper", $"Entering map '{area.SID}', room '{room}'. Previous map was '{CurrentMap.SID}'");
 			CurrentMap = area;
 			CurrentRoom = room;
 			RespawnPoint = Vector2.Zero;

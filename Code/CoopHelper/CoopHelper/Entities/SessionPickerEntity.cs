@@ -6,6 +6,7 @@ using Celeste.Mod.CoopHelper.IO;
 using Celeste.Mod.CoopHelper.Module;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Monocle;
 using MonoMod.Utils;
 using System;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.CoopHelper.Entities {
 	[CustomEntity("corkr900CoopHelper/SessionPicker")]
@@ -28,19 +30,24 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		private int[] dashes = null;
 		private string[] abilities = null;
 		private DeathSyncMode DeathMode = DeathSyncMode.SameRoomOnly;
-		private EntityID ID;
 		private string[] roleNames = null;
 		private SessionPickerAvailabilityInfo availabilityInfo;
+		private string roomNameWithOverride;
+		private int localID;
+
+		private EntityID ID => new(PlayerState.Mine?.CurrentMap.SID + roomNameWithOverride, localID);
 
 		public SessionPickerEntity(EntityData data, Vector2 offset) : base(data.Position + offset) {
 			availabilityInfo = new SessionPickerAvailabilityInfo();
 			string idOverride = data.Attr("idOverride");
 			string[] idSplit = idOverride?.Split(':');
 			if (idSplit != null && idSplit.Length == 2 && int.TryParse(idSplit[1], out int idNum)) {
-				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + PlayerState.Mine?.CurrentRoom + idSplit[0], idNum);
+				roomNameWithOverride = (data.Level?.Name ?? PlayerState.Mine?.CurrentRoom) + idSplit[0];
+				localID = idNum;
 			}
 			else {
-				ID = new EntityID(PlayerState.Mine?.CurrentMap.SID + (data.Level?.Name ?? PlayerState.Mine?.CurrentRoom), data.ID);
+				roomNameWithOverride = data.Level?.Name ?? PlayerState.Mine?.CurrentRoom;
+				localID = data.ID;
 			}
 			Position = data.Position + offset;
 			removeIfSessionExists = data.Bool("removeIfSessionExists", true);
@@ -139,6 +146,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			base.Added(scene);
 			if (!CheckRemove()) {
 				AddHooks();
+				GetAvailabilityFromPlayerStates();
 			}
 		}
 
@@ -188,9 +196,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Audio.Play("event:/ui/game/unpause");
 			Session currentSession = SceneAs<Level>()?.Session;
 			if (args.CreateNewSession && currentSession != null) {
+				Logger.Log(LogLevel.Info, "Co-op Helper", $"Closing picker with session ID {args.ID}");
 				MakeSession(currentSession, args.Players, args.ID);
 			}
 			else {
+				Logger.Log(LogLevel.Info, "Co-op Helper", $"Closing picker with no session");
 				LeaveSession(currentSession);
 			}
 			availabilityInfo.ResetPending();
@@ -265,14 +275,24 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Everest.Events.Level.OnPause -= OnPause;
 		}
 
-		private void OnPlayerStatusUpdate(DataPlayerState data) {
-			EntityID? pickerID = data.newState.ActivePicker;
+		private void GetAvailabilityFromPlayerStates() {
+			foreach (PlayerState st in PlayerState.All) {
+				SetAvailability(st);
+			}
+		}
+
+		private void SetAvailability(PlayerState playerState) {
+			EntityID? pickerID = playerState.ActivePicker;
 			bool newAvailability = pickerID != null;
-			PlayerID player = data.newState.Pid;
+			PlayerID player = playerState.Pid;
 			PlayerRequestState newstate = newAvailability && (pickerID?.Equals(ID) == true) ? PlayerRequestState.Available : PlayerRequestState.Left;
-			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Received availability update from {player.Name}. New state: {newstate}");
+			Logger.Log(LogLevel.Info, "Co-op Helper", $"Applying availability update from {player.Name}. New state: {newstate}");
 			availabilityInfo.Set(player, newstate, null);
 			hud?.OnAvailable(player);
+		}
+
+		private void OnPlayerStatusUpdate(DataPlayerState data) {
+			SetAvailability(data.newState);
 		}
 
 		private void OnRequest(DataSessionJoinRequest data) {
