@@ -1,4 +1,4 @@
-﻿using Celeste.Mod.CelesteNet.Client;
+using Celeste.Mod.CelesteNet.Client;
 using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
@@ -24,7 +24,7 @@ using System.Xml;
 namespace Celeste.Mod.CoopHelper {
 	public class CoopHelperModule : EverestModule {
 
-		public static readonly string ProtocolVersion = "1_0_4";
+		public static readonly string ProtocolVersion = "1_0_5";
 
 		#region Setup and Static Stuff
 
