@@ -58,12 +58,16 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		internal void OnTriggered() {
 			bool[] state = GetStateArray();
+			bool shouldUpdate = false;  // drop the sync lock before posting the update to avoid spicy race conditions
 			lock (syncLock) {
 				if (ShouldSync(lastSyncedState, state)) {
-					EntityStateTracker.PostUpdate(this);
+					shouldUpdate = true;
 				}
 			}
-		}
+            if (shouldUpdate) {
+				EntityStateTracker.PostUpdate(this);
+            }
+        }
 
 		public override void Added(Scene scene) {
 			
