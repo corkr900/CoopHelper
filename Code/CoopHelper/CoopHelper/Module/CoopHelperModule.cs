@@ -494,7 +494,6 @@ namespace Celeste.Mod.CoopHelper {
 		private void OnLevelLoad(On.Celeste.Level.orig_LoadLevel orig, Level self, Player.IntroTypes playerIntro, bool isFromLoader) {
 			orig(self, playerIntro, isFromLoader);
 			if (isFromLoader && playerIntro != Player.IntroTypes.Transition) {
-				PlayerState.Mine.EnterMap(self.Session.Area, self.Session.Level);
 				PlayerState.Mine.UpdateRespawn(self.Session.RespawnPoint ?? Vector2.Zero);
 				PlayerState.Mine.SendUpdateImmediate();
 			}
