@@ -34,7 +34,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
         public Version LocalVersion {
             get {
                 if (IsOverworld || !ExistsLocal || IsVanilla) return Celeste.Instance.Version;
-                else return ModContent.Mod.Version;
+                else return ModContent?.Mod?.Version ?? new Version(1, 0, 0);
             }
         }
         public string VersionString {
