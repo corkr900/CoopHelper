@@ -221,25 +221,17 @@ namespace Celeste.Mod.CoopHelper {
 			// Handle skins
 			if (!string.IsNullOrEmpty(skin)) {
 				// If using SMH+
-				if (SkinModHelperPlus.SetSessionSkin != null) {
-					SkinModHelperPlus.SetSessionSkin(skin);
+				if (SkinModHelperPlus.IsAvailable) {
+					Logger.Log(LogLevel.Verbose, "Co-op Helper", $"Changing skin to '{skin}' using SkinModHelperPlus");
+					SkinModHelperPlus.SessionSet_GeneralSkin(skin, true);
 				}
 				// If using classic SMH
+				else if (SkinModHelper.IsAvailable) {
+					Logger.Log(LogLevel.Verbose, "Co-op Helper", $"Changing skin to '{skin}' using SkinModHelper");
+					SkinModHelper.ApplySkin(skin);
+				}
 				else {
-					Type t_SkinModHelperModule = Type.GetType("SkinModHelper.Module.SkinModHelperModule,SkinModHelper");
-					if (t_SkinModHelperModule != null) {
-						MethodInfo m_UpdateSkin = t_SkinModHelperModule?.GetMethod("UpdateSkin");
-						try {
-							m_UpdateSkin?.Invoke(null, new object[] { skin });
-						}
-						catch (Exception) {
-							Logger.Log(LogLevel.Error, "Co-op Helper", "Could not change skin: skin \"" + skin + "\" is not defined.");
-							m_UpdateSkin?.Invoke(null, new object[] { "Default" });
-						}
-					}
-					else {
-						Logger.Log(LogLevel.Info, "Co-op Helper", "Could not change skin: neither SkinModHelper nor SMH+ is installed.");
-					}
+					Logger.Log(LogLevel.Warn, "Co-op Helper", "Could not change skin: neither SkinModHelper nor SMH+ is installed.");
 				}
 			}
 
