@@ -72,19 +72,19 @@ namespace Celeste.Mod.CoopHelper {
 			// Manual Hooks
 			hook_Strawberry_orig_OnCollect = new Hook(
 				typeof(Strawberry).GetMethod("orig_OnCollect", BindingFlags.Public | BindingFlags.Instance),
-				typeof(CoopHelperModule).GetMethod("OnStrawberryCollect"));
+				OnStrawberryCollect);
 			hook_CelesteNetClientSettings_Interactions_get = new Hook(
 				typeof(CelesteNetClientSettings).GetProperty("Interactions").GetMethod,
-				typeof(CoopHelperModule).GetMethod("OnCelesteNetClientSettingsInteractionsGet"));
+				OnCelesteNetClientSettingsInteractionsGet);
 			hook_Player_orig_Die = new Hook(
 				typeof(Player).GetMethod("orig_Die", BindingFlags.Public | BindingFlags.Instance),
-				typeof(CoopHelperModule).GetMethod("OnPlayerDie"));
+				OnPlayerDie);
 			hook_SpikeInfo_OnPlayer = new Hook(
 				typeof(TriggerSpikes.SpikeInfo).GetMethod("OnPlayer", BindingFlags.Public | BindingFlags.Instance),
-				typeof(CoopHelperModule).GetMethod("OnSpikeInfoOnPlayer"));
+				OnSpikeInfoOnPlayer);
 			hook_Level_orig_LoadLevel = new Hook(
 				typeof(Level).GetMethod("orig_LoadLevel", BindingFlags.Public | BindingFlags.Instance),
-				typeof(CoopHelperModule).GetMethod("OnLevelOrigLoadLevel"));
+				OnLevelOrigLoadLevel);
 
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
