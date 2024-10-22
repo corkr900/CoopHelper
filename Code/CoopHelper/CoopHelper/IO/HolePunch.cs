@@ -108,7 +108,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			client = new UdpClient();
 			//client.ReceiveAsync();
 			HolePunchDatagram gram = HolePunchDatagram.FirstPunch;
-			Task<int> req = client.SendAsync(gram.Payload, gram.Bytes, endpoint);
+			Task<int> req = client.SendAsync(gram.Payload, gram.TotalBytes, endpoint);
 			Status = ConnStatus.Requested;
 			int initres = await req;
 			if (initres <= 0) {
@@ -146,38 +146,68 @@ namespace Celeste.Mod.CoopHelper.IO {
 		}
 
 		internal void Send(HolePunchDatagram data) {
-			if (data == null || data.Bytes == 0) return;
-			// TODO header
 			// TODO use a send queue
 			client.SendAsync(data.Payload, endpoint);
 		}
 	}
 
 	public class HolePunchDatagram {
-		public byte[] Payload {
-			get => _payload ?? Array.Empty<byte>();
-			set => AssignPayload(value);
-		}
-		// TODO data array (sans header)
 
-		private byte[] _payload;
+		public byte[] Payload { get; private set; }
 
-		public int Bytes => _payload?.Length ?? 0;
+		public int TotalBytes => DataBytes + HeaderBytes;
+		public int HeaderBytes => 8;
+		public int DataBytes { get; private set; }
 
 		public bool IsInitialPunch { get; private set; } = false;
 		public bool IsConfirmation { get; private set; } = false;
 
-		private void AssignPayload(byte[] value) {
-			throw new NotImplementedException();
+		public byte SpecialPacketFlagValue => (byte)(
+			IsInitialPunch ? 0x01 :
+			IsConfirmation ? 0x02 :
+			0x00);
+
+		public HolePunchDatagram() {
+			SetData(Array.Empty<byte>());
+		}
+
+		public HolePunchDatagram(byte[] data) {
+			SetData(data);
+		}
+
+		private void MakeHeader_V1() {
+			int dataSize = DataBytes;
+			// Header vers. 1 (size: 8 bytes)
+			// byte 0: header size (bytes)
+			// byte 1: header version number
+			// byte 2,3,4,5: size of the transmission (little endian)
+			// byte 6: flag for special packets
+			// byte 7: 0x01 if there is another packet in the datagram
+			Payload[0] = 8;
+			Payload[1] = 1;
+			Payload[2] = (byte)((dataSize      ) & 255);
+			Payload[3] = (byte)((dataSize >>  8) & 255);
+			Payload[4] = (byte)((dataSize >> 16) & 255);
+			Payload[5] = (byte)((dataSize >> 24) & 255);
+			Payload[6] = SpecialPacketFlagValue;
+			Payload[7] = 0xff;
+		}
+
+
+		public void SetData(byte[] data) {
+			DataBytes = data?.Length ?? 0;
+			Payload = new byte[TotalBytes];
+			MakeHeader_V1();
+			if (DataBytes > 0) Array.Copy(data, 0, Payload, HeaderBytes, DataBytes);
 		}
 
 		// /////////////////////////////////////////////////////////////////////////////
 
 		public static HolePunchDatagram FirstPunch => new HolePunchDatagram() {
-			Payload = new byte[16],
+			IsInitialPunch = true,
 		};
 		public static HolePunchDatagram Confirmation => new HolePunchDatagram() {
-			Payload = new byte[12],
+			IsConfirmation = true,
 		};
 
 		internal static HolePunchDatagram Parse(UdpReceiveResult confres) => Parse(confres.Buffer);
