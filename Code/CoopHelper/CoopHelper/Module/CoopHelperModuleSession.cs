@@ -64,9 +64,12 @@ namespace Celeste.Mod.CoopHelper.Module {
 		}
 	}
 
-	public enum DeathSyncMode {
-		None,
-		SameRoomOnly,
-		Everywhere,
+	/// <summary>
+	/// Defines how to handle death syncing. integer values may not change as they are used by the interop API.
+	/// </summary>
+	public enum DeathSyncMode : int {
+		None = 0,
+		SameRoomOnly = 1,
+		Everywhere = 2,
 	}
 }

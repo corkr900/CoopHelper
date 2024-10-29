@@ -177,7 +177,7 @@ namespace Celeste.Mod.CoopHelper {
 			OnSessionInfoChanged?.Invoke();
 		}
 
-		internal static void MakeSession(
+		internal static bool MakeSession(
 			Session currentSession,
 			PlayerID[] players,
 			CoopSessionID? id = null,
@@ -187,14 +187,14 @@ namespace Celeste.Mod.CoopHelper {
 			string skin = "")
 		{
 			// Basic checks...
-			if (Session == null) return;
+			if (Session == null) return false;
 			int myRole = -1;
 			for (int i = 0; i < (players?.Length ?? 0); i++) {
 				if (players[i].Equals(PlayerID.MyID)) {
 					myRole = i;
 				}
 			}
-			if (myRole < 0) return;  // I'm not in this one; error out
+			if (myRole < 0) return false;  // I'm not in this one; error out
 
 
 			// Set up basic session data and flags
@@ -246,6 +246,7 @@ namespace Celeste.Mod.CoopHelper {
 			Session.Ability = ability;
 
 			NotifySessionChanged();
+			return true;
 		}
 
 		private void CacheSession() {
@@ -290,51 +291,47 @@ namespace Celeste.Mod.CoopHelper {
 
 		private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
 			if (!Session.CoopEverywhere) return false;
+			Entity e = CreateSyncedEntityFromVanillaData(data, offset);
+			if (e == null) return false;
+			level.Add(e);
+			return true;
+		}
+		internal Entity CreateSyncedEntityFromVanillaData(EntityData data, Vector2 offset) {
 			data.Values ??= new();
 			switch(data.Name) {
 				default:
-					return false;
+					return null;
 
 				case "refill":
-					level.Add(new SyncedRefill(data, offset));
-					return true;
+					return new SyncedRefill(data, offset);
 
 				case "zipMover":
-					level.Add(new SyncedZipMover(data, offset));
-					return true;
+					return new SyncedZipMover(data, offset);
 
 				case "fallingBlock":
-					level.Add(new SyncedFallingBlock(data, offset));
-					return true;
+					return new SyncedFallingBlock(data, offset);
 
 				case "crumbleBlock":
-					level.Add(new SyncedCrumblePlatform(data, offset));
-					return true;
+					return new SyncedCrumblePlatform(data, offset);
 
 				case "touchSwitch":
-					level.Add(new SyncedTouchSwitch(data, offset));
-					return true;
+					return new SyncedTouchSwitch(data, offset);
 
 				case "key":
-					level.Add(new SyncedKey(data, offset));
-					return true;
+					return new SyncedKey(data, offset);
 
 				case "lockBlock":
-					level.Add(new SyncedLockBlock(data, offset));
-					return true;
+					return new SyncedLockBlock(data, offset);
 
 				case "booster":
-					level.Add(new SyncedBooster(data, offset));
-					return true;
+					return new SyncedBooster(data, offset);
 
 				case "moveBlock":
-					level.Add(new SyncedMoveBlock(data, offset));
-					return true;
+					return new SyncedMoveBlock(data, offset);
 
 				case "switchBlock":
 				case "swapBlock":
-					level.Add(new SyncedSwapBlock(data, offset));
-					return true;
+					return new SyncedSwapBlock(data, offset);
 
 				case "dashSwitchH":
 					data.Values["side"] = data.Bool("leftSide", false) ? "Left" : "Right";
@@ -343,45 +340,35 @@ namespace Celeste.Mod.CoopHelper {
 					data.Values["side"] = data.Bool("ceiling", false) ? "Up" : "Down";
 					goto case "dashSwitch";
 				case "dashSwitch":
-					level.Add(new SyncedDashSwitch(data, offset));
-					return true;
+					return new SyncedDashSwitch(data, offset);
 
 				case "templeCrackedBlock":
-					level.Add(new SyncedTempleCrackedBlock(data, offset));
-					return true;
+					return new SyncedTempleCrackedBlock(data, offset);
 
 				case "coreModeToggle":
-					level.Add(new SyncedCoreModeToggle(data, offset));
-					return true;
+					return new SyncedCoreModeToggle(data, offset);
 
 				case "eyebomb":
-					level.Add(new SyncedPuffer(data, offset));
-					return true;
+					return new SyncedPuffer(data, offset);
 
 				case "lightningBlock":
-					level.Add(new SyncedLightningBreakerBox(data, offset));
-					return true;
+					return new SyncedLightningBreakerBox(data, offset);
 
 				case "crushBlock":
-					level.Add(new SyncedKevin(data, offset));
-					return true;
+					return new SyncedKevin(data, offset);
 
 				case "dashBlock":
-					level.Add(new SyncedDashBlock(data, offset));
-					return true;
+					return new SyncedDashBlock(data, offset);
 
 				case "colorSwitch":
-					level.Add(new SyncedClutterSwitch(data, offset));
-					return true;
+					return new SyncedClutterSwitch(data, offset);
 
 				case "bounceBlock":
 					data.Values["coreMode"] = data.Bool("notCoreMode") ? "Cold" : "None";
-					level.Add(new SyncedBounceBlock(data, offset));
-					return true;
+					return new SyncedBounceBlock(data, offset);
 
 				case "cloud":
-					level.Add(new SyncedCloud(data, offset));
-					return true;
+					return new SyncedCloud(data, offset);
 
 				case "triggerSpikesUp":
 					data.Name = "corkr900CoopHelper/TriggerSpikesUp";
@@ -396,8 +383,7 @@ namespace Celeste.Mod.CoopHelper {
 					data.Name = "corkr900CoopHelper/TriggerSpikesLeft";
 					goto case "%triggerSpikes";
 				case "%triggerSpikes":
-					level.Add(new SyncedTriggerSpikes(data, offset));
-					return true;
+					return new SyncedTriggerSpikes(data, offset);
 
 				//case "seeker":
 				//	level.Add(new SyncedSeeker(data, offset));

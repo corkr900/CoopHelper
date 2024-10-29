@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public struct PlayerID {
+
+		private const char SerializeDelim = '\u001f';  // unit separator (ascii 31). Used because display names will never contain it.
+
 		public static PlayerID MyID {
 			get {
 				CNetComm comm = CNetComm.Instance;
@@ -61,6 +64,30 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public int? MacAddressHash { get; private set; }
 		public string Name { get; private set; }
 		public uint CNetID { get; private set; }
+
+		public string SerializedID {
+			get => $"{MacAddressHash ?? -1}{SerializeDelim}{CNetID}{SerializeDelim}{Name}";
+		}
+
+		public static PlayerID? FromSerialized(string serialized) {
+			if (TryDeserializeID(serialized, out int? addrHash, out string name, out uint cnetID)) return new(addrHash, cnetID, name);
+			return null;
+
+		}
+
+		private static bool TryDeserializeID(string serID, out int? addrHash, out string name, out uint cnetID) {
+			addrHash = null;
+			cnetID = uint.MaxValue;
+			name = "";
+			if (string.IsNullOrEmpty(serID)) return false;
+			string[] split = serID.Split(SerializeDelim);
+			if (split.Length != 3) return false;
+			addrHash = int.TryParse(split[0], out int _addrHash) ? _addrHash : null;
+			cnetID = uint.TryParse(split[1], out cnetID) ? cnetID : uint.MaxValue;
+			name = split[2];
+			return true;
+		}
+
 
 		public bool MatchAndUpdate(PlayerID id) {
 			if (this.Equals(id)) {

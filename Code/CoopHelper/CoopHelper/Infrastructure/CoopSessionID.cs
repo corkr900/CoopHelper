@@ -8,6 +8,13 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public struct CoopSessionID : IEquatable<CoopSessionID> {
 		private static uint localIDGenCounter = 0;
+		private const char SerializeDelim = '\u001f';  // unit separator (ascii 31). Used because display names will never contain it.
+
+		internal CoopSessionID(PlayerID _creator1, DateTime _createInstant, uint _counter) : this() {
+			creator = creator;
+			creationInstant = _createInstant;
+			idcounter = _counter;
+		}
 
 		public PlayerID creator { get; internal set; }
 		public DateTime creationInstant { get; internal set; }
@@ -48,6 +55,32 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		public override string ToString() {
 			return (creator.GetHashCode() + creationInstant.GetHashCode() + idcounter.GetHashCode()).ToString();
 		}
+
+		public string SerializedID {
+			get => $"{creator.SerializedID}{SerializeDelim}{creationInstant.Ticks}{SerializeDelim}{idcounter}";
+		}
+
+		public static CoopSessionID? FromSerialized(string serialized) {
+			if (TryDeserializeID(serialized, out PlayerID? _creator, out DateTime _createInstant, out uint _counter)) return new(_creator.Value, _createInstant, _counter);
+			return null;
+
+		}
+
+		private static bool TryDeserializeID(string serID, out PlayerID? _creator, out DateTime _createInstant, out uint _counter) {
+			_creator = null;
+			_createInstant = DateTime.UnixEpoch;
+			_counter = uint.MaxValue;
+			if (string.IsNullOrEmpty(serID)) return false;
+			string[] split = serID.Split(SerializeDelim);
+			if (split.Length != 3) return false;
+			_creator = PlayerID.FromSerialized(split[0]);
+			if (_creator == null) return false;
+			if (!long.TryParse(split[1], out long ticks)) return false;
+			_createInstant = new DateTime(ticks);
+			if (!uint.TryParse(split[1], out _counter)) return false;
+			return true;
+		}
+
 	}
 
 	public static class CoopSessionIDExt {
@@ -60,11 +93,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			PlayerID pid = r.ReadPlayerID();
 			DateTime dt = r.ReadDateTime();
 			uint idc = r.ReadUInt32();
-			return new CoopSessionID() {
-				creator = pid,
-				creationInstant = dt,
-				idcounter = idc,
-			};
+			return new CoopSessionID(pid, dt, idc);
 		}
 	}
 }

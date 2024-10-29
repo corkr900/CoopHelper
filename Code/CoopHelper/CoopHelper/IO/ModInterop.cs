@@ -1,5 +1,7 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.CoopHelper.Module;
+using Microsoft.Xna.Framework;
 using MonoMod.ModInterop;
 using System;
 using System.Collections.Generic;
@@ -64,6 +66,60 @@ namespace Celeste.Mod.CoopHelper.IO {
 		/// <param name="id">The unique ID of the entity</param>
 		public static void PostUpdate(EntityID id) {
 			EntityStateTracker.PostUpdate(id);
+		}
+
+		/// <summary>
+		/// Gets the local Player ID, in serialized string form. Note that if this is called before connecting
+		/// to CelesteNet since starting the game, the display name could be incorrect causing mismatches.
+		/// </summary>
+		/// <returns>Serialized Player ID</returns>
+		public static string GetPlayerID() => PlayerID.MyID.SerializedID;
+
+		/// <summary>
+		/// Generates a new CoopSessionID
+		/// </summary>
+		/// <returns></returns>
+		public static string GenerateNewCoopSessionID() => CoopSessionID.GetNewID().SerializedID;
+
+		/// <summary>
+		/// Try to join a session.
+		/// </summary>
+		/// <param name="currentSession">The current Session</param>
+		/// <param name="serializedPlayerIDs">The serialized form of every PlayerID in the session</param>
+		/// <param name="id">The serialized form of the CoopSessionID to join</param>
+		/// <param name="deathSyncMode">Enum value of the death sync mode to use. See DeathSyncMode enum for values.</param>
+		/// <returns>Returns true if the session was joined successfully, false if the session was not joined</returns>
+		public static bool TryJoinSession(Session currentSession, string[] serializedPlayerIDs, string id, int deathSyncMode) {
+			// Basic sanity checks
+			if (currentSession == null || serializedPlayerIDs == null || serializedPlayerIDs.Length < 2 || string.IsNullOrEmpty(id)) return false;
+
+			// Parse out the inputs to internal form
+			PlayerID[] idArr = new PlayerID[serializedPlayerIDs.Length];
+			for (int i = 0; i < idArr.Length; i++) {
+				PlayerID? deserialized = PlayerID.FromSerialized(serializedPlayerIDs[i]);
+				if (deserialized == null) return false;
+				idArr[i] = deserialized.Value;
+			}
+			CoopSessionID? coopSessionID = CoopSessionID.FromSerialized(id);
+			if (coopSessionID == null) return false;
+			if (!Enum.IsDefined(typeof(DeathSyncMode), deathSyncMode)) return false;
+
+			// Make the session!
+			return CoopHelperModule.MakeSession(currentSession, idArr, id: coopSessionID.Value, deathMode: (DeathSyncMode)deathSyncMode);
+		}
+
+		/// <summary>
+		/// Create a synced version of a vanilla entity from EntityData. Use the vanilla "name" property. For entities to sync:
+		/// - They must be of the same type.
+		/// - data.Level.Name must match on all clients.
+		/// - data.ID must match on all clients.
+		/// Note that some properties may be added to the EntityData object.
+		/// </summary>
+		/// <param name="data">The EntityData object to use</param>
+		/// <param name="offset">The positional offset of the room the entity is added to</param>
+		/// <returns>Returns the newly created Entity, or null if a synced version could not be created.</returns>
+		public static Monocle.Entity MakeSyncedEntity(EntityData data, Vector2 offset) {
+			return CoopHelperModule.Instance.CreateSyncedEntityFromVanillaData(data, offset);
 		}
 	}
 }
