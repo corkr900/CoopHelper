@@ -1,5 +1,5 @@
 - Name: CoopHelper
-  Version: 1.0.6
+  Version: 1.0.7
   DLL: Code/CoopHelper.dll
   Dependencies:
   - Name: Everest
