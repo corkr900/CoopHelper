@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Celeste.Mod.CoopHelper.Infrastructure {
 	public struct CoopSessionID : IEquatable<CoopSessionID> {
 		private static uint localIDGenCounter = 0;
-		private const char SerializeDelim = '\u001f';  // unit separator (ascii 31). Used because display names will never contain it.
+		private const char SerializeDelim = '\u001e';  // record separator (ascii 30). Used because display names will never contain it. Different from PlayerID delim because this contains a PlayerID
 
 		internal CoopSessionID(PlayerID _creator1, DateTime _createInstant, uint _counter) : this() {
 			creator = creator;
@@ -77,7 +77,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			if (_creator == null) return false;
 			if (!long.TryParse(split[1], out long ticks)) return false;
 			_createInstant = new DateTime(ticks);
-			if (!uint.TryParse(split[1], out _counter)) return false;
+			if (!uint.TryParse(split[2], out _counter)) return false;
 			return true;
 		}
 

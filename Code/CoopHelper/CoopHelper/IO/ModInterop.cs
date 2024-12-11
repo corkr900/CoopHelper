@@ -90,19 +90,33 @@ namespace Celeste.Mod.CoopHelper.IO {
 		/// <param name="deathSyncMode">Enum value of the death sync mode to use. See DeathSyncMode enum for values.</param>
 		/// <returns>Returns true if the session was joined successfully, false if the session was not joined</returns>
 		public static bool TryJoinSession(Session currentSession, string[] serializedPlayerIDs, string id, int deathSyncMode) {
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Beginning {nameof(TryJoinSession)}...");
 			// Basic sanity checks
-			if (currentSession == null || serializedPlayerIDs == null || serializedPlayerIDs.Length < 2 || string.IsNullOrEmpty(id)) return false;
+			if (currentSession == null || serializedPlayerIDs == null || serializedPlayerIDs.Length < 2 || string.IsNullOrEmpty(id)) {
+				Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to join co-op session from interop. Invalid arguments to {nameof(TryJoinSession)}. "
+					+ $"Info: {currentSession?.ToString() ?? "null"} | {serializedPlayerIDs?.Length.ToString() ?? "null"} | {id ?? "null"} | {deathSyncMode}");
+				return false;
+			}
 
 			// Parse out the inputs to internal form
 			PlayerID[] idArr = new PlayerID[serializedPlayerIDs.Length];
 			for (int i = 0; i < idArr.Length; i++) {
 				PlayerID? deserialized = PlayerID.FromSerialized(serializedPlayerIDs[i]);
-				if (deserialized == null) return false;
+				if (deserialized == null) {
+					Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to join co-op session from interop. Could not deserialize PlayerID: '{serializedPlayerIDs[i] ?? "null"}'");
+					return false;
+				}
 				idArr[i] = deserialized.Value;
 			}
 			CoopSessionID? coopSessionID = CoopSessionID.FromSerialized(id);
-			if (coopSessionID == null) return false;
-			if (!Enum.IsDefined(typeof(DeathSyncMode), deathSyncMode)) return false;
+			if (coopSessionID == null) {
+				Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to join co-op session from interop. Could not deserialize CoopSessionID: '{id ?? "null"}'");
+				return false;
+			}
+			if (!Enum.IsDefined(typeof(DeathSyncMode), deathSyncMode)) {
+				Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to join co-op session from interop. deathsyncmode '{deathSyncMode} is not defined.");
+				return false;
+			}
 
 			// Make the session!
 			return CoopHelperModule.MakeSession(currentSession, idArr, id: coopSessionID.Value, deathMode: (DeathSyncMode)deathSyncMode);

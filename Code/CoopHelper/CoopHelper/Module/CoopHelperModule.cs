@@ -187,14 +187,20 @@ namespace Celeste.Mod.CoopHelper {
 			string skin = "")
 		{
 			// Basic checks...
-			if (Session == null) return false;
+			if (Session == null) {
+				Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to make co-op session. Session is null.");
+				return false;
+			}
 			int myRole = -1;
 			for (int i = 0; i < (players?.Length ?? 0); i++) {
 				if (players[i].Equals(PlayerID.MyID)) {
 					myRole = i;
 				}
 			}
-			if (myRole < 0) return false;  // I'm not in this one; error out
+			if (myRole < 0) {
+				Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to make co-op session. Local player is not in the session.");
+				return false;
+			}
 
 
 			// Set up basic session data and flags
