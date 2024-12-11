@@ -10,8 +10,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		private static uint localIDGenCounter = 0;
 		private const char SerializeDelim = '\u001e';  // record separator (ascii 30). Used because display names will never contain it. Different from PlayerID delim because this contains a PlayerID
 
-		internal CoopSessionID(PlayerID _creator1, DateTime _createInstant, uint _counter) : this() {
-			creator = creator;
+		internal CoopSessionID(PlayerID _creator, DateTime _createInstant, uint _counter) : this() {
+			creator = _creator;
 			creationInstant = _createInstant;
 			idcounter = _counter;
 		}
@@ -93,7 +93,8 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			PlayerID pid = r.ReadPlayerID();
 			DateTime dt = r.ReadDateTime();
 			uint idc = r.ReadUInt32();
-			return new CoopSessionID(pid, dt, idc);
+			CoopSessionID id = new CoopSessionID(pid, dt, idc);
+			return id;
 		}
 	}
 }

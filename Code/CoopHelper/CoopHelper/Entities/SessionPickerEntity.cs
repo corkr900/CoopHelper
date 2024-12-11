@@ -292,6 +292,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 		}
 
 		private void OnPlayerStatusUpdate(DataPlayerState data) {
+			Logger.Log(LogLevel.Verbose, "Co-op Helper", $"Receiving status update from {data.senderID.Name}");
 			SetAvailability(data.newState);
 		}
 

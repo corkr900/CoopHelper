@@ -67,6 +67,8 @@ namespace Celeste.Mod.CoopHelper.Entities.Helper {
 					}
 					else {
 						PickerPlayerStatus sts = AvailablePlayers[i];
+						Logger.Log(LogLevel.Info, "Co-op Helper", $"Entering conflicted state with {player.Name}. "
+							+ $"State before conflict: {sts.State}. My session id is '{session?.SerializedID ?? "null"}'. Incoming session ID is '{AvailablePlayers[i].SessionID?.SerializedID ?? "null"}'.");
 						sts.State = PlayerRequestState.Conflict;
 						sts.SessionID = null;
 						AvailablePlayers[i] = sts;

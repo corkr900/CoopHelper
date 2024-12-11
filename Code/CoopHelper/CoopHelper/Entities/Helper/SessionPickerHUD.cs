@@ -333,7 +333,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 					if (hovered == i) {
 						display = "> " + display;
 					}
-					// TODO translate status names
+					// TODO (!) translate status labels
 					if (pps.State == PlayerRequestState.RequestPending) {
 						display += " (Request Pending)";
 						color = Color.Yellow;
