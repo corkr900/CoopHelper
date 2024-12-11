@@ -40,14 +40,31 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 		private static void SearchMACAddress() {
 			try {
-				_localMACHash = (
-					from nic in NetworkInterface.GetAllNetworkInterfaces()
-					where nic.OperationalStatus == OperationalStatus.Up
-					select nic.GetPhysicalAddress().ToString()
-				)?.FirstOrDefault()?.GetHashCode();
+				string macAddr = NetworkInterface.GetAllNetworkInterfaces()
+					.Where(i => i.OperationalStatus == OperationalStatus.Up)
+					.Select(i => i.GetPhysicalAddress().ToString())
+					.Where(s => !string.IsNullOrEmpty(s))
+					.Order().FirstOrDefault();
+				_localMACHash = GetDeterministicHashCode(macAddr);
 			}
 			catch (Exception e) {
 				Logger.Log("CoopHelper", "Could not get MAC address: " + e.Message);
+			}
+		}
+		private static int? GetDeterministicHashCode(string mac) {
+			if (string.IsNullOrEmpty(mac)) return null;
+			unchecked {
+				int hash1 = (5381 << 16) + 5381;
+				int hash2 = hash1;
+
+				for (int i = 0; i < mac.Length; i += 2) {
+					hash1 = ((hash1 << 5) + hash1) ^ mac[i];
+					if (i == mac.Length - 1)
+						break;
+					hash2 = ((hash2 << 5) + hash2) ^ mac[i + 1];
+				}
+
+				return hash1 + (hash2 * 1566083941);
 			}
 		}
 
