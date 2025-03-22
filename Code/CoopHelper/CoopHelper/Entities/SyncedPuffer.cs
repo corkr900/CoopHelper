@@ -1,5 +1,4 @@
-﻿using Celeste.Mod.CelesteNet;
-using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -506,14 +505,14 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public bool CheckRecurringUpdate() => false;
 
-		public static SyncedPufferState ParseState(CelesteNetBinaryReader r) {
+		public static SyncedPufferState ParseState(CelesteNet.CelesteNetBinaryReader r) {
 			return new SyncedPufferState() {
 				State = (States)Enum.Parse(typeof(States), r.ReadString()),
 				Position = r.ReadVector2(),
 			};
 		}
 
-		public void WriteState(CelesteNetBinaryWriter w) {
+		public void WriteState(CelesteNet.CelesteNetBinaryWriter w) {
 			w.Write(state.ToString() ?? "");
 			w.Write(Position);
 		}

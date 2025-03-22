@@ -1,5 +1,4 @@
-﻿using Celeste.Mod.CelesteNet;
-using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using FMOD.Studio;
 using Microsoft.Xna.Framework;
@@ -452,7 +451,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Critical = false,
 		};
 
-		public static object ParseState(CelesteNetBinaryReader r) {
+		public static object ParseState(CelesteNet.CelesteNetBinaryReader r) {
 			State s;
 			Enum.TryParse(r.ReadString(), out s);
 			return s;
@@ -462,7 +461,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public bool CheckRecurringUpdate() => false;
 
-		public void WriteState(CelesteNetBinaryWriter w) {
+		public void WriteState(CelesteNet.CelesteNetBinaryWriter w) {
 			w.Write(state.ToString() ?? "");
 		}
 

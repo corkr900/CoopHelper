@@ -1,5 +1,4 @@
-﻿using Celeste.Mod.CelesteNet;
-using Celeste.Mod.CoopHelper.Infrastructure;
+﻿using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -937,7 +936,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			Critical = false,
 		};
 
-		public static MultiplayerSeekerState ParseState(CelesteNetBinaryReader r) {
+		public static MultiplayerSeekerState ParseState(CelesteNet.CelesteNetBinaryReader r) {
 			MultiplayerSeekerState s = new MultiplayerSeekerState();
 			s.stateChangeID = r.ReadString();
 
@@ -970,7 +969,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 		public EntityID GetID() => id;
 
-		public void WriteState(CelesteNetBinaryWriter w) {
+		public void WriteState(CelesteNet.CelesteNetBinaryWriter w) {
 			w.Write(stateChangeIDToSync);
 			stateChangeIDToSync = "";
 			w.Write(dead);
