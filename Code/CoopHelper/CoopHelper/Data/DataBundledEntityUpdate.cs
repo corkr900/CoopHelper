@@ -19,14 +19,14 @@ namespace Celeste.Mod.CoopHelper.Data {
 
 		public DataBundledEntityUpdate() {
 			senderID = PlayerID.MyID;
-			SessionID = CoopHelperModule.Session.SessionID;
+			SessionID = CoopHelperModule.Session?.SessionID ?? CoopSessionID.CoopEverywhereID;
 		}
 
 		public override DataFlags DataFlags { get { return DataFlags.Unreliable; } }
 
 		public override void FixupMeta(DataContext ctx) {
 			player = Get<MetaPlayerPrivateState>(ctx);
-			SessionID = CoopHelperModule.Session.SessionID;
+			SessionID = CoopHelperModule.Session?.SessionID ?? CoopSessionID.CoopEverywhereID;
 			senderID = PlayerID.MyID;
 		}
 
