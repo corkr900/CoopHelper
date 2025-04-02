@@ -12,7 +12,7 @@ GroupSwitch.placements = {
     }
 }
 
-GroupSwitch.offset = { 16, 8 }
+GroupSwitch.offset = { 0, 4 }
 GroupSwitch.texture = "corkr900/CoopHelper/GroupSwitch/button00"
 
 function GroupSwitch.selection(room, entity)

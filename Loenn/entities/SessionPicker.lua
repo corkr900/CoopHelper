@@ -29,7 +29,6 @@ SessionPicker.placements = {
     }
 }
 
-SessionPicker.offset = { 8, 16 }
 SessionPicker.texture = "corkr900/CoopHelper/SessionPicker/idle00"
 
 function SessionPicker.selection(room, entity)
