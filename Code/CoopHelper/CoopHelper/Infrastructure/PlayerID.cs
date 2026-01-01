@@ -21,8 +21,16 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 				uint id = comm?.CnetID ?? uint.MaxValue;
 				return new PlayerID(macHash, id, name);
 			}
-		}
-		public static int LocalMACAddressHash {
+        }
+        public static PlayerID Default
+        {
+            get
+            {
+                return new PlayerID(null, uint.MaxValue, "");
+            }
+        }
+		public static string LastKnownName => _lastKnownName;
+        public static int LocalMACAddressHash {
 			get {
 				if (_localMACHash == null) SearchMACAddress();
 				return _localMACHash ?? 0;

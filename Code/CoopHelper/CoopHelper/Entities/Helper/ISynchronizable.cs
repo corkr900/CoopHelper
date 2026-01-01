@@ -17,7 +17,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 
 	public struct SynchronizableComparer : IEqualityComparer<ISynchronizable> {
 		public bool Equals(ISynchronizable x, ISynchronizable y) {
-			return x == null ? y == null : x.GetID().Equals(y.GetID());
+			return x == null ? y == null : x.GetID().Equals(y?.GetID());
 		}
 
 		public int GetHashCode(ISynchronizable obj) {

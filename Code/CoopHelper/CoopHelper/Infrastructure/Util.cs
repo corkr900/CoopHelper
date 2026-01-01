@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.CoopHelper;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,5 +42,25 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			return timeSpan.TotalSeconds;
 		}
 
-	}
+        internal static FileSystemModAsset FindMapAsset(string pathVirtual)
+        {
+            foreach (var mod in Everest.Content.Mods)
+            {
+                foreach (ModAsset asset in mod.List.Where(IsFileMapAsset))
+                {
+                    if (asset.PathVirtual == pathVirtual)
+                    {
+                        return asset as FileSystemModAsset;
+                    }
+                }
+            }
+            return null;
+        }
+
+        internal static bool IsFileMapAsset(ModAsset ma) =>
+            ma is FileSystemModAsset &&
+            ma.Type?.Equals(typeof(AssetTypeMap)) == true;
+
+		internal static string GetFullFilePath(FileSystemModAsset asset) => Path.Combine(asset.Source.Path, asset.Path);
+    }
 }

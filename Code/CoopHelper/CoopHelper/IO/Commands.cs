@@ -1,4 +1,5 @@
-﻿using Celeste.Mod.CoopHelper.Entities;
+﻿using Celeste.Mod.CoopHelper.Data;
+using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -95,5 +96,5 @@ namespace Celeste.Mod.CoopHelper.IO {
 				level.Add(new SessionPickerEntity(ed, roomPos));
 			}
 		}
-	}
+    }
 }

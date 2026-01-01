@@ -189,7 +189,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 
 		public void EnterMap(GlobalAreaKey area, string room = "") {
-			Logger.Log(LogLevel.Info, "Co-op Helper", $"Entering map '{area.SID}', room '{room}'. Previous map was '{CurrentMap.SID}'");
 			CurrentMap = area;
 			CurrentRoom = room;
 			RespawnPoint = Vector2.Zero;

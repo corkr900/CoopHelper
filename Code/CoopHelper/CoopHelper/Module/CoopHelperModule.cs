@@ -1,4 +1,5 @@
 ﻿using Celeste.Mod.CelesteNet.Client;
+using Celeste.Mod.CoopHelper.Data;
 using Celeste.Mod.CoopHelper.Entities;
 using Celeste.Mod.CoopHelper.Infrastructure;
 using Celeste.Mod.CoopHelper.IO;
@@ -110,10 +111,10 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.ClutterAbsorbEffect.Added += OnClutterAbsorbEffectAdded;
 			On.Celeste.ChangeRespawnTrigger.OnEnter += OnChangeRespawnTriggerEnter;
 
-
 			Everest.Events.Player.OnSpawn += OnSpawn;
 			Everest.Events.Level.OnExit += onLevelExit;
 			Everest.Events.Level.OnLoadEntity += OnLevelLoadEntity;
+			Everest.Events.AssetReload.OnReloadLevel += OnReloadLevel;
 
 			typeof(ModInterop).ModInterop();
 			typeof(SkinModHelperPlus).ModInterop();
@@ -159,16 +160,17 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.ClutterAbsorbEffect.Added -= OnClutterAbsorbEffectAdded;
 			On.Celeste.ChangeRespawnTrigger.OnEnter -= OnChangeRespawnTriggerEnter;
 
-			Everest.Events.Player.OnSpawn -= OnSpawn;
+            Everest.Events.Player.OnSpawn -= OnSpawn;
 			Everest.Events.Level.OnExit -= onLevelExit;
 			Everest.Events.Level.OnLoadEntity -= OnLevelLoadEntity;
-		}
+            Everest.Events.AssetReload.OnReloadLevel -= OnReloadLevel;
+        }
 
-		#endregion
+        #endregion
 
-		#region Session Information
+        #region Session Information
 
-		public delegate void OnSessionInfoChangedHandler();
+        public delegate void OnSessionInfoChangedHandler();
 		public static event OnSessionInfoChangedHandler OnSessionInfoChanged;
 
 		internal CoopHelperModuleSession CachedSession = null;
@@ -636,13 +638,17 @@ namespace Celeste.Mod.CoopHelper {
 		public static bool OnSpikeInfoOnPlayer(orig_SpikeInfoOnPlayer orig, ref TriggerSpikes.SpikeInfo self, Player player, Vector2 outwards) {
 			bool ret = orig(ref self, player, outwards);
 
-			TriggerSpikes.SpikeInfo inf = (TriggerSpikes.SpikeInfo)self;
-			if (inf.Parent is SyncedTriggerSpikes sts) {
+			if (self.Parent is SyncedTriggerSpikes sts) {
 				sts.OnTriggered();
 			}
 			return ret;
 		}
 
-		#endregion
-	}
+		private void OnReloadLevel(Level level)
+        {
+			MapSync.TryDoSync(level);
+        }
+
+        #endregion
+    }
 }
