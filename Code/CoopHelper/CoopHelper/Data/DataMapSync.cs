@@ -48,20 +48,11 @@ namespace Celeste.Mod.CoopHelper.Data
                 w.Write(0);
                 return;
             }
-            try
-            {
-                int len = MapBinary?.Length ?? 0;
-                w.Write(len);
-                if (len > 0) {
-                    w.Write(MapBinary);
-                }
-            }
-            catch
-            {
-                Engine.Commands.Log($"DataMapSync could not read map file at virtual path: {VirtualPath}");
-                Logger.Log(LogLevel.Warn, "Co-op Helper", $"DataMapSync could not read map file at virtual path: {VirtualPath}");
-                w.Write(0);
-                return;
+            int len = MapBinary?.Length ?? 0;
+            w.Write(len);
+            if (len > 0) {
+                w.Write(VirtualPath);
+                w.Write(MapBinary);
             }
         }
 
@@ -71,6 +62,7 @@ namespace Celeste.Mod.CoopHelper.Data
             int length = r.ReadInt32();
             if (length > 0)
             {
+                VirtualPath = r.ReadString();
                 MapBinary = new byte[length];
                 int bytesRead = r.Read(MapBinary, 0, length);
             }
