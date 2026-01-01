@@ -118,9 +118,13 @@ namespace Celeste.Mod.CoopHelper {
 
 			typeof(ModInterop).ModInterop();
 			typeof(SkinModHelperPlus).ModInterop();
-		}
+
+            MapSync.Load();
+        }
 
 		public override void Unload() {
+			MapSync.Unload();
+
 			Celeste.Instance.Components.Remove(Comm);
 			Comm = null;
 

@@ -12,6 +12,15 @@ namespace Celeste.Mod.CoopHelper.Infrastructure
 {
     public class MapSync
     {
+        internal static void Load()
+        {
+            CNetComm.OnReceiveMapSync += OnReceiveMapSync;
+        }
+
+        internal static void Unload()
+        {
+            CNetComm.OnReceiveMapSync -= OnReceiveMapSync;
+        }
 
         public static void TryDoSync(Level level)
         {
@@ -26,7 +35,7 @@ namespace Celeste.Mod.CoopHelper.Infrastructure
             var asset = Util.FindMapAsset(assetPathVirtual);
             if (asset != null)
             {
-                Logger.Log(LogLevel.Debug, "Co-op Helper", $"Syncing map at virtual path '{assetPathVirtual} (size {asset.Data.Length})'");
+                Logger.Log(LogLevel.Info, "Co-op Helper", $"Syncing map at virtual path '{assetPathVirtual} (size {asset.Data.Length})'");
                 CNetComm.Instance?.Send(new DataMapSync()
                 {
                     VirtualPath = assetPathVirtual,
@@ -37,14 +46,19 @@ namespace Celeste.Mod.CoopHelper.Infrastructure
 
         public static void OnReceiveMapSync(DataMapSync data)
         {
+            Logger.Log(LogLevel.Info, "Co-op Helper", $"Received map sync...");
             if (CoopHelperModule.Settings.MapSync != CoopHelperModuleSettings.MapSyncMode.Receive)
             {
-                Logger.Log(LogLevel.Debug, "Co-op Helper", "Received map sync but map sync receiving is disabled in settings.");
+                Logger.Log(LogLevel.Info, "Co-op Helper", "Received map sync but map sync receiving is disabled in settings.");
                 return;
             }
             if (data.MapBinary?.Length > 0)
             {
                 ApplyMapSync(data.VirtualPath, data.MapBinary);
+            }
+            else
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Received DataMapSync with empty binary :thinkeline: virtual path '{data.VirtualPath}'");
             }
         }
 

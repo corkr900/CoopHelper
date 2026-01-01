@@ -320,8 +320,16 @@ namespace Celeste.Mod.CoopHelper.IO {
         public void Handle(CelesteNetConnection con, DataMapSync data)
         {
             DataMapSync packet = PreHandle(data);
+			Logger.Log(LogLevel.Debug, "Co-op Helper", $"Received chunk {data.chunkNumber + 1} of {data.chunksInPacket} for packet of type {data.GetTypeID(con.Data)}");
             if (packet == null) return;  // Waiting on more chunks
-            updateQueue.Enqueue(() => OnReceiveMapSync?.Invoke(packet));
+            updateQueue.Enqueue(() => 
+				OnReceiveMapSync?.Invoke(packet)
+			);
+            lock (ReceivedMessagesCounterLock)
+            {
+                ++ReceivedMsgs;
+            }
+            Logger.Log(LogLevel.Debug, "Co-op Helper", $"Handled packet: {data.GetTypeID(con.Data)}");
         }
 
         #endregion
