@@ -16,10 +16,8 @@ corkr900_CoopHelper_Setting_CoopEverywhere= Co-op Everywhere (BETA)
 
 corkr900_CoopHelper_Setting_MapSync= Map Sync (BETA)
 corkr900_CoopHelper_Setting_MapSync_Subtext= This is a tool for mappers.
-When set to "Send", the .bin file for the map will be sent to anyone
-in the same CelesteNet channel who has this setting set to "Receive".
-You MUST be in a private CelesteNet channel to use this feature.
-This feature may not work for unusually large maps.
+Please read the instructions before using:
+https://github.com/corkr900/CoopHelper/wiki/Map-Sync
 
 corkr900_CoopHelper_SessionPickerTitle= {0} Players Needed
 corkr900_CoopHelper_SessionPickerTitleAlt= {0} Added You

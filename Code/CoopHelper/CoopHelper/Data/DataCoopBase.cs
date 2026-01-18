@@ -14,6 +14,11 @@ using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.CoopHelper.Data
 {
+    public interface IExpirablePacket
+    {
+        DateTime expiration { get; set; }
+    }
+
     /// <summary>
     /// A class representing complex or large packets. Contains functionality to split into multiple
     /// packets if there is too much data for cnet to transmit in one packet. Encoding is as follows:
@@ -29,7 +34,7 @@ namespace Celeste.Mod.CoopHelper.Data
     /// 6. (byte[DataLength]) The serialized data
     /// 7. (optional, varies) Nonstandard data handled by the individual packet types
 	/// </summary>
-    abstract public class DataCoopBase<T> : DataType<T> where T: DataCoopBase<T>, new() {
+    abstract public class DataCoopBase<T> : DataType<T>, IExpirablePacket where T: DataCoopBase<T>, new() {
 
         private static uint PacketCounter = 0;
         private static uint NewPacketID() => ++PacketCounter;
@@ -40,6 +45,7 @@ namespace Celeste.Mod.CoopHelper.Data
         public int chunkNumber;
         public int chunksInPacket;
         public byte[] data = null;
+        public DateTime expiration { get; set; }
 
         protected virtual int MaxChunksPerPacket => 20;
         protected virtual bool UseBoundRef => false;
@@ -153,7 +159,6 @@ namespace Celeste.Mod.CoopHelper.Data
             }
 
             chunksInPacket = chunks.Count;
-            Engine.Commands.Log($"Chunked packet of type {DataID} ({totalSize} bytes) into {chunksInPacket} chunks. Limit per chunk is {maxChunkSize} bytes.");
             if (chunksInPacket > MaxChunksPerPacket)
             {
                 Logger.Log(LogLevel.Error, "Co-op Helper", $"Tried to send {DataID} packet with {chunksInPacket} chunks; maximum allowed is {MaxChunksPerPacket}. Data will not be sent.");
@@ -203,7 +208,7 @@ namespace Celeste.Mod.CoopHelper.Data
         /// </summary>
         /// <typeparam name="TChunk">The type of the chunk array. We expect this to be the same as the class's type parameter, but the compiler wants it to be separate</typeparam>
         /// <param name="arr">An array of DataCoopBase<TChunk>s to compose and deserialize</param>
-        internal void Compose<TChunk>(DataCoopBase<TChunk>[] arr) where TChunk : DataCoopBase<TChunk>, new()
+        internal void Compose<TChunk>(DataCoopBase<TChunk>[] arr) where TChunk : DataCoopBase<TChunk>, IExpirablePacket, new()
         {
             // We expect arr[0] == this, but that's not really important. just trust the process
             MemoryStream ms = new MemoryStream();

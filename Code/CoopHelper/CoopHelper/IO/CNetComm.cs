@@ -185,7 +185,7 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 		}
 
-        internal void EnqueueSubsequentChunk<T>(DataCoopBase<T> data) where T : DataCoopBase<T>, new()
+        internal void EnqueueSubsequentChunk<T>(DataCoopBase<T> data) where T : DataCoopBase<T>, IExpirablePacket, new()
         {
             outgoingExtraPacketChunks.Enqueue(data);
         }
@@ -218,16 +218,26 @@ namespace Celeste.Mod.CoopHelper.IO {
 			}
 			// Some things don't need to happen very often, so only do them every X ticks
 			if (counter % 30 == 0) {
+				PurgeExpiredPackets();
 				PlayerState.PurgeStale();
 				PlayerState.Mine.CheckSendHeartbeat();
 			}
 		}
 
+		private void PurgeExpiredPackets()
+		{
+			lock (incomingChunksLock)
+			{
+				DateTime now = DateTime.Now;
+				incomingExtraPacketChunks.RemoveAll(chunk => (chunk as IExpirablePacket)?.expiration <= now);
+            }
+        }
+
         #endregion
 
         #region Message Handlers
 
-        private T PreHandle<T>(T data) where T : DataCoopBase<T>, new()
+        private T PreHandle<T>(T data) where T : DataCoopBase<T>, IExpirablePacket, new()
         {
             if (data.player == null) data.player = CnetClient.PlayerInfo;  // It's null when handling our own messages
             if (data.chunksInPacket <= 1)
@@ -236,6 +246,7 @@ namespace Celeste.Mod.CoopHelper.IO {
             }
 
             // record the incoming chunk and then check if we have all of them
+			data.expiration = DateTime.Now.AddSeconds(120);
             lock (incomingChunksLock)
             {
                 incomingExtraPacketChunks.Add(data);

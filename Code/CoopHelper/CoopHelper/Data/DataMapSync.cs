@@ -43,8 +43,8 @@ namespace Celeste.Mod.CoopHelper.Data
             base.Write(w);
             if (CNetComm.Instance.CurrentChannelIsMain || CNetComm.Instance.CurrentChannelIsPublic)
             {
-                Engine.Commands.Log("DataMapSync being sent on a public channel; to reduce network traffic, this is not allowed.");
-                Logger.Log(LogLevel.Warn, "Co-op Helper", $"DataMapSync being sent on a public channel; to reduce network traffic, this is not allowed.");
+                Engine.Commands.Log("DataMapSync being sent on a public CelesteNet channel; to reduce network traffic, this is not allowed.");
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"DataMapSync being sent on a public CelesteNet channel; to reduce network traffic, this is not allowed.");
                 w.Write(0);
                 return;
             }
