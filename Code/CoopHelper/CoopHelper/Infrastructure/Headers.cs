@@ -10,5 +10,6 @@ namespace Celeste.Mod.CoopHelper.Infrastructure
     {
         // TODO move all header definitions here
         public static readonly int SyncedFlagTrigger = 29;
+        public static readonly int SyncedJelly = 30;
     }
 }

@@ -180,6 +180,12 @@ entities.corkr900CoopHelper/TriggerSpikesDown.placements.name.down_dust=Synced T
 entities.corkr900CoopHelper/TriggerSpikesLeft.placements.name.left_dust=Synced Trigger Spikes (Left)
 entities.corkr900CoopHelper/TriggerSpikesRight.placements.name.right_dust=Synced Trigger Spikes (Right)
 
+# Synced Jellyfish (Glider)
+entities.corkr900CoopHelper/SyncedJelly.placements.name.normal=Synced Jellyfish
+entities.corkr900CoopHelper/SyncedJelly.placements.name.floating=Synced Jellyfish (Floating)
+entities.corkr900CoopHelper/SyncedJelly.attributes.description.bubble=Whether the entity should hover in the air before being grabbed.
+entities.corkr900CoopHelper/SyncedJelly.attributes.description.tutorial=Whether the entity should show the usage tutorial.
+
 # Synced Change Respawn
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
