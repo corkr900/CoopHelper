@@ -22,7 +22,6 @@ namespace Celeste.Mod.CoopHelper.Entities
         public static ParticleType P_Glow => Glider.P_Glow;
         public static ParticleType P_Expand => Glider.P_Expand;
 
-        private const float HighFrictionTime = 0.5f;
         public Vector2 Speed;
         public Holdable Hold;
         private Level level;
@@ -395,6 +394,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             bubble = false;
             wiggler.Start();
             tutorial = false;
+            holderID = PlayerID.MyID;
             EntityStateTracker.PostUpdate(this);
         }
 
@@ -413,6 +413,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             }
             Speed = force * 100f;
             wiggler.Start();
+            holderID = null;
             EntityStateTracker.PostUpdate(this);
         }
 
@@ -485,6 +486,27 @@ namespace Celeste.Mod.CoopHelper.Entities
             Add(new Coroutine(DestroyAnimationRoutine()));
         }
 
+        private void BeginOtherPlayerControl()
+        {
+            bubble = false;
+            Hold.cannotHoldTimer = 999999f;
+            Visible = false;
+            Collidable = false;
+            Active = false;
+        }
+
+        private void EndOtherPlayerControl()
+        {
+            Hold.cannotHoldTimer = Hold.cannotHoldDelay;
+            Visible = true;
+            Collidable = true;
+            Active = true;
+            if (holderID?.Equals(PlayerID.MyID) == false)
+            {
+                holderID = null;
+            }
+        }
+
         ////////////////////////////////////////////////
 
         public override void SceneEnd(Scene scene)
@@ -554,8 +576,7 @@ namespace Celeste.Mod.CoopHelper.Entities
                 }
                 else  // Another player grabbed it
                 {
-                    Hold.cannotHoldTimer = 99999f;
-                    // TODO something to make it appear and act like the ghost is holding it
+                    BeginOtherPlayerControl();
                 }
             }
             else
@@ -567,7 +588,7 @@ namespace Celeste.Mod.CoopHelper.Entities
                         // Local player is holding but the remote doesn't know; ignore this update.
                         return;
                     }
-                    Hold.cannotHoldTimer = Hold.cannotHoldDelay;
+                    EndOtherPlayerControl();
                 }
             }
 
