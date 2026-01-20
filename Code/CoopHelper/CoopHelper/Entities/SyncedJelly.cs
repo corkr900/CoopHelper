@@ -486,8 +486,9 @@ namespace Celeste.Mod.CoopHelper.Entities
             Add(new Coroutine(DestroyAnimationRoutine()));
         }
 
-        private void BeginOtherPlayerControl()
+        private void BeginOtherPlayerControl(PlayerID controllingPlayer)
         {
+            holderID = controllingPlayer;
             bubble = false;
             Hold.cannotHoldTimer = 999999f;
             Visible = false;
@@ -576,7 +577,7 @@ namespace Celeste.Mod.CoopHelper.Entities
                 }
                 else  // Another player grabbed it
                 {
-                    BeginOtherPlayerControl();
+                    BeginOtherPlayerControl(sjs.Holder.Value);
                 }
             }
             else
