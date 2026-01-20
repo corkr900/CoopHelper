@@ -42,6 +42,7 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         private EntityID id;
         private PlayerID? holderID;
+        private bool IsHeldByOtherPlayer => holderID != null && !holderID.Value.Equals(PlayerID.MyID);
 
         public SyncedJelly(Vector2 position, bool bubble, bool tutorial, EntityID id) : base(position)
         {
@@ -419,9 +420,10 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         public override void OnSquish(CollisionData data)
         {
+            if (IsHeldByOtherPlayer) return;
             if (!TrySquishWiggle(data, 3, 3))
             {
-                RemoveSelf();
+                Destroy();
             }
         }
 
@@ -470,9 +472,10 @@ namespace Celeste.Mod.CoopHelper.Entities
             RemoveSelf();
         }
 
-        private void Destroy(bool suppressUpdate = false)
+        private void Destroy(bool remoteUpdate = false)
         {
             if (destroyed) return;
+            if (!remoteUpdate && IsHeldByOtherPlayer) return;
             destroyed = true;
             Collidable = false;
             if (Hold.IsHeld)
@@ -482,7 +485,7 @@ namespace Celeste.Mod.CoopHelper.Entities
                 Speed = speed2 * 0.333f;
                 Input.Rumble(RumbleStrength.Medium, RumbleLength.Medium);
             }
-            if (!suppressUpdate) EntityStateTracker.PostUpdate(this);
+            if (!remoteUpdate) EntityStateTracker.PostUpdate(this);
             Add(new Coroutine(DestroyAnimationRoutine()));
         }
 
