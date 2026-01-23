@@ -10,10 +10,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.RepresentationModel;
 
 namespace Celeste.Mod.CoopHelper.Entities
 {
     [CustomEntity("corkr900CoopHelper/SyncedJelly")]
+    [Tracked(true)]
     internal class SyncedJelly : Actor, ISynchronizable
     {
         public static ParticleType P_Glide => Glider.P_Glide;
@@ -32,22 +34,20 @@ namespace Celeste.Mod.CoopHelper.Entities
         private float noGravityTimer;
         private float highFrictionTimer;
         private bool bubble;
-        private bool tutorial;
         private bool destroyed;
         private Sprite sprite;
         private Wiggler wiggler;
         private SineWave platformSine;
         private SoundSource fallingSfx;
-        private BirdTutorialGui tutorialGui;
 
         private EntityID id;
         private PlayerID? holderID;
+        private TransitionListener transitionListener;
         private bool IsHeldByOtherPlayer => holderID != null && !holderID.Value.Equals(PlayerID.MyID);
 
-        public SyncedJelly(Vector2 position, bool bubble, bool tutorial, EntityID id) : base(position)
+        public SyncedJelly(Vector2 position, bool bubble, EntityID id) : base(position)
         {
             this.bubble = bubble;
-            this.tutorial = tutorial;
             startPos = Position;
             Collider = new Hitbox(8f, 10f, -4f, -10f);
             onCollideH = OnCollideH;
@@ -76,7 +76,7 @@ namespace Celeste.Mod.CoopHelper.Entities
         }
 
         public SyncedJelly(EntityData e, Vector2 offset)
-            : this(e.Position + offset, e.Bool("bubble"), e.Bool("tutorial"), new EntityID(e.Level.Name, e.ID))
+            : this(e.Position + offset, e.Bool("bubble"), new EntityID(e.Level.Name, e.ID))
         {
         }
 
@@ -84,11 +84,12 @@ namespace Celeste.Mod.CoopHelper.Entities
         {
             base.Added(scene);
             level = SceneAs<Level>();
-            if (tutorial)
-            {
-                tutorialGui = new BirdTutorialGui(this, new Vector2(0f, -24f), Dialog.Clean("tutorial_carry"), Dialog.Clean("tutorial_hold"), BirdTutorialGui.ButtonPrompt.Grab);
-                tutorialGui.Open = true;
-                Scene.Add(tutorialGui);
+            if (scene.Tracker.GetEntities<SyncedJelly>().FirstOrDefault(other
+                => other != this && other is SyncedJelly j && j.id.Equals(id)) is SyncedJelly sj)
+            {  // If another jelly with the same ID exists, remove this one and make the other post an update
+                RemoveSelf();
+                EntityStateTracker.PostUpdate(sj);
+                return;
             }
             EntityStateTracker.AddListener(this, false);
         }
@@ -272,10 +273,6 @@ namespace Celeste.Mod.CoopHelper.Entities
                 }
                 sprite.Scale.Y = Calc.Approach(sprite.Scale.Y, one.Y, Engine.DeltaTime * 2f);
                 sprite.Scale.X = Calc.Approach(sprite.Scale.X, Math.Sign(sprite.Scale.X) * one.X, Engine.DeltaTime * 2f);
-                if (tutorialGui != null)
-                {
-                    tutorialGui.Open = tutorial && !Hold.IsHeld && (OnGround(4) || bubble);
-                }
             }
             else
             {
@@ -394,7 +391,6 @@ namespace Celeste.Mod.CoopHelper.Entities
             highFrictionTimer = 0.5f;
             bubble = false;
             wiggler.Start();
-            tutorial = false;
             holderID = PlayerID.MyID;
             EntityStateTracker.PostUpdate(this);
         }
@@ -513,6 +509,20 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         ////////////////////////////////////////////////
 
+        private static bool StaticSyncHandler(EntityID id, object st)
+        {
+            // Create the jelly if it doesn't exist; it was probably unloaded due to screen transition.
+            if (st is not SyncedJellyState sjs) return false;
+            if (sjs.Destroyed) return true;
+            Level level = Engine.Scene as Level;
+            if (level == null) return true;
+            SyncedJelly jelly = new SyncedJelly(sjs.Position, false, id);
+            level.Add(jelly);
+            jelly.Speed = sjs.Speed;
+            jelly.holderID = sjs.Holder;
+            return true;
+        }
+
         public override void SceneEnd(Scene scene)
         {
             base.SceneEnd(scene);
@@ -529,7 +539,7 @@ namespace Celeste.Mod.CoopHelper.Entities
         {
             Header = Headers.SyncedJelly,
             Parser = ParseState,
-            StaticHandler = null,
+            StaticHandler = StaticSyncHandler,
             DiscardIfNoListener = false,
             DiscardDuplicates = false,
             Critical = false,
