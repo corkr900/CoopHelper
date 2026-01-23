@@ -104,7 +104,8 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool += OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine += OnLockBlockUnlockRoutine;
 			On.Celeste.LevelLoader.StartLevel += OnLevelLoaderStart;
-			On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
+            On.Celeste.TheoCrystal.Die += OnTheoCrystalDie;
+            On.Celeste.FallingBlock.PlayerFallCheck += OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine += OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer += OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break += OnTempleCrackedBlockBreak;
@@ -157,7 +158,8 @@ namespace Celeste.Mod.CoopHelper {
 			On.Celeste.DashBlock.Break_Vector2_Vector2_bool_bool -= OnDashBlockBreak;
 			On.Celeste.LockBlock.UnlockRoutine -= OnLockBlockUnlockRoutine;
 			On.Celeste.LevelLoader.StartLevel -= OnLevelLoaderStart;
-			On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
+            On.Celeste.TheoCrystal.Die -= OnTheoCrystalDie;
+            On.Celeste.FallingBlock.PlayerFallCheck -= OnFallingBlockPlayerCheck;
 			On.Celeste.AscendManager.Routine -= OnAscendManagerRoutine;
 			On.Celeste.CoreModeToggle.OnPlayer -= OnCoreModeTogglePlayer;
 			On.Celeste.TempleCrackedBlock.Break -= OnTempleCrackedBlockBreak;
@@ -652,6 +654,15 @@ namespace Celeste.Mod.CoopHelper {
         {
 			MapSync.TryDoSync(level);
         }
+
+		private void OnTheoCrystalDie(On.Celeste.TheoCrystal.orig_Die orig, TheoCrystal self)
+		{
+			if (self is SyncedTheoCrystal stc)
+			{
+				if (!stc.TryDie()) return;
+			}
+			orig(self);
+		}
 
         #endregion
     }
