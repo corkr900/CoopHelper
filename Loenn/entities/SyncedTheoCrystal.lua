@@ -26,4 +26,5 @@ function theoCrystal.sprite(room, entity)
     return sprite
 end
 
-return theoCrystal
+--return theoCrystal
+return nil  -- Not implemented yet :/

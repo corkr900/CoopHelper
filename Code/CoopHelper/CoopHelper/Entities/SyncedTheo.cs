@@ -34,6 +34,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             Hold.OnPickup = () =>
             {
                 orig_OnPickup();
+                RemoveTag(Tags.Persistent);
                 holderID = PlayerID.MyID;
                 EntityStateTracker.PostUpdate(this);
             };
@@ -112,19 +113,19 @@ namespace Celeste.Mod.CoopHelper.Entities
         {
             Actor_Added(scene);
             Level = SceneAs<Level>();
-            foreach (TheoCrystal entity in Level.Tracker.GetEntities<TheoCrystal>())
-            {
-                if (entity == this) continue;
-                if (entity.Hold.IsHeld || (entity is SyncedTheoCrystal tc && tc.id.Equals(id)))
-                {
-                    RemoveSelf();
-                    if (entity is SyncedTheoCrystal stcHeld)
-                    {
-                        EntityStateTracker.PostUpdate(stcHeld);
-                    }
-                    return;
-                }
-            }
+            //foreach (TheoCrystal entity in Level.Tracker.GetEntities<TheoCrystal>())
+            //{
+            //    if (entity == this) continue;
+            //    if (entity.Hold.IsHeld || (entity is SyncedTheoCrystal tc && tc.id.Equals(id)))
+            //    {
+            //        RemoveSelf();
+            //        if (entity is SyncedTheoCrystal stcHeld)
+            //        {
+            //            EntityStateTracker.PostUpdate(stcHeld);
+            //        }
+            //        return;
+            //    }
+            //}
             EntityStateTracker.AddListener(this, true);
         }
 
@@ -135,6 +136,7 @@ namespace Celeste.Mod.CoopHelper.Entities
         [MonoModLinkTo("Celeste.TheoCrystal", "System.Void Added(Monocle.Scene)")]
         public void Actor_Added(Scene scene)
         {
+            Engine.Commands.Log($"SyncedTheoCrystal - Actor_Added did not correctly rebind!");
             base.Added(scene);
         }
 

@@ -188,7 +188,8 @@ entities.corkr900CoopHelper/SyncedJelly.attributes.description.tutorial=Whether 
 
 # Synced Theo Crystal
 entities.corkr900CoopHelper/SyncedTheoCrystal.placements.name.theo_crystal=Synced Theo Crystal
-entities.corkr900CoopHelper/SyncedTheoCrystal.attributes.description.enforceBounds=Whether the player should be prevented from leaving the room without this crystal
+entities.corkr900CoopHelper/SyncedTheoCrystal.attributes.description.enforceBounds=[EXPERIMENTAL - strange behavior may occur] Whether the player should be prevented from leaving the room without this crystal
+entities.corkr900CoopHelper/SyncedTheoCrystal.attributes.description.deduplicate=[EXPERIMENTAL - strange behavior may occur] Whether the player should be prevented from leaving the room without this crystal
 
 # Synced Change Respawn Trigger
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
