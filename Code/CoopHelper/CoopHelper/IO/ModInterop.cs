@@ -135,5 +135,97 @@ namespace Celeste.Mod.CoopHelper.IO {
 		public static Monocle.Entity MakeSyncedEntity(EntityData data, Vector2 offset) {
 			return CoopHelperModule.Instance.CreateSyncedEntityFromVanillaData(data, offset);
 		}
-	}
+
+		/// <summary>
+		/// Checks whether we are currently in a co-op session (for a co-op map; does not include co-op everywhere)
+		/// </summary>
+		/// <returns><see langword="true" /> if we are currently in a session, else <see langword="false"/></returns>
+		public static bool IsInSession()
+		{
+			return CoopHelperModule.Session?.IsInCoopSession == true;
+        }
+
+        /// <summary>
+        /// Checks whether we are currently using co-op everywhere
+        /// </summary>
+        /// <returns><see langword="true" /> if we are currently using co-op everywhere, else <see langword="false"/></returns>
+        public static bool IsCoopEverywhereActive()
+		{
+			return CoopHelperModule.Session?.CoopEverywhere == true;
+		}
+
+		/// <summary>
+		/// Gets the serialized IDs of the players in the session.
+		/// Do not parse this yourself; use other interop functions to extract data about the player.
+		/// </summary>
+		/// <returns>An enumeration of the players in the session</returns>
+		public static IEnumerable<string> GetPlayersInSession()
+		{
+			if (CoopHelperModule.Session?.IsInCoopSession != true) yield break;
+			foreach (PlayerID playerId in CoopHelperModule.Session.SessionMembers) yield return playerId.SerializedID;
+		}
+
+		/// <summary>
+		/// Extracts the CelesteNet ID for a player from the Co-op ID.
+		/// Note that this will NOT get the most up-to-date ID if the serialized ID was fetched before the target player's last reconnection to the server.
+		/// </summary>
+		/// <param name="serializedPlayerId"></param>
+		/// <returns>The CelesteNet ID of the player, or <see cref="uint.MaxValue" /> if the CelesteNet ID is unknown or does not exist.</returns>
+		public static uint GetPlayerCnetId(string serializedPlayerId)
+		{
+			PlayerID? playerId = PlayerID.FromSerialized(serializedPlayerId);
+			if (playerId == null)
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to retrieve player CelesteNet ID. Could not deserialize CoopSessionID: '{serializedPlayerId ?? "null"}'");
+                return uint.MaxValue;
+			}
+			return playerId.Value.CNetID;
+		}
+
+		/// <summary>
+		/// Retrieves the SID of the current map of the given player.
+		/// If the given player or their current state is unknown, or they are in the overworld, this returns an empty string.
+		/// </summary>
+		/// <param name="serializedPlayerId">The serialized ID of the player</param>
+		/// <returns>The SID of the map the player is in, if known, otherwise empty string</returns>
+		public static string GetPlayerCurrentMap(string serializedPlayerId)
+        {
+            PlayerID? playerId = PlayerID.FromSerialized(serializedPlayerId);
+            if (playerId == null)
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to retrieve player current room. Could not deserialize CoopSessionID: '{serializedPlayerId ?? "null"}'");
+                return "";
+            }
+			PlayerState state = PlayerState.Get(playerId.Value);
+            if (state == null)
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to retrieve player current room. Player state is not known: '{serializedPlayerId ?? "null"}'");
+                return "";
+            }
+			return state.CurrentMap.SID;
+        }
+
+        /// <summary>
+        /// Retrieves the current room of the given player.
+        /// If the given player or their current state is unknown, or they are in the overworld, this returns an empty string.
+        /// </summary>
+        /// <param name="serializedPlayerId">The serialized ID of the player</param>
+        /// <returns>The room the player is in, if known, otherwise empty string</returns>
+        public static string GetPlayerCurrentRoom(string serializedPlayerId)
+        {
+            PlayerID? playerId = PlayerID.FromSerialized(serializedPlayerId);
+            if (playerId == null)
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to retrieve player current room. Could not deserialize CoopSessionID: '{serializedPlayerId ?? "null"}'");
+                return "";
+            }
+            PlayerState state = PlayerState.Get(playerId.Value);
+            if (state == null)
+            {
+                Logger.Log(LogLevel.Warn, "Co-op Helper", $"Failed to retrieve player current room. Player state is not known: '{serializedPlayerId ?? "null"}'");
+                return "";
+            }
+            return state.CurrentRoom;
+        }
+    }
 }

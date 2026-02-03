@@ -186,10 +186,14 @@ entities.corkr900CoopHelper/SyncedJelly.placements.name.floating=Synced Jellyfis
 entities.corkr900CoopHelper/SyncedJelly.attributes.description.bubble=Whether the entity should hover in the air before being grabbed.
 entities.corkr900CoopHelper/SyncedJelly.attributes.description.tutorial=Whether the entity should show the usage tutorial.
 
-# Synced Change Respawn
+# Synced Theo Crystal
+entities.corkr900CoopHelper/SyncedTheoCrystal.placements.name.theo_crystal=Synced Theo Crystal
+entities.corkr900CoopHelper/SyncedTheoCrystal.attributes.description.enforceBounds=Whether the player should be prevented from leaving the room without this crystal
+
+# Synced Change Respawn Trigger
 triggers.corkr900CoopHelper/SyncedChangeRespawnTrigger.placements.name.trigger=Synced Change Respawn
 
-# Synced Dialog Cutscene
+# Synced Dialog Cutscene Trigger
 triggers.corkr900CoopHelper/SyncedDialogCutscene.placements.name.dialog=Synced Dialog Cutscene
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.onlyOnce=Whether the dialogue should only trigger once.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.dialogId=The dialog ID to use for the dialogue.
@@ -197,7 +201,7 @@ triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.endLevel
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.deathCount=Determines the exact amount of deaths required to activate dialog trigger. Will always trigger if set to -1.
 triggers.corkr900CoopHelper/SyncedDialogCutscene.attributes.description.miniTextBox=Whether to use a mini textbox & allow the players to keep moving instead of a normal cutscene
 
-# Synced Dialog Cutscene
+# Synced Flag Trigger
 triggers.corkr900CoopHelper/SyncedFlagTrigger.placements.name.syncedFlag=Synced Flag
 triggers.corkr900CoopHelper/SyncedFlagTrigger.attributes.description.flag=The flag to set or unset
 triggers.corkr900CoopHelper/SyncedFlagTrigger.attributes.description.value=Check to enable the flag, uncheck to disable

@@ -57,9 +57,10 @@ namespace Celeste.Mod.CoopHelper {
 		private static Hook hook_SpikeInfo_OnPlayer;
 		private static Hook hook_Level_orig_LoadLevel;
 
-		private static ILHook hook_CrushBlock_AttackSequence;
+        private static ILHook hook_CrushBlock_AttackSequence;
+        private static ILHook hook_Level_EnforceBounds;
 
-		public CoopHelperModule() {
+        public CoopHelperModule() {
 			Instance = this;
 		}
 
@@ -90,8 +91,10 @@ namespace Celeste.Mod.CoopHelper {
 			// IL Hooks
 			MethodInfo m = typeof(CrushBlock).GetMethod("AttackSequence", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget();
 			hook_CrushBlock_AttackSequence = new ILHook(m, (il) => ILKevinCollide(m.DeclaringType.GetField("<>4__this"), il));
+			MethodInfo m_Level_EnforceBounds = typeof(Level).GetMethod("EnforceBounds", BindingFlags.Public | BindingFlags.Instance);
+			hook_Level_EnforceBounds = new ILHook(m_Level_EnforceBounds, ILLevelEnforceBounds);
 
-			On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
+            On.Celeste.Key.RegisterUsed += OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel += OnLevelLoad;
 			On.Celeste.Player.OnTransition += OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations += OnSpringCtor;
@@ -144,8 +147,11 @@ namespace Celeste.Mod.CoopHelper {
 			// IL Hooks
 			hook_CrushBlock_AttackSequence?.Dispose();
 			hook_CrushBlock_AttackSequence = null;
+			hook_Level_EnforceBounds?.Dispose();
+			hook_Level_EnforceBounds = null;
 
-			On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
+
+            On.Celeste.Key.RegisterUsed -= OnKeyRegisterUsed;
 			On.Celeste.Level.LoadLevel -= OnLevelLoad;
 			On.Celeste.Player.OnTransition -= OnPlayerTransition;
 			On.Celeste.Spring.ctor_EntityData_Vector2_Orientations -= OnSpringCtor;
@@ -299,11 +305,26 @@ namespace Celeste.Mod.CoopHelper {
 			}
 		}
 
-		#endregion
+		private static void ILLevelEnforceBounds(ILContext il) {
+			ILCursor cursor = new ILCursor(il);
+			if (cursor.TryGotoNext(MoveType.Before, instr => instr.Match(OpCodes.Stloc_2)))
+			{
+				cursor.EmitDelegate(CheckEnforceBoundsOnTheo);
+            }
+        }
 
-		#region Hooked Code + Event Handlers
+		public static TheoCrystal CheckEnforceBoundsOnTheo(TheoCrystal theo)
+		{
+			if (theo is not SyncedTheoCrystal stc) return theo;
+			if (stc.EnforceLevelBounds) return theo;
+			return null;
+        }
 
-		private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
+        #endregion
+
+        #region Hooked Code + Event Handlers
+
+        private bool OnLevelLoadEntity(Level level, LevelData levelData, Vector2 offset, EntityData data) {
 			if (!Session.CoopEverywhere) return false;
 			Entity e = CreateSyncedEntityFromVanillaData(data, offset);
 			if (e == null) return false;

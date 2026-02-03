@@ -22,7 +22,7 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			CoopHelperModuleSession ses = CoopHelperModule.Session;
 			float y = 0;
 
-			ActiveFont.DrawOutline(string.Format("Sent: {0} Packets, {1} Sync Updates",
+            ActiveFont.DrawOutline(string.Format("Sent: {0} Packets, {1} Sync Updates",
 					CNetComm.SentMsgs, EntityStateTracker.SentUpdates),
 				Vector2.UnitY * y, Vector2.Zero, Vector2.One / 2f, Color.White, 1f, Color.Black);
 			y += LineOffset;
@@ -33,8 +33,11 @@ namespace Celeste.Mod.CoopHelper.Entities {
 			ActiveFont.DrawOutline(string.Format("Listeners: {0}", EntityStateTracker.CurrentListeners),
 				Vector2.UnitY * y, Vector2.Zero, Vector2.One / 2f, Color.White, 1f, Color.Black);
 			y += LineOffset;
+            ActiveFont.DrawOutline(string.Format("Pending messages: {0}", EntityStateTracker.CountPendingUpdates()),
+                Vector2.UnitY * y, Vector2.Zero, Vector2.One / 2f, Color.White, 1f, Color.Black);
+            y += LineOffset;
 
-			bool inSession = ses?.IsInCoopSession ?? false;
+            bool inSession = ses?.IsInCoopSession ?? false;
 			ActiveFont.DrawOutline(string.Format("In Session: {0}", inSession),
 				Vector2.UnitY * y, Vector2.Zero, Vector2.One / 2f, Color.White, 1f, Color.Black);
 			y += LineOffset;

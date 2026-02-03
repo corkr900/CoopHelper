@@ -88,9 +88,10 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 		}
 		public int? MacAddressHash { get; private set; }
 		public string Name { get; private set; }
-		public uint CNetID { get; private set; }
+		public uint CNetID { get; private set; } = uint.MaxValue;
 
-		public string SerializedID {
+
+        public string SerializedID {
 			get => $"{MacAddressHash ?? -1}{SerializeDelim}{CNetID}{SerializeDelim}{Name}";
 		}
 

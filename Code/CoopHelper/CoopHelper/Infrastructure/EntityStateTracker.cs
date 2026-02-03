@@ -301,6 +301,13 @@ namespace Celeste.Mod.CoopHelper.Infrastructure {
 			listenersWithRecurringUpdate?.Clear();
 		}
 
+		internal static int CountPendingUpdates()
+		{
+			lock (incoming) {
+				return incoming.Count;
+            }
+        }
+
 		internal static void CheckRecurringUpdates() {
 			foreach (ISynchronizable listener in listenersWithRecurringUpdate.Values) {
 				if (listener.CheckRecurringUpdate()) PostUpdate(listener);

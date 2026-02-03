@@ -1,7 +1,9 @@
 ﻿using Celeste.Mod.CelesteNet;
 using Celeste.Mod.CoopHelper.Infrastructure;
+using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+using MonoMod;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,18 +14,20 @@ using static Celeste.LavaRect;
 namespace Celeste.Mod.CoopHelper.Entities
 {
     [TrackedAs(typeof(TheoCrystal))]
+    [CustomEntity("corkr900CoopHelper/SyncedTheoCrystal")]
     public class SyncedTheoCrystal : TheoCrystal, ISynchronizable
     {
+        public bool EnforceLevelBounds { get; private set; }
 
         private EntityID id;
         private PlayerID? holderID = null;
         private bool killedByOtherPlayer = false;
         private bool IsHeldByOtherPlayer => holderID != null && !holderID.Value.Equals(PlayerID.MyID);
 
-        public SyncedTheoCrystal(EntityData e, Vector2 offset)
-            : base(e.Position + offset)
+        public SyncedTheoCrystal(EntityID entityId, Vector2 position, bool enforceLevelBounds)
+            : base(position)
         {
-            id = new EntityID(e.Level.Name, e.ID);
+            id = entityId;
             Action orig_OnPickup = Hold.OnPickup;
             Hold.OnPickup = () =>
             {
@@ -38,7 +42,12 @@ namespace Celeste.Mod.CoopHelper.Entities
                 holderID = null;
                 EntityStateTracker.PostUpdate(this);
             };
+            EnforceLevelBounds = enforceLevelBounds;
         }
+
+        public SyncedTheoCrystal(EntityData e, Vector2 offset)
+            : this(new EntityID(e.Level.Name, e.ID), e.Position + offset, e.Bool("enforceBounds", false))
+        { }
 
         public override void OnSquish(CollisionData data)
         {
@@ -91,7 +100,31 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         public override void Added(Scene scene)
         {
-            EntityStateTracker.AddListener(this, false);
+            Actor_Added(scene);
+            Level = SceneAs<Level>();
+            foreach (TheoCrystal entity in Level.Tracker.GetEntities<TheoCrystal>())
+            {
+                if (entity == this) continue;
+                if (entity.Hold.IsHeld || (entity is SyncedTheoCrystal tc && tc.id.Equals(id)))
+                {
+                    RemoveSelf();
+                    if (entity is SyncedTheoCrystal stcHeld)
+                    {
+                        EntityStateTracker.PostUpdate(stcHeld);
+                    }
+                    return;
+                }
+            }
+            EntityStateTracker.AddListener(this, true);
+        }
+
+        /// <summary>
+        /// This exists to skip the TheoCrystal implementation of Added and go straight to Actor::Added
+        /// This skips the deduplication of theos
+        /// </summary>
+        [MonoModLinkTo("Celeste.TheoCrystal", "System.Void Added(Monocle.Scene)")]
+        public void Actor_Added(Scene scene)
+        {
             base.Added(scene);
         }
 
@@ -105,7 +138,7 @@ namespace Celeste.Mod.CoopHelper.Entities
         {
             Header = Headers.SyncedTheo,
             Parser = ParseState,
-            StaticHandler = null,
+            StaticHandler = StaticSyncHandler,
             DiscardIfNoListener = false,
             DiscardDuplicates = false,
             Critical = false,
@@ -118,6 +151,7 @@ namespace Celeste.Mod.CoopHelper.Entities
                 Position = r.ReadVector2(),
                 Speed = r.ReadVector2(),
                 Destroyed = r.ReadBoolean(),
+                EnforceBounds = r.ReadBoolean(),
                 Holder = r.ReadBoolean() ? r.ReadPlayerID() : null,
             };
         }
@@ -132,6 +166,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             w.Write(Position);
             w.Write(Speed);
             w.Write(dead);
+            w.Write(EnforceLevelBounds);
             if (holderID == null)
             {
                 w.Write(false);
@@ -185,7 +220,22 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         public bool CheckRecurringUpdate()
         {
-            throw new NotImplementedException();
+            // Always sync while being held so the other player doesn't get locked into the room
+            return Hold.IsHeld;
+        }
+
+        private static bool StaticSyncHandler(EntityID id, object st)
+        {
+            // Create the jelly if it doesn't exist; it was probably unloaded due to screen transition.
+            if (st is not SyncedTheoCrystalState stcs) return false;
+            if (stcs.Destroyed) return true;
+            Level level = Engine.Scene as Level;
+            if (level == null) return true;
+            SyncedTheoCrystal crystal = new SyncedTheoCrystal(id, stcs.Position, stcs.EnforceBounds);
+            level.Add(crystal);
+            crystal.Speed = stcs.Speed;
+            crystal.holderID = stcs.Holder;
+            return true;
         }
 
         private class SyncedTheoCrystalState
@@ -193,6 +243,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             public Vector2 Position;
             public Vector2 Speed;
             public bool Destroyed;
+            public bool EnforceBounds;
             public PlayerID? Holder;
         }
     }

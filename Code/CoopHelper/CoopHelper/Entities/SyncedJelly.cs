@@ -86,7 +86,9 @@ namespace Celeste.Mod.CoopHelper.Entities
             level = SceneAs<Level>();
             if (scene.Tracker.GetEntities<SyncedJelly>().FirstOrDefault(other
                 => other != this && other is SyncedJelly j && j.id.Equals(id)) is SyncedJelly sj)
-            {  // If another jelly with the same ID exists, remove this one and make the other post an update
+            {
+                // If another jelly with the same ID exists, remove this one and make the other post an update
+                // This would happen when this entity is carried out of the room and back in
                 RemoveSelf();
                 EntityStateTracker.PostUpdate(sj);
                 return;
