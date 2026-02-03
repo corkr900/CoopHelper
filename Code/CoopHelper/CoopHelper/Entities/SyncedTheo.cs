@@ -197,7 +197,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             {
                 if (holderID != null)  // The holder dropped it (probably)
                 {
-                    if (!holderID.Value.Equals(PlayerID.MyID))
+                    if (holderID.Value.Equals(PlayerID.MyID))
                     {
                         // Local player is holding but the remote doesn't know; ignore this update.
                         return;
