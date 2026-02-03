@@ -19,6 +19,8 @@ namespace Celeste.Mod.CoopHelper.Entities
     {
         public bool EnforceLevelBounds { get; private set; }
 
+        private float aliveTime = 0f;
+        private float lastRecurringUpdate = 0f;
         private EntityID id;
         private PlayerID? holderID = null;
         private bool killedByOtherPlayer = false;
@@ -71,6 +73,7 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         private void BeginOtherPlayerControl(PlayerID controllingPlayer)
         {
+            Engine.Commands.Log($"Beginning other player hold");
             holderID = controllingPlayer;
             Hold.cannotHoldTimer = 999999f;
             Visible = false;
@@ -80,6 +83,7 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         private void EndOtherPlayerControl()
         {
+            Engine.Commands.Log($"Ending other player hold");
             Hold.cannotHoldTimer = Hold.cannotHoldDelay;
             Visible = true;
             Collidable = true;
@@ -88,6 +92,12 @@ namespace Celeste.Mod.CoopHelper.Entities
             {
                 holderID = null;
             }
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            aliveTime += Engine.RawDeltaTime;
         }
 
         ////////////////////////////////////////////////
@@ -182,28 +192,30 @@ namespace Celeste.Mod.CoopHelper.Entities
         {
             if (state is not SyncedTheoCrystalState sjs) return;
 
-            if (sjs.Holder != null)
-            {
-                if (holderID != null)  // Conflict; drop it.
-                {
-                    holderID = null;
-                    Hold.Holder?.Drop();
-                }
-                else  // Another player grabbed it
-                {
-                    BeginOtherPlayerControl(sjs.Holder.Value);
-                }
-            }
-            else
+            Engine.Commands.Log($"Updated. is player holding: {sjs.Holder != null}");
+            if (sjs.Holder == null)
             {
                 if (holderID != null)  // The holder dropped it (probably)
                 {
-                    if (holderID.Value.Equals(PlayerID.MyID))
+                    if (!holderID.Value.Equals(PlayerID.MyID))
                     {
                         // Local player is holding but the remote doesn't know; ignore this update.
                         return;
                     }
                     EndOtherPlayerControl();
+                }
+            }
+            else if (!sjs.Holder.Equals(holderID))
+            {
+                if (Hold.IsHeld)
+                {
+                    // Conflict; I'm holding it but so is someone else. Just drop it
+                    holderID = null;
+                    Hold.Holder?.Drop();
+                }
+                else {
+                    // Another player has rightful control
+                    BeginOtherPlayerControl(sjs.Holder.Value);
                 }
             }
 
@@ -220,8 +232,13 @@ namespace Celeste.Mod.CoopHelper.Entities
 
         public bool CheckRecurringUpdate()
         {
-            // Always sync while being held so the other player doesn't get locked into the room
-            return Hold.IsHeld;
+            if (!Hold.IsHeld) return false;
+            if (lastRecurringUpdate < aliveTime - 0.25f)
+            {
+                lastRecurringUpdate = aliveTime;
+                return true;
+            }
+            return false;
         }
 
         private static bool StaticSyncHandler(EntityID id, object st)
