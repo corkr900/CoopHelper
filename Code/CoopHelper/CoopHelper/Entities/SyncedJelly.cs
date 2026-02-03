@@ -389,7 +389,7 @@ namespace Celeste.Mod.CoopHelper.Entities
             }
             AllowPushing = false;
             Speed = Vector2.Zero;
-            AddTag(Tags.Persistent);
+            //AddTag(Tags.Persistent);
             highFrictionTimer = 0.5f;
             bubble = false;
             wiggler.Start();
